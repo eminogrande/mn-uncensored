@@ -54,6 +54,9 @@ All notable changes to MN Uncensored are documented here.
 
 - Future GitHub releases now use the matching curated `CHANGELOG.md` section
   instead of publishing only automatically generated commit links.
+- Website releases now publish an append-only signed `gh-pages` commit and
+  signed tag atomically, explicitly request the classic Pages build, verify the
+  deployed commit and HTTP response, and only then create the GitHub release.
 
 ### Added
 

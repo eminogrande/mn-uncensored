@@ -131,6 +131,7 @@ git push --atomic origin \
 tag_pushed=true
 
 owner_repo="$(gh repo view --json nameWithOwner --jq .nameWithOwner)"
+gh api --method POST "repos/$owner_repo/pages/builds" >/dev/null
 build_verified=false
 for attempt in {1..36}; do
   latest_commit="$(
