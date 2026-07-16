@@ -28,8 +28,24 @@ http://127.0.0.1:4173/
 
 ## GitHub Pages
 
-The workflow in `.github/workflows/pages.yml` publishes this directory.
-GitHub Pages does not run the Modal deployment or model release scripts.
+GitHub Pages publishes the root of the `gh-pages` branch. The signed deployment
+command is:
+
+```sh
+./scripts/deploy-website.sh website-vX.Y.Z
+```
+
+The command requires a clean, SSH-signed `main`, runs the complete test suite
+and secret scan, creates a signed commit on `gh-pages`, pushes it, and requests
+a classic GitHub Pages build. It then creates a signed tag and GitHub release
+from `website/releases/website-vX.Y.Z.md`. It never imports the Modal
+application, deploys a model, wakes an endpoint, or starts a GPU.
+
+The repository originally included a GitHub Actions Pages workflow. GitHub
+refused to start that job because the account was locked for a billing issue,
+so Pages now deliberately uses the branch-based deployment that has been
+verified to work. This also prevents future `main` pushes from creating a
+known-failing Actions run.
 
 Initial URL:
 
@@ -74,6 +90,25 @@ headers. A future Cloudflare layer in front of `abliterated.cloud` can provide:
 
 The repository already publishes explicit Markdown alternatives so agents do
 not need to scrape the visual page.
+
+The static site also publishes truthful discovery resources at the paths used
+by current agent tooling:
+
+- `/.well-known/api-catalog`
+- `/.well-known/agent-skills/index.json`
+- `/.well-known/skills/index.json` for legacy clients
+- `/auth.md`
+- `/openapi.json`
+
+These resources resolve at the origin root after `abliterated.cloud` becomes
+the Pages custom domain. The temporary project Pages URL cannot control the
+root of `eminogrande.github.io`, which is why origin-based scanners cannot
+award the final root-level checks there.
+
+The extensionless API catalog follows RFC 9727's Linkset JSON structure.
+GitHub Pages may serve extensionless files with a generic media type; the
+future custom-domain edge layer should explicitly return
+`application/linkset+json`.
 
 ## Performance budget
 

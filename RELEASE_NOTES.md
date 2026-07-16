@@ -16,9 +16,10 @@ Initial open-source GitHub Pages release.
 - Open Graph image, favicon, manifest, canonical URL, structured JSON-LD,
   semantic headings, FAQ markup, sitemap, and crawler policy.
 - Agent resources: `index.md`, `llms.txt`, `llms-full.txt`, `auth.md`,
-  OpenAPI, API catalog, security contact, and an Agent Skill.
-- GitHub Pages Actions deployment isolated from Modal and model-release
-  workflows.
+  OpenAPI, extensionless API catalog, security contact, and versioned and
+  legacy Agent Skill discovery indexes.
+- Signed branch-based GitHub Pages deployment isolated from Modal and
+  model-release workflows.
 - Automated checks for metadata, structured data, internal resources,
   WhatsApp links, secret safety, runtime dependencies, and payload budgets.
 
@@ -31,6 +32,9 @@ Initial open-source GitHub Pages release.
 - Initial HTML, CSS, JavaScript, logo, and favicon total less than 125 KB.
 - No analytics, third-party runtime resources, webfonts, API polling, or Modal
   calls are loaded by the homepage.
+- The Pages deployment was built successfully from a signed `gh-pages` commit.
+- The custom Actions workflow was removed after GitHub refused to start it due
+  to an account billing lock; the verified classic Pages build is used instead.
 
 ### Domain
 
