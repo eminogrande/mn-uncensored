@@ -12,6 +12,8 @@ All notable changes to MN Uncensored are documented here.
   whenever automatic mode is armed; failures leave the route hard-stopped.
 - Reduced backend and gateway cold-start timeouts from 90/45 minutes to
   30 minutes.
+- Register public read-only WebMCP tools in the loaded landing page instead of
+  publishing only the static WebMCP manifest.
 
 ### Security
 

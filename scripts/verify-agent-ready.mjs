@@ -96,6 +96,10 @@ async function verifyLocal() {
   assert(oauth.json?.agent_auth?.skill?.endsWith("/auth.md"), "OAuth discovery has no agent auth skill");
   const skillIndex = await getJson("/.well-known/agent-skills/index.json");
   assert(skillIndex.json?.skills?.length > 0, "Agent skill index is empty");
+  const webMcpScript = await fetch(new URL("/app.js", target));
+  const webMcpSource = await webMcpScript.text();
+  assert(webMcpSource.includes("navigator.modelContext"), "WebMCP document registration is missing");
+  assert(webMcpSource.includes("registerTool.call"), "WebMCP tool registration call is missing");
 
   const initialize = await getJson("/mcp", {
     method: "POST",

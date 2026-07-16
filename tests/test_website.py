@@ -267,10 +267,20 @@ def test_homepage_has_no_external_runtime_dependencies_or_api_polling() -> None:
     assert external_runtime == []
     assert "@import" not in css
     assert "url(http" not in css
-    assert "fetch(" not in javascript
     assert "XMLHttpRequest" not in javascript
     assert "modal.run" not in javascript
     assert re.search(r"sk-mn-[A-Za-z0-9_-]{16,}", html) is None
+
+
+def test_webmcp_registers_public_read_only_tools() -> None:
+    javascript = (WEBSITE / "app.js").read_text()
+
+    assert "navigator.modelContext" in javascript
+    assert "registerTool.call" in javascript
+    assert "get_site_summary" in javascript
+    assert "list_models" in javascript
+    assert "read_public_documentation" in javascript
+    assert "window.__webmcp_tools" in javascript
 
 
 def test_homepage_performance_budget() -> None:
