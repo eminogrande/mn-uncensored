@@ -28,7 +28,7 @@ SERVED_MODEL_NAME = os.getenv(
 
 GPU_TYPE = os.getenv("GPU_TYPE", "H200").upper()
 GPU_COUNT = int(os.getenv("GPU_COUNT", "2"))
-MAX_MODEL_LEN = int(os.getenv("MAX_MODEL_LEN", "32768"))
+MAX_MODEL_LEN = int(os.getenv("MAX_MODEL_LEN", "65536"))
 GPU_MEMORY_UTILIZATION = float(os.getenv("GPU_MEMORY_UTILIZATION", "0.90"))
 
 FAST_BOOT = env_bool("FAST_BOOT", True)
@@ -37,7 +37,7 @@ QUANTIZATION = os.getenv("QUANTIZATION", "").strip()
 HF_SECRET_NAME = os.getenv("HF_SECRET_NAME", "").strip()
 
 MAX_CONTAINERS = int(os.getenv("MAX_CONTAINERS", "1"))
-SCALEDOWN_WINDOW_SECONDS = int(os.getenv("SCALEDOWN_WINDOW_SECONDS", "300"))
+SCALEDOWN_WINDOW_SECONDS = int(os.getenv("SCALEDOWN_WINDOW_SECONDS", "600"))
 TARGET_CONCURRENCY = int(os.getenv("TARGET_CONCURRENCY", "1"))
 ROUTING_REGION = os.getenv("ROUTING_REGION", "eu-west")
 
@@ -62,6 +62,8 @@ vllm_image = (
     .env(
         {
             "HF_HUB_CACHE": "/root/.cache/huggingface",
+            "HF_HUB_DISABLE_TELEMETRY": "1",
+            "HF_HUB_OFFLINE": "1",
             "HF_XET_HIGH_PERFORMANCE": "1",
             "VLLM_LOG_STATS_INTERVAL": "10",
         }

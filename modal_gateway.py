@@ -10,6 +10,8 @@ STATE_DICT_NAME = "nuri-api-state"
 BACKEND_URL = (
     "https://eminhenri--nuri-ornith-397b-vllmserver.eu-west.modal.direct"
 )
+CONTEXT_WINDOW = 65536
+MAX_OUTPUT_TOKENS = 8192
 MODEL = "nuri/ornith-397b-abliterated"
 
 image = (
@@ -25,7 +27,7 @@ app = modal.App(APP_NAME)
 @app.function(
     image=image,
     secrets=[backend_proxy],
-    timeout=60 * 60,
+    timeout=2 * 60 * 60,
     scaledown_window=60,
     min_containers=0,
     max_containers=2,
@@ -38,6 +40,8 @@ def api():
     return create_app(
         state=state,
         backend_url=BACKEND_URL,
+        context_window=CONTEXT_WINDOW,
+        max_output_tokens=MAX_OUTPUT_TOKENS,
         model=MODEL,
         proxy_key=os.environ["MODAL_PROXY_KEY"],
         proxy_secret=os.environ["MODAL_PROXY_SECRET"],

@@ -14,8 +14,11 @@ CONFIG_PATH = PROJECT_ROOT / "config" / "mn.json"
 class Settings:
     app_name: str
     backend_url: str
+    context_window: int
     gateway_url: str
     gpu_hourly_usd: float
+    idle_shutdown_seconds: int
+    max_output_tokens: int
     model: str
     server_name: str
     state_dict: str
@@ -33,8 +36,11 @@ def load_settings() -> Settings:
     return Settings(
         app_name=data["app_name"],
         backend_url=data["backend_url"].rstrip("/"),
+        context_window=int(data["context_window"]),
         gateway_url=gateway_url,
         gpu_hourly_usd=float(data["gpu_hourly_usd"]),
+        idle_shutdown_seconds=int(data["idle_shutdown_seconds"]),
+        max_output_tokens=int(data["max_output_tokens"]),
         model=data["model"],
         server_name=data["server_name"],
         state_dict=data["state_dict"],

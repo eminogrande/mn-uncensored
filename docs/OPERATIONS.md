@@ -14,9 +14,14 @@ Hermes / Pi / OpenCode / Cursor / friends
   vLLM Server: 1 container, 2 x H200
 ```
 
-The gateway is cheap and may scale to zero independently. It reads the desired
-model state before forwarding. Only the local `mn start` command changes the
-backend to `min_containers=1`.
+The gateway is cheap and may scale to zero independently. In the recommended
+`auto` state, the first authenticated model request triggers the GPU cold start,
+waits through Modal's temporary 503 responses, and then retries the original
+request. The backend shuts down after 10 idle minutes.
+
+The vLLM server exposes a 65,536-token context. Hermes 0.18.2 enforces a
+64,000-token minimum for known custom models, so the gateway and Hermes provider
+must never advertise a larger context than the backend actually serves.
 
 ## Initial setup
 
@@ -58,7 +63,33 @@ mn token create owner
 
 ## Normal operation
 
-Start and wait for readiness:
+Enable automatic operation:
+
+```sh
+mn auto
+```
+
+This sets:
+
+```text
+min_containers=0
+max_containers=1
+target_concurrency=1
+scaledown_window=600
+```
+
+Hermes, Pi, and OpenCode launchers call the authenticated `/wake` endpoint
+before opening the agent:
+
+```sh
+mn launch hermes
+```
+
+The Hermes launcher persists only non-secret provider metadata in the existing
+Hermes config. It passes `MN_API_TOKEN` and the 45-minute cold-start timeouts in
+the child process environment.
+
+For a temporarily permanent warm replica, start and wait for readiness:
 
 ```sh
 mn start
@@ -73,7 +104,7 @@ target_concurrency=1
 scaledown_window=300
 ```
 
-Stop:
+Hard stop:
 
 ```sh
 mn stop
@@ -86,6 +117,11 @@ min_containers=0
 max_containers=1
 scaledown_window=2
 ```
+
+It also terminates any running or pending container belonging to the model app
+and waits up to 30 seconds for the container list to clear.
+
+Return to automatic behavior with `mn auto`.
 
 Check state:
 
@@ -118,7 +154,7 @@ a deployment until `mn start` is run.
 
 ## Verification
 
-While stopped:
+While hard-stopped:
 
 ```sh
 curl -i "$MN_GATEWAY_URL/v1/models" \
@@ -132,6 +168,10 @@ curl -i "$MN_GATEWAY_URL/v1/chat/completions" \
 
 The model list should return 200. A completion should return a structured 503
 with code `model_stopped` and must not start a GPU.
+
+In auto mode, the first completion is held by the gateway while the backend
+starts, then retried. The gateway and Hermes timeouts are 45 minutes, which is
+above the observed roughly 20-minute cached cold start.
 
 After `mn start`, run:
 

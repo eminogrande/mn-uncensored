@@ -4,6 +4,28 @@ All notable changes to MN Uncensored are documented here.
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-07-16
+
+### Added
+
+- API-triggered cold starts with gateway-side waiting through Modal 503s.
+- Ten-minute idle GPU shutdown through `mn auto`.
+- Authenticated `/wake` endpoint used automatically by agent launchers.
+- Named Hermes custom provider with remote-endpoint timeout hardening.
+- 65,536-token backend context required by Hermes Agent.
+- Immediate termination of running or pending model containers on hard stop.
+
+### Changed
+
+- Automatic mode is now the recommended default; manual warm and hard-stop
+  modes remain available.
+- Hugging Face Hub runs offline against the completed persistent model cache.
+
+### Security
+
+- Cold-start polling rechecks hard-stop state before every probe and retry.
+- Application-level 503 responses are no longer mistaken for Modal cold starts.
+
 ## [0.1.0] - 2026-07-16
 
 ### Added

@@ -9,7 +9,7 @@ from typing import Any
 
 import httpx
 from fastapi import Depends, FastAPI, HTTPException, Request, status
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.responses import JSONResponse, Response, StreamingResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from starlette.background import BackgroundTask
 from starlette.middleware.trustedhost import TrustedHostMiddleware
@@ -18,6 +18,8 @@ from .security import token_key
 
 
 MAX_REQUEST_BYTES = 16 * 1024 * 1024
+AUTO_START_TIMEOUT_SECONDS = 45 * 60
+AUTO_START_POLL_SECONDS = 5
 FORWARDED_REQUEST_HEADERS = {"accept", "content-type", "user-agent"}
 FORWARDED_RESPONSE_HEADERS = {
     "cache-control",
@@ -46,6 +48,8 @@ def create_app(
     *,
     state: Any,
     backend_url: str,
+    context_window: int,
+    max_output_tokens: int,
     model: str,
     proxy_key: str,
     proxy_secret: str,
@@ -146,7 +150,7 @@ def create_app(
         return {
             "model": model,
             "state": desired_state,
-            "ready": desired_state == "started",
+            "ready": True if desired_state == "started" else None,
         }
 
     @app.get("/v1/models", dependencies=[Depends(authenticate)])
@@ -158,6 +162,9 @@ def create_app(
                     "id": model,
                     "object": "model",
                     "created": 0,
+                    "context_length": context_window,
+                    "max_model_len": context_window,
+                    "max_output_tokens": max_output_tokens,
                     "owned_by": "mn",
                 }
             ],
@@ -174,6 +181,79 @@ def create_app(
         async for chunk in response.aiter_raw():
             yield chunk
 
+    def backend_headers(request_id: str | None = None) -> dict[str, str]:
+        headers = {
+            "Modal-Key": proxy_key,
+            "Modal-Secret": proxy_secret,
+        }
+        if request_id:
+            headers["X-Request-ID"] = request_id
+        return headers
+
+    async def wait_for_backend(client: httpx.AsyncClient) -> str:
+        deadline = asyncio.get_running_loop().time() + AUTO_START_TIMEOUT_SECONDS
+        while asyncio.get_running_loop().time() < deadline:
+            desired_state = await state_get(state, "desired_state", "stopped")
+            if desired_state in {"stopped", "stopping"}:
+                return "stopped"
+            try:
+                response = await client.get(
+                    f"{backend_url}/health",
+                    headers=backend_headers(),
+                    timeout=60,
+                )
+            except httpx.HTTPError:
+                response = None
+            if response is not None and response.status_code == 200:
+                desired_state = await state_get(state, "desired_state", "stopped")
+                return (
+                    "ready"
+                    if desired_state not in {"stopped", "stopping"}
+                    else "stopped"
+                )
+            await asyncio.sleep(AUTO_START_POLL_SECONDS)
+        return "timeout"
+
+    @app.post("/wake", dependencies=[Depends(authenticate)])
+    async def wake() -> JSONResponse:
+        desired_state = await state_get(state, "desired_state", "stopped")
+        if desired_state in {"stopped", "stopping"}:
+            return JSONResponse(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                content=error_payload(
+                    "MN Uncensored is hard-stopped. Run `mn auto` first.",
+                    "service_unavailable",
+                    "model_stopped",
+                ),
+            )
+        client = httpx.AsyncClient(
+            timeout=httpx.Timeout(connect=30, read=60, write=60, pool=30),
+            follow_redirects=False,
+        )
+        try:
+            result = await wait_for_backend(client)
+        finally:
+            await client.aclose()
+        if result == "stopped":
+            return JSONResponse(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                content=error_payload(
+                    "MN Uncensored was stopped while starting.",
+                    "service_unavailable",
+                    "model_stopped",
+                ),
+            )
+        if result != "ready":
+            return JSONResponse(
+                status_code=status.HTTP_504_GATEWAY_TIMEOUT,
+                content=error_payload(
+                    "The model did not become ready within 45 minutes.",
+                    "api_connection_error",
+                    "model_start_timeout",
+                ),
+            )
+        return JSONResponse({"status": "ready", "model": model})
+
     @app.api_route(
         "/v1/{path:path}",
         methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
@@ -181,11 +261,10 @@ def create_app(
     )
     async def proxy(path: str, request: Request) -> StreamingResponse:
         desired_state = await state_get(state, "desired_state", "stopped")
-        if desired_state != "started":
+        if desired_state in {"stopped", "stopping"}:
             state_message = {
-                "starting": "MN Uncensored is still starting.",
                 "stopping": "MN Uncensored is stopping.",
-                "stopped": "MN Uncensored is stopped. Run `mn start`.",
+                "stopped": "MN Uncensored is stopped. Run `mn auto` or `mn start`.",
             }.get(desired_state, "MN Uncensored is unavailable.")
             return JSONResponse(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -232,11 +311,7 @@ def create_app(
             if key.lower() in FORWARDED_REQUEST_HEADERS
         }
         headers.update(
-            {
-                "Modal-Key": proxy_key,
-                "Modal-Secret": proxy_secret,
-                "X-Request-ID": request_id,
-            }
+            backend_headers(request_id)
         )
 
         client = httpx.AsyncClient(
@@ -262,6 +337,82 @@ def create_app(
                     "backend_unreachable",
                 ),
             )
+
+        cold_start_body = b""
+        is_modal_cold_start = False
+        if upstream.status_code == 503 and desired_state in {
+            "auto",
+            "started",
+            "starting",
+        }:
+            cold_start_body = await upstream.aread()
+            is_modal_cold_start = not cold_start_body
+            if cold_start_body:
+                response_headers = {
+                    key: value
+                    for key, value in upstream.headers.items()
+                    if key.lower() in FORWARDED_RESPONSE_HEADERS
+                }
+                await upstream.aclose()
+                await client.aclose()
+                return Response(
+                    content=cold_start_body,
+                    status_code=upstream.status_code,
+                    headers=response_headers,
+                )
+        if is_modal_cold_start:
+            await upstream.aclose()
+            wait_result = await wait_for_backend(client)
+            if wait_result == "stopped":
+                await client.aclose()
+                return JSONResponse(
+                    status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                    content=error_payload(
+                        "MN Uncensored was stopped while starting.",
+                        "service_unavailable",
+                        "model_stopped",
+                    ),
+                )
+            if wait_result != "ready":
+                await client.aclose()
+                return JSONResponse(
+                    status_code=status.HTTP_504_GATEWAY_TIMEOUT,
+                    content=error_payload(
+                        "The model did not become ready within 45 minutes.",
+                        "api_connection_error",
+                        "model_start_timeout",
+                    ),
+                )
+            latest_state = await state_get(state, "desired_state", "stopped")
+            if latest_state in {"stopped", "stopping"}:
+                await client.aclose()
+                return JSONResponse(
+                    status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                    content=error_payload(
+                        "MN Uncensored was stopped while starting.",
+                        "service_unavailable",
+                        "model_stopped",
+                    ),
+                )
+            retry_request = client.build_request(
+                request.method,
+                f"{backend_url}/v1/{path}",
+                params=request.query_params,
+                headers=headers,
+                content=body,
+            )
+            try:
+                upstream = await client.send(retry_request, stream=True)
+            except httpx.HTTPError:
+                await client.aclose()
+                return JSONResponse(
+                    status_code=status.HTTP_502_BAD_GATEWAY,
+                    content=error_payload(
+                        "The model backend could not be reached after startup.",
+                        "api_connection_error",
+                        "backend_unreachable",
+                    ),
+                )
 
         response_headers = {
             key: value

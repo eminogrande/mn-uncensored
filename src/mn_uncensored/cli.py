@@ -81,6 +81,59 @@ def set_desired_state(state: modal.Dict, value: str) -> None:
     state.put("state_updated_at", datetime.now(UTC).isoformat())
 
 
+def modal_cli_path() -> str:
+    project_cli = PROJECT_ROOT / ".venv" / "bin" / "modal"
+    if project_cli.exists():
+        return str(project_cli)
+    executable = shutil.which("modal")
+    if not executable:
+        fail("The Modal CLI is not installed or not on PATH.")
+    return executable
+
+
+def backend_container_ids(settings: Settings) -> list[str]:
+    result = subprocess.run(
+        [modal_cli_path(), "container", "list", "--json"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0:
+        fail("Could not list Modal containers; gateway remains fail-closed.")
+    try:
+        containers = json.loads(result.stdout)
+    except json.JSONDecodeError:
+        fail("Modal returned an invalid container list; gateway remains fail-closed.")
+    return [
+        container["container_id"]
+        for container in containers
+        if container.get("app_name") == settings.app_name
+        and isinstance(container.get("container_id"), str)
+    ]
+
+
+def terminate_backend_containers(settings: Settings) -> None:
+    for container_id in backend_container_ids(settings):
+        result = subprocess.run(
+            [modal_cli_path(), "container", "stop", container_id, "--yes"],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        if result.returncode != 0:
+            fail(
+                f"Could not terminate Modal container `{container_id}`; "
+                "gateway remains fail-closed."
+            )
+
+    deadline = time.monotonic() + 30
+    while time.monotonic() < deadline:
+        if not backend_container_ids(settings):
+            return
+        time.sleep(2)
+    fail("Backend containers are still visible after 30 seconds; retry `mn stop`.")
+
+
 def command_start(args: argparse.Namespace, settings: Settings) -> None:
     state = state_dict(settings)
     current = state.get("desired_state", "stopped")
@@ -101,7 +154,7 @@ def command_start(args: argparse.Namespace, settings: Settings) -> None:
             scaledown_window=300,
         )
     except Exception:
-        set_desired_state(state, "stopped")
+        set_desired_state(state, current)
         raise
 
     timeout_seconds = args.timeout * 60
@@ -153,11 +206,32 @@ def command_stop(_args: argparse.Namespace, settings: Settings) -> None:
             scaledown_window=2,
         )
     except Exception:
-        set_desired_state(state, "started")
+        print(
+            "Gateway remains fail-closed in `stopping`; retry `mn stop`.",
+            file=sys.stderr,
+        )
         raise
+    terminate_backend_containers(settings)
     set_desired_state(state, "stopped")
     print("Stopped accepting API requests.")
     print("The H200 pair is scaling down now; no client can wake it through the gateway.")
+
+
+def command_auto(_args: argparse.Namespace, settings: Settings) -> None:
+    state = state_dict(settings)
+    server = modal.Server.from_name(settings.app_name, settings.server_name)
+    server.update_autoscaler(
+        target_concurrency=1,
+        min_containers=0,
+        max_containers=1,
+        scaledown_window=settings.idle_shutdown_seconds,
+    )
+    set_desired_state(state, "auto")
+    print("Auto mode enabled.")
+    print(
+        "The first API request starts the model; it scales to zero after "
+        f"{settings.idle_shutdown_seconds // 60} idle minutes."
+    )
 
 
 def command_status(_args: argparse.Namespace, settings: Settings) -> None:
@@ -168,6 +242,7 @@ def command_status(_args: argparse.Namespace, settings: Settings) -> None:
     print(f"Model: {settings.model}")
     print(f"Last change: {updated_at}")
     print(f"GPU ceiling: 1 pair (2 x H200, ~${settings.gpu_hourly_usd:.2f}/hour)")
+    print(f"Auto idle shutdown: {settings.idle_shutdown_seconds // 60} minutes")
 
     if desired_state == "started":
         try:
@@ -274,12 +349,32 @@ def owner_token() -> str:
     return keychain_password(OWNER_KEYCHAIN_SERVICE)
 
 
-def require_ready(settings: Settings) -> None:
+def require_launch_allowed(settings: Settings) -> str:
     if not settings.api_base_url:
         fail("The API gateway has not been deployed yet.")
     desired_state = state_dict(settings).get("desired_state", "stopped")
-    if desired_state != "started":
-        fail(f"MN Uncensored is `{desired_state}`. Run `mn start` first.")
+    if desired_state not in {"auto", "started"}:
+        fail(f"MN Uncensored is `{desired_state}`. Run `mn auto` or `mn start` first.")
+    return desired_state
+
+
+def wake_model(settings: Settings, token: str) -> None:
+    print("Waking MN Uncensored if needed; a cold start can take about 20 minutes...")
+    try:
+        response = httpx.post(
+            f"{settings.gateway_url}/wake",
+            headers={"Authorization": f"Bearer {token}"},
+            timeout=45 * 60,
+        )
+    except httpx.HTTPError as error:
+        fail(f"Could not wake the model ({error.__class__.__name__}).")
+    if response.status_code != 200:
+        try:
+            message = response.json()["error"]["message"]
+        except (KeyError, TypeError, ValueError):
+            message = f"HTTP {response.status_code}"
+        fail(f"Could not wake the model: {message}")
+    print("Model ready.")
 
 
 def exec_tool(command: list[str], environment: dict[str, str]) -> NoReturn:
@@ -292,18 +387,47 @@ def exec_tool(command: list[str], environment: dict[str, str]) -> NoReturn:
 
 
 def launch_hermes(args: list[str], settings: Settings, token: str) -> NoReturn:
+    hermes = shutil.which("hermes")
+    if not hermes:
+        fail("`hermes` is not installed or not on PATH.")
+    provider_values = {
+        "api": settings.api_base_url,
+        "key_env": "MN_API_TOKEN",
+        "transport": "chat_completions",
+        "default_model": settings.model,
+        "context_length": str(settings.context_window),
+        "request_timeout_seconds": "2700",
+        "stale_timeout_seconds": "2700",
+    }
+    for key, value in provider_values.items():
+        result = subprocess.run(
+            [
+                hermes,
+                "config",
+                "set",
+                f"providers.mn-uncensored.{key}",
+                value,
+            ],
+            check=False,
+        )
+        if result.returncode != 0:
+            fail(f"Could not configure Hermes provider field `{key}`.")
+
     environment = os.environ.copy()
     environment.update(
         {
-            "OPENAI_API_KEY": token,
-            "OPENAI_BASE_URL": settings.api_base_url,
+            "MN_API_TOKEN": token,
+            "HERMES_API_TIMEOUT": "2700",
+            "HERMES_STREAM_READ_TIMEOUT": "2700",
+            "HERMES_STREAM_STALE_TIMEOUT": "2700",
+            "HERMES_API_CALL_STALE_TIMEOUT": "2700",
         }
     )
     exec_tool(
         [
             "hermes",
             "--provider",
-            "custom",
+            "custom:mn-uncensored",
             "--model",
             settings.model,
             "--tui",
@@ -350,7 +474,10 @@ def launch_opencode(args: list[str], settings: Settings, token: str) -> NoReturn
                 "models": {
                     settings.model: {
                         "name": "MN Ornith 397B Abliterated",
-                        "limit": {"context": 32768, "output": 8192},
+                        "limit": {
+                            "context": settings.context_window,
+                            "output": settings.max_output_tokens,
+                        },
                     }
                 },
             }
@@ -367,8 +494,10 @@ def launch_opencode(args: list[str], settings: Settings, token: str) -> NoReturn
 
 
 def command_launch(args: argparse.Namespace, settings: Settings) -> None:
-    require_ready(settings)
+    desired_state = require_launch_allowed(settings)
     token = owner_token()
+    if desired_state == "auto":
+        wake_model(settings, token)
     launchers = {
         "hermes": launch_hermes,
         "pi": launch_pi,
@@ -397,14 +526,15 @@ def interactive_menu(settings: Settings) -> None:
         print("MN Uncensored")
         print(f"Model state: {desired_state}")
         print("1. Start")
-        print("2. Stop")
-        print("3. Status")
-        print("4. Launch Hermes")
-        print("5. Launch Pi")
-        print("6. Launch OpenCode")
-        print("7. Create API token")
-        print("8. Revoke API token")
-        print("9. Show API details")
+        print("2. Auto mode")
+        print("3. Stop")
+        print("4. Status")
+        print("5. Launch Hermes")
+        print("6. Launch Pi")
+        print("7. Launch OpenCode")
+        print("8. Create API token")
+        print("9. Revoke API token")
+        print("10. Show API details")
         print("0. Exit")
         choice = input("> ").strip()
 
@@ -413,22 +543,24 @@ def interactive_menu(settings: Settings) -> None:
         if choice == "1":
             command_start(argparse.Namespace(timeout=90), settings)
         elif choice == "2":
-            command_stop(argparse.Namespace(), settings)
+            command_auto(argparse.Namespace(), settings)
         elif choice == "3":
+            command_stop(argparse.Namespace(), settings)
+        elif choice == "4":
             command_status(argparse.Namespace(), settings)
-        elif choice in {"4", "5", "6"}:
-            tool = {"4": "hermes", "5": "pi", "6": "opencode"}[choice]
+        elif choice in {"5", "6", "7"}:
+            tool = {"5": "hermes", "6": "pi", "7": "opencode"}[choice]
             command_launch(
                 argparse.Namespace(tool=tool, tool_args=[]),
                 settings,
             )
-        elif choice == "7":
-            name = input("Token name: ").strip()
-            command_token_create(argparse.Namespace(name=name), settings)
         elif choice == "8":
             name = input("Token name: ").strip()
-            command_token_revoke(argparse.Namespace(name=name), settings)
+            command_token_create(argparse.Namespace(name=name), settings)
         elif choice == "9":
+            name = input("Token name: ").strip()
+            command_token_revoke(argparse.Namespace(name=name), settings)
+        elif choice == "10":
             command_api(argparse.Namespace(), settings)
         else:
             print("Unknown choice.")
@@ -450,6 +582,10 @@ def build_parser() -> argparse.ArgumentParser:
     )
 
     subparsers.add_parser("stop", help="Stop accepting traffic and scale GPUs down")
+    subparsers.add_parser(
+        "auto",
+        help="Wake on the first API call and shut down after idle time",
+    )
     subparsers.add_parser("status", help="Show model and endpoint status")
     subparsers.add_parser("api", help="Show OpenAI-compatible API settings")
 
@@ -480,6 +616,8 @@ def main() -> None:
         command_start(args, settings)
     elif args.command == "stop":
         command_stop(args, settings)
+    elif args.command == "auto":
+        command_auto(args, settings)
     elif args.command == "status":
         command_status(args, settings)
     elif args.command == "api":

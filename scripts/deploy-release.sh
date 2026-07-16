@@ -22,9 +22,11 @@ cd "$repo_dir"
   exit 1
 }
 
-[[ "$(git config --global gpg.format)" == "ssh" ]]
-[[ "$(git config --global commit.gpgsign)" == "true" ]]
-[[ "$(git config --global tag.gpgsign)" == "true" ]]
+[[ "$(git config gpg.format)" == "ssh" ]]
+[[ "$(git config commit.gpgsign)" == "true" ]]
+[[ "$(git config tag.gpgsign)" == "true" ]]
+[[ -n "$(git config user.signingkey)" ]]
+[[ -n "$(git config gpg.ssh.allowedSignersFile)" ]]
 
 git rev-parse "$version" >/dev/null 2>&1 && {
   print -u2 "Tag $version already exists."
@@ -37,6 +39,7 @@ git rev-parse "$version" >/dev/null 2>&1 && {
 if [[ "$target" == "gateway" ]]; then
   PYTHONPATH="$repo_dir/src" .venv/bin/modal deploy modal_gateway.py --tag "$version"
 else
+  .venv/bin/mn stop
   set -a
   source deployment.env
   set +a

@@ -21,18 +21,26 @@ Then use either the live menu:
 mn
 ```
 
-or direct commands:
+or enable the normal automatic mode once:
 
 ```sh
-mn start
+mn auto
 mn status
 mn launch hermes
-mn stop
 ```
 
-`mn start` keeps one model replica warm and waits until it is ready. A cached
-cold start currently takes roughly 20 minutes. `mn stop` immediately blocks new
-gateway requests and asks Modal to scale the GPU replica to zero.
+In automatic mode, the first completion request starts the model and the H200
+pair shuts down after 10 minutes without API traffic. A cached cold start
+currently takes roughly 20 minutes. The gateway waits through Modal's temporary
+cold-start 503 responses instead of passing them directly to the client.
+
+Manual controls remain available:
+
+```sh
+mn start  # keep one replica warm until changed
+mn stop   # hard stop running/pending containers; API calls cannot wake it
+mn auto   # restore wake-on-request plus idle shutdown
+```
 
 ## Hermes Agent
 
@@ -42,12 +50,15 @@ Hermes is a first-class launcher:
 mn launch hermes
 ```
 
-The launcher reads the owner token from the macOS Keychain and sets:
+The launcher automatically wakes a cold model, then reads the owner token from
+the macOS Keychain and configures Hermes through its own atomic config command:
 
-- `OPENAI_BASE_URL` to the MN `/v1` endpoint
-- `OPENAI_API_KEY` to the owner Bearer token
-- provider to Hermes' `custom` OpenAI-compatible provider
+- named provider `custom:mn-uncensored`
+- endpoint to the MN `/v1` URL
+- `key_env` to `MN_API_TOKEN`; the token exists only in the child process
+- 45-minute API, stream-read, and stale-request timeouts
 - model to `nuri/ornith-397b-abliterated`
+- real context window to 65,536 tokens
 
 Extra Hermes arguments can be appended:
 
@@ -135,11 +146,16 @@ replica. With `--max-num-seqs 1`, only one generation runs at a time and other
 requests wait or time out. The hourly GPU price does not increase with the
 number of users unless the deployment is changed to allow more GPU replicas.
 
+Auto mode keeps the pair billable while it is starting, serving requests, and
+for 10 idle minutes after the last backend request. The lightweight gateway can
+remain available without an active GPU.
+
 ## Safety boundary
 
-When state is `stopped` or `starting`, the public gateway returns a structured
-503 response without forwarding the request. Therefore a forgotten Cursor,
-Hermes, or friend token cannot wake the expensive GPU backend.
+In `auto` mode, an authenticated model request intentionally wakes the backend
+and waits for readiness. In hard `stopped` mode, the public gateway returns a
+structured 503 without forwarding, so no client can wake the expensive GPU
+backend.
 
 The private backend still requires Modal's `Modal-Key` and `Modal-Secret`.
 Those values live only in the macOS Keychain and the Modal secret
@@ -166,3 +182,7 @@ Its aligned parent reports 82.4% on SWE-bench Verified. That score must not be
 presented as a benchmark of this modified checkpoint. Benchmark the exact
 deployment before making performance claims, and review both the model license
 and infrastructure terms before offering paid public access.
+
+The persistent Hugging Face cache is complete for the pinned revision. The
+deployed server runs Hugging Face Hub in offline mode to avoid unrelated
+metadata outages during cold boot.
