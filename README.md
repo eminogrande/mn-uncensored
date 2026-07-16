@@ -183,6 +183,7 @@ presented as a benchmark of this modified checkpoint. Benchmark the exact
 deployment before making performance claims, and review both the model license
 and infrastructure terms before offering paid public access.
 
-The persistent Hugging Face cache is complete for the pinned revision. The
-deployed server runs Hugging Face Hub in offline mode to avoid unrelated
-metadata outages during cold boot.
+The persistent Hugging Face cache contains every runtime file required for the
+pinned revision. The deployed server opens that exact local snapshot path in
+offline mode, avoiding both unrelated Hub metadata outages and checks for
+non-runtime card/assets files.

@@ -32,6 +32,7 @@ MAX_MODEL_LEN = int(os.getenv("MAX_MODEL_LEN", "65536"))
 GPU_MEMORY_UTILIZATION = float(os.getenv("GPU_MEMORY_UTILIZATION", "0.90"))
 
 FAST_BOOT = env_bool("FAST_BOOT", True)
+LOCAL_SNAPSHOT = env_bool("LOCAL_SNAPSHOT", True)
 TRUST_REMOTE_CODE = env_bool("TRUST_REMOTE_CODE", True)
 QUANTIZATION = os.getenv("QUANTIZATION", "").strip()
 HF_SECRET_NAME = os.getenv("HF_SECRET_NAME", "").strip()
@@ -43,6 +44,11 @@ ROUTING_REGION = os.getenv("ROUTING_REGION", "eu-west")
 
 VLLM_PORT = 8000
 STARTUP_TIMEOUT_SECONDS = 90 * 60
+LOCAL_MODEL_PATH = (
+    "/root/.cache/huggingface/models--"
+    f"{MODEL_NAME.replace('/', '--')}/snapshots/{MODEL_REVISION}"
+)
+MODEL_SOURCE = LOCAL_MODEL_PATH if LOCAL_SNAPSHOT else MODEL_NAME
 
 if GPU_COUNT < 1 or GPU_COUNT > 8:
     raise ValueError("GPU_COUNT must be between 1 and 8")
@@ -63,7 +69,7 @@ vllm_image = (
         {
             "HF_HUB_CACHE": "/root/.cache/huggingface",
             "HF_HUB_DISABLE_TELEMETRY": "1",
-            "HF_HUB_OFFLINE": "1",
+            "HF_HUB_OFFLINE": "1" if LOCAL_SNAPSHOT else "0",
             "HF_XET_HIGH_PERFORMANCE": "1",
             "VLLM_LOG_STATS_INTERVAL": "10",
         }
@@ -97,12 +103,14 @@ app = modal.App("nuri-ornith-397b")
 class VllmServer:
     @modal.enter()
     def start(self) -> None:
+        if LOCAL_SNAPSHOT and not os.path.isdir(LOCAL_MODEL_PATH):
+            raise RuntimeError(
+                f"Pinned local model snapshot is missing: {LOCAL_MODEL_PATH}"
+            )
         command = [
             "vllm",
             "serve",
-            MODEL_NAME,
-            "--revision",
-            MODEL_REVISION,
+            MODEL_SOURCE,
             "--served-model-name",
             SERVED_MODEL_NAME,
             "--host",
@@ -134,6 +142,8 @@ class VllmServer:
             "--disable-uvicorn-access-log",
         ]
 
+        if not LOCAL_SNAPSHOT:
+            command.extend(["--revision", MODEL_REVISION])
         if FAST_BOOT:
             command.append("--enforce-eager")
         if TRUST_REMOTE_CODE:
@@ -145,6 +155,7 @@ class VllmServer:
             "Starting private vLLM server",
             f"model={MODEL_NAME}",
             f"revision={MODEL_REVISION}",
+            f"source={'local-snapshot' if LOCAL_SNAPSHOT else 'huggingface'}",
             f"gpu={GPU_TYPE}:{GPU_COUNT}",
             f"max_model_len={MAX_MODEL_LEN}",
         )

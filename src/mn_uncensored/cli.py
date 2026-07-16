@@ -365,6 +365,7 @@ def wake_model(settings: Settings, token: str) -> None:
             f"{settings.gateway_url}/wake",
             headers={"Authorization": f"Bearer {token}"},
             timeout=45 * 60,
+            follow_redirects=True,
         )
     except httpx.HTTPError as error:
         fail(f"Could not wake the model ({error.__class__.__name__}).")

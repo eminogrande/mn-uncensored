@@ -19,7 +19,7 @@ All notable changes to MN Uncensored are documented here.
 
 - Automatic mode is now the recommended default; manual warm and hard-stop
   modes remain available.
-- Hugging Face Hub runs offline against the completed persistent model cache.
+- vLLM opens the pinned local Hugging Face snapshot directly in offline mode.
 
 ### Security
 

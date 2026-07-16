@@ -23,6 +23,11 @@ The vLLM server exposes a 65,536-token context. Hermes 0.18.2 enforces a
 64,000-token minimum for known custom models, so the gateway and Hermes provider
 must never advertise a larger context than the backend actually serves.
 
+The backend normally sets `LOCAL_SNAPSHOT=true` and opens the pinned path in
+`hf-model-cache` directly. Set it to `false` only to populate a new cache; a Hub
+repository may contain irrelevant card/assets files that are intentionally not
+needed at inference time.
+
 ## Initial setup
 
 ```sh
