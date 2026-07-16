@@ -40,8 +40,8 @@ vllm_image = (
             "VLLM_LOG_STATS_INTERVAL": "10",
         }
     )
-    .add_local_python_source("mn_uncensored")
     .add_local_file("config/mn.json", "/root/mn/config/mn.json", copy=True)
+    .add_local_python_source("mn_uncensored")
 )
 
 hf_cache = modal.Volume.from_name("hf-model-cache", create_if_missing=True)
