@@ -56,7 +56,9 @@ to the tracked catalog.
 - lifecycle and cache behavior.
 
 `modal_vllm.py` selects one profile through `MN_MODEL=god|code|fast`. This
-allows the same reproducible source to deploy three separate Modal apps.
+allows the same reproducible source to deploy three separate Modal apps. The
+selected non-secret profile key is also baked into that model's Modal image so
+the container resolves the same profile when it imports the module at runtime.
 
 Model weights, vLLM compilation artifacts, and FlashInfer CUDA kernels remain
 in persistent Modal volumes. The first MoE cold start can spend several

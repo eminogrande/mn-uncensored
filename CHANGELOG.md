@@ -33,6 +33,8 @@ All notable changes to MN Uncensored are documented here.
   OpenAI `content` field; requests can explicitly opt back in.
 - Aligned every catalog model with the XML tool-call format declared by its
   pinned Hugging Face chat template.
+- Persisted the selected catalog profile inside each Modal image so runtime
+  imports cannot fall back to the default model.
 
 ### Security
 

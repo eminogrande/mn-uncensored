@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from mn_uncensored.settings import load_settings
-from mn_uncensored.vllm import build_vllm_command
+from mn_uncensored.vllm import build_runtime_environment, build_vllm_command
 
 
 def argument_value(command: list[str], name: str) -> str:
@@ -42,3 +42,12 @@ def test_catalog_uses_model_chat_template_tool_parser() -> None:
         )
         for model in settings.models.values()
     } == {"qwen3_xml"}
+
+
+def test_runtime_environment_preserves_selected_profile() -> None:
+    settings = load_settings()
+
+    for key, model in settings.models.items():
+        environment = build_runtime_environment(model)
+        assert environment["MN_MODEL"] == key
+        assert environment["HF_HUB_OFFLINE"] == "0"

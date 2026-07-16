@@ -6,7 +6,7 @@ import subprocess
 import modal
 
 from mn_uncensored.settings import load_settings
-from mn_uncensored.vllm import build_vllm_command
+from mn_uncensored.vllm import build_runtime_environment, build_vllm_command
 
 
 settings = load_settings()
@@ -30,16 +30,7 @@ vllm_image = (
     )
     .entrypoint([])
     .uv_pip_install("vllm==0.21.0")
-    .env(
-        {
-            "HF_HUB_CACHE": "/root/.cache/huggingface",
-            "HF_HUB_DISABLE_TELEMETRY": "1",
-            "HF_HUB_OFFLINE": "1" if model.local_snapshot else "0",
-            "HF_XET_HIGH_PERFORMANCE": "1",
-            "MN_CONFIG_PATH": "/root/mn/config/mn.json",
-            "VLLM_LOG_STATS_INTERVAL": "10",
-        }
-    )
+    .env(build_runtime_environment(model))
     .add_local_file("config/mn.json", "/root/mn/config/mn.json", copy=True)
     .add_local_python_source("mn_uncensored")
 )

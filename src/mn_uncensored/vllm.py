@@ -3,6 +3,18 @@ from __future__ import annotations
 from .settings import ModelSettings
 
 
+def build_runtime_environment(model: ModelSettings) -> dict[str, str]:
+    return {
+        "HF_HUB_CACHE": "/root/.cache/huggingface",
+        "HF_HUB_DISABLE_TELEMETRY": "1",
+        "HF_HUB_OFFLINE": "1" if model.local_snapshot else "0",
+        "HF_XET_HIGH_PERFORMANCE": "1",
+        "MN_MODEL": model.key,
+        "MN_CONFIG_PATH": "/root/mn/config/mn.json",
+        "VLLM_LOG_STATS_INTERVAL": "10",
+    }
+
+
 def build_vllm_command(
     model: ModelSettings,
     model_source: str,
