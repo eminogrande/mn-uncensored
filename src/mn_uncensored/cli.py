@@ -219,13 +219,15 @@ def command_stop(_args: argparse.Namespace, settings: Settings) -> None:
 
 def command_auto(_args: argparse.Namespace, settings: Settings) -> None:
     state = state_dict(settings)
-    server = modal.Server.from_name(settings.app_name, settings.server_name)
-    server.update_autoscaler(
-        target_concurrency=1,
-        min_containers=0,
-        max_containers=1,
-        scaledown_window=settings.idle_shutdown_seconds,
-    )
+    previous_state = state.get("desired_state", "stopped")
+    if previous_state in {"started", "starting"}:
+        server = modal.Server.from_name(settings.app_name, settings.server_name)
+        server.update_autoscaler(
+            target_concurrency=1,
+            min_containers=0,
+            max_containers=1,
+            scaledown_window=settings.idle_shutdown_seconds,
+        )
     set_desired_state(state, "auto")
     print("Auto mode enabled.")
     print(

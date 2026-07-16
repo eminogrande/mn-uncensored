@@ -20,6 +20,7 @@ All notable changes to MN Uncensored are documented here.
 - Automatic mode is now the recommended default; manual warm and hard-stop
   modes remain available.
 - vLLM opens the pinned local Hugging Face snapshot directly in offline mode.
+- Entering auto mode from a stopped state no longer creates a Pending server.
 
 ### Security
 
