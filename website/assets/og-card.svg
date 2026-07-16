@@ -15,9 +15,9 @@
     <circle cx="54" cy="54" r="7" fill="#ff7248" stroke="#171513" stroke-width="3"/>
   </g>
   <text x="188" y="136" fill="#171513" font-family="Arial, Helvetica, sans-serif" font-size="31" font-weight="800">ABLITERATED<tspan fill="#ff7248">.</tspan><tspan fill="#8b8580" font-weight="600">cloud</tspan></text>
-  <text x="90" y="278" fill="#171513" font-family="Arial, Helvetica, sans-serif" font-size="74" font-weight="800" letter-spacing="-3">Open models.</text>
-  <text x="90" y="360" fill="#171513" font-family="Arial, Helvetica, sans-serif" font-size="74" font-weight="800" letter-spacing="-3">One private API.</text>
-  <text x="94" y="433" fill="#716d68" font-family="Arial, Helvetica, sans-serif" font-size="27">Pinned Hugging Face revisions · vLLM · scale-to-zero GPUs</text>
+  <text x="90" y="278" fill="#171513" font-family="Arial, Helvetica, sans-serif" font-size="70" font-weight="800" letter-spacing="-3">Free uncensored models.</text>
+  <text x="90" y="360" fill="#171513" font-family="Arial, Helvetica, sans-serif" font-size="70" font-weight="800" letter-spacing="-3">Hosted when you need them.</text>
+  <text x="94" y="433" fill="#716d68" font-family="Arial, Helvetica, sans-serif" font-size="27">Real Hugging Face names · transparent GPU pricing</text>
   <g transform="translate(90 495)">
     <rect width="180" height="46" rx="23" fill="#171513"/>
     <text x="90" y="30" fill="#fffdf8" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="700">mn/god</text>

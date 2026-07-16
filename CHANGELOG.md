@@ -57,6 +57,13 @@ All notable changes to MN Uncensored are documented here.
 - Website releases now publish an append-only signed `gh-pages` commit and
   signed tag atomically, explicitly request the classic Pages build, verify the
   deployed commit and HTTP response, and only then create the GitHub release.
+- Reworked the ABLITERATED.cloud catalog for non-technical visitors and SEO:
+  every card now leads with the complete real Hugging Face repository name,
+  upstream architecture and license metadata, reduced-refusal terminology,
+  the local API shortcut, base GPU cost, and an exact planned 20% markup.
+- Clarified that model weight downloads are free while managed cloud inference
+  is paid, and that customer billing, metering, balances, and invoicing are not
+  live yet.
 
 ### Added
 

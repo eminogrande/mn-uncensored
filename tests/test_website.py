@@ -131,6 +131,30 @@ def test_whatsapp_access_cta_is_consistent() -> None:
     }
 
 
+def test_real_model_names_and_planned_prices_are_explicit() -> None:
+    html, _ = parse_index()
+
+    models = {
+        "huihui-ai/Huihui-Qwen3.6-35B-A3B-abliterated": "$5.4475/h",
+        "YuYu1015/YuYu1015-Ornith-1.0-35B-abliterated": "$5.4475/h",
+        "huihui-ai/Huihui-Qwythos-9B-Claude-Mythos-5-1M-abliterated":
+            "$2.3414/h",
+        "cebeuq/Ornith-1.0-397B-abliterated-W4A16": "$10.8950/h",
+    }
+    plain_html = html.replace("<wbr>", "")
+
+    for model, price in models.items():
+        assert model in plain_html
+        assert price in html
+
+    assert "Free means the weight files have no purchase price." in html
+    assert "Planned rate · not yet charged" in html
+    assert "Customer metering, balances, payments and invoicing" in html
+    assert "managed cloud GPUs are the paid part" in html
+    assert "jailbroken" in html
+    assert "zero refusals" in html
+
+
 def test_agent_and_discovery_files_are_present_and_valid() -> None:
     expected = [
         "index.md",
@@ -151,7 +175,20 @@ def test_agent_and_discovery_files_are_present_and_valid() -> None:
     for relative in expected:
         assert (WEBSITE / relative).is_file(), relative
 
-    json.loads((WEBSITE / "openapi.json").read_text())
+    openapi = json.loads((WEBSITE / "openapi.json").read_text())
+    model_catalog = openapi["x-model-catalog"]
+    assert len(model_catalog) == 4
+    assert {
+        entry["hugging_face_model"] for entry in model_catalog
+    } == {
+        "huihui-ai/Huihui-Qwen3.6-35B-A3B-abliterated",
+        "YuYu1015/YuYu1015-Ornith-1.0-35B-abliterated",
+        "huihui-ai/Huihui-Qwythos-9B-Claude-Mythos-5-1M-abliterated",
+        "cebeuq/Ornith-1.0-397B-abliterated-W4A16",
+    }
+    assert {
+        entry["planned_reference_usd_per_hour"] for entry in model_catalog
+    } == {5.44752, 2.34144, 10.89504}
     api_catalog_json = json.loads(
         (WEBSITE / ".well-known/api-catalog.json").read_text()
     )
