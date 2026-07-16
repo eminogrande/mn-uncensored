@@ -171,21 +171,27 @@ def backend_app_is_stopped(model: ModelSettings) -> bool:
 
 
 def reset_backend_to_static(model: ModelSettings) -> None:
-    result = subprocess.run(
-        [
-            modal_cli_path(),
-            "app",
-            "rollover",
-            model.app_name,
-            "--strategy",
-            "recreate",
-        ],
-        check=False,
+    command = [
+        modal_cli_path(),
+        "app",
+        "rollover",
+        model.app_name,
+        "--strategy",
+        "recreate",
+    ]
+    for attempt in range(2):
+        result = subprocess.run(command, check=False)
+        if result.returncode == 0:
+            return
+        if attempt == 0:
+            print(
+                f"Modal did not finish stopping `{model.key}`; retrying once.",
+                file=sys.stderr,
+            )
+            time.sleep(3)
+    fail(
+        f"Could not reset backend `{model.key}`; its gateway route remains fail-closed."
     )
-    if result.returncode != 0:
-        fail(
-            f"Could not reset backend `{model.key}`; its gateway route remains fail-closed."
-        )
 
 
 def deploy_backend(model: ModelSettings, tag: str) -> None:

@@ -104,6 +104,8 @@ warm state, restoring the immutable static `min_containers=0` definition.
 
 `mn stop <model>` marks that route fail-closed before its recreate rollover.
 Requests to other catalog models remain unaffected.
+If Modal updates the app but needs longer than its first container-termination
+window, MN retries the fail-closed recreate rollover once.
 
 If a backend app was stopped outside the normal flow, `mn auto` and `mn start`
 may perform a recovery deployment. Recovery requires a clean Git tree and a

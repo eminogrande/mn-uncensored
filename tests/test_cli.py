@@ -180,6 +180,37 @@ def test_stop_only_resets_selected_model(
     assert desired_state(state, "fast") == "stopped"
 
 
+def test_static_reset_retries_transient_modal_rollover(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    return_codes = iter([1, 0])
+    sleeps: list[int] = []
+    monkeypatch.setattr(
+        cli.subprocess,
+        "run",
+        lambda *_args, **_kwargs: SimpleNamespace(returncode=next(return_codes)),
+    )
+    monkeypatch.setattr(cli.time, "sleep", sleeps.append)
+
+    cli.reset_backend_to_static(settings().models["code"])
+
+    assert sleeps == [3]
+
+
+def test_static_reset_fails_after_retry(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        cli.subprocess,
+        "run",
+        lambda *_args, **_kwargs: SimpleNamespace(returncode=1),
+    )
+    monkeypatch.setattr(cli.time, "sleep", lambda _seconds: None)
+
+    with pytest.raises(SystemExit):
+        cli.reset_backend_to_static(settings().models["code"])
+
+
 def test_auto_redeploys_selected_scale_to_zero_backend(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

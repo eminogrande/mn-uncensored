@@ -35,6 +35,8 @@ All notable changes to MN Uncensored are documented here.
   pinned Hugging Face chat template.
 - Persisted the selected catalog profile inside each Modal image so runtime
   imports cannot fall back to the default model.
+- Retry a transient Modal recreate-rollover timeout once while keeping the
+  affected route fail-closed.
 
 ### Security
 
