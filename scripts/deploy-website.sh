@@ -126,7 +126,7 @@ git tag -s "$version" "$deploy_sha" -m "ABLITERATED.cloud $version"
 tag_created=true
 git verify-tag "$version"
 git push --atomic origin \
-  "$deploy_sha:refs/heads/gh-pages" \
+  "${deploy_sha}:refs/heads/gh-pages" \
   "refs/tags/$version"
 tag_pushed=true
 
