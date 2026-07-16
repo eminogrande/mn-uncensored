@@ -27,6 +27,8 @@ All notable changes to MN Uncensored are documented here.
   other catalog models.
 - Updated the release workflow to deploy all three backends and the shared
   gateway under one signed release.
+- Persisted and shared FlashInfer CUDA kernels across scale-to-zero cold
+  starts.
 
 ### Security
 

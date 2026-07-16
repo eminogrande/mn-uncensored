@@ -58,6 +58,11 @@ to the tracked catalog.
 `modal_vllm.py` selects one profile through `MN_MODEL=god|code|fast`. This
 allows the same reproducible source to deploy three separate Modal apps.
 
+Model weights, vLLM compilation artifacts, and FlashInfer CUDA kernels remain
+in persistent Modal volumes. The first MoE cold start can spend several
+minutes compiling Hopper kernels; later starts and compatible catalog models
+reuse the shared `flashinfer-kernel-cache`.
+
 ## Normal operation
 
 Enable all three scale-to-zero routes:

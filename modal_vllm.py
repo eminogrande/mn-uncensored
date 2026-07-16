@@ -46,6 +46,10 @@ vllm_image = (
 
 hf_cache = modal.Volume.from_name("hf-model-cache", create_if_missing=True)
 vllm_cache = modal.Volume.from_name("vllm-compile-cache", create_if_missing=True)
+flashinfer_cache = modal.Volume.from_name(
+    "flashinfer-kernel-cache",
+    create_if_missing=True,
+)
 secrets = (
     [modal.Secret.from_name(model.hf_secret_name)]
     if model.hf_secret_name
@@ -73,6 +77,7 @@ def vllm_command() -> list[str]:
     volumes={
         "/root/.cache/huggingface": hf_cache,
         "/root/.cache/vllm": vllm_cache,
+        "/root/.cache/flashinfer": flashinfer_cache,
     },
 )
 class VllmServer:
