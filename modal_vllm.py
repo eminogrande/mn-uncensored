@@ -30,8 +30,6 @@ vllm_image = (
     )
     .entrypoint([])
     .uv_pip_install("vllm==0.21.0")
-    .add_local_python_source("mn_uncensored")
-    .add_local_file("config/mn.json", "/root/mn/config/mn.json", copy=True)
     .env(
         {
             "HF_HUB_CACHE": "/root/.cache/huggingface",
@@ -42,6 +40,8 @@ vllm_image = (
             "VLLM_LOG_STATS_INTERVAL": "10",
         }
     )
+    .add_local_python_source("mn_uncensored")
+    .add_local_file("config/mn.json", "/root/mn/config/mn.json", copy=True)
 )
 
 hf_cache = modal.Volume.from_name("hf-model-cache", create_if_missing=True)
