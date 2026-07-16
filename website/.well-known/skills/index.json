@@ -1,0 +1,12 @@
+{
+  "version": "0.1.0",
+  "skills": [
+    {
+      "name": "abliterated-cloud",
+      "description": "Use ABLITERATED.cloud safely through its token-protected OpenAI-compatible Chat Completions API.",
+      "files": [
+        "../../skills/abliterated-cloud/SKILL.md"
+      ]
+    }
+  ]
+}

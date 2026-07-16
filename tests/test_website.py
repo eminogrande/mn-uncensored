@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 import xml.etree.ElementTree as ET
@@ -140,6 +141,9 @@ def test_agent_and_discovery_files_are_present_and_valid() -> None:
         "robots.txt",
         "sitemap.xml",
         ".well-known/api-catalog.json",
+        ".well-known/api-catalog",
+        ".well-known/agent-skills/index.json",
+        ".well-known/skills/index.json",
         ".well-known/security.txt",
         ".well-known/skills.json",
         "skills/abliterated-cloud/SKILL.md",
@@ -148,12 +152,38 @@ def test_agent_and_discovery_files_are_present_and_valid() -> None:
         assert (WEBSITE / relative).is_file(), relative
 
     json.loads((WEBSITE / "openapi.json").read_text())
-    json.loads((WEBSITE / ".well-known/api-catalog.json").read_text())
+    api_catalog_json = json.loads(
+        (WEBSITE / ".well-known/api-catalog.json").read_text()
+    )
+    api_catalog = json.loads(
+        (WEBSITE / ".well-known/api-catalog").read_text()
+    )
+    assert api_catalog["linkset"]
+    catalog_entry = api_catalog["linkset"][0]
+    assert catalog_entry["anchor"].startswith("https://")
+    assert catalog_entry["service-desc"][0]["href"].endswith("/openapi.json")
+    assert catalog_entry["service-doc"]
+    assert api_catalog_json == api_catalog
     json.loads((WEBSITE / ".well-known/skills.json").read_text())
+    legacy_skills = json.loads(
+        (WEBSITE / ".well-known/skills/index.json").read_text()
+    )
+    assert legacy_skills["version"] == "0.1.0"
+
+    skill_index = json.loads(
+        (WEBSITE / ".well-known/agent-skills/index.json").read_text()
+    )
+    assert skill_index["$schema"].endswith("/0.2.0/schema.json")
+    skill = skill_index["skills"][0]
+    assert skill["type"] == "skill-md"
+    skill_path = WEBSITE / "skills/abliterated-cloud/SKILL.md"
+    digest = hashlib.sha256(skill_path.read_bytes()).hexdigest()
+    assert skill["digest"] == f"sha256:{digest}"
     ET.parse(WEBSITE / "sitemap.xml")
 
     robots = (WEBSITE / "robots.txt").read_text()
     assert "Sitemap:" in robots
+    assert "Content-Signal: ai-train=no, search=yes, ai-input=yes" in robots
     assert "GPTBot" in robots
     assert "ClaudeBot" in robots
     assert "OAI-SearchBot" in robots
