@@ -1,7 +1,15 @@
 # MN Uncensored
 
-MN Uncensored is a minimal three-model catalog with one authenticated,
-OpenAI-compatible API:
+[Public repository](https://github.com/eminogrande/mn-uncensored) ·
+[Latest release: v0.3.1](https://github.com/eminogrande/mn-uncensored/releases/tag/v0.3.1)
+
+MN Uncensored is a minimal, scale-to-zero catalog of three Hugging Face models
+behind one authenticated, OpenAI-compatible API. It runs on Modal with vLLM and
+works with Hermes, Pi, OpenCode, Cursor, and other clients that accept a custom
+OpenAI base URL.
+
+The source repository is public. The deployed API is token-protected and is
+not anonymous public access.
 
 | Model | Purpose | Modal GPU | Base active cost |
 | --- | --- | --- | ---: |
@@ -14,7 +22,17 @@ lifecycle. The lightweight gateway and Bearer tokens are shared, so Hermes,
 Pi, OpenCode, Cursor, and other OpenAI-compatible applications use the same
 base URL.
 
-## Install and enable automatic mode
+## Current deployment
+
+- Release `v0.3.1` is deployed from a signed Git commit.
+- All three routes support ordinary streaming completions and tool calls.
+- Each model exposes 131,072 tokens of context and up to 16,384 output tokens.
+- Automatic mode keeps no GPU warm and starts only the requested model.
+- A model scales back to zero ten minutes after its last backend request.
+- Hugging Face model weights are downloaded directly into persistent Modal
+  volumes. They are not downloaded to this Mac or stored in this repository.
+
+## Use the existing deployment on this Mac
 
 ```sh
 ./scripts/install-macos.sh
@@ -36,8 +54,13 @@ mn auto god       # restore automatic mode for one model
 mn wake fast      # explicitly wake one model
 ```
 
-The first start downloads the pinned weights into the shared Modal volume.
-Later cold starts reuse that cache.
+The first start of a new model revision downloads the pinned weights into a
+persistent Modal volume. Later cold starts reuse the weights, vLLM artifacts,
+and compatible FlashInfer kernels from cloud caches.
+
+Cold starts can take several minutes, especially for the 35B models. The
+gateway waits for the selected backend with exponential health-check backoff
+instead of sending a queue of repeated start requests.
 
 ## Launch coding agents
 
@@ -64,6 +87,17 @@ All catalog models expose a real 131,072-token context and a 16,384-token output
 ceiling. Hermes therefore receives more than its required 64K context without
 the old 33K workaround.
 
+Qwen thinking is disabled by default so standard OpenAI clients receive normal
+`content`. A direct API client can opt in per request:
+
+```json
+{
+  "chat_template_kwargs": {
+    "enable_thinking": true
+  }
+}
+```
+
 ## API tokens
 
 Create the local owner token once:
@@ -85,7 +119,10 @@ mn token revoke alice
 `mn token copy owner` writes the token directly to the clipboard. The gateway
 stores only SHA-256 token digests, never plaintext tokens.
 
-## Standard OpenAI API
+Do not share the owner token. Create a separate named token for each friend so
+it can be revoked without replacing every other credential.
+
+## OpenAI-compatible API
 
 Show the connection values:
 
@@ -118,6 +155,14 @@ upstream connection is created. During the v0.3 migration, the old
 `nuri/ornith-397b-abliterated` ID resolves to the default `mn/god` route so an
 old client does not accidentally wake two backends.
 
+For Cursor or another generic OpenAI-compatible client, configure:
+
+```text
+Base URL: https://eminhenri--mn-uncensored-api-api.modal.run/v1
+API key:  a named sk-mn-* token
+Model:    mn/god, mn/code, or mn/fast
+```
+
 ## Cost and capacity
 
 Modal publishes base prices of approximately $4.54/hour for an H200 and
@@ -135,13 +180,15 @@ Each backend is capped at:
 
 Multiple users share each model replica. Requests to different models can run
 and become billable simultaneously. Scale-to-zero is not a workspace spending
-limit.
+limit. No model GPU is kept warm in automatic mode, but startup, inference, and
+the final ten-minute idle window are billable.
 
 ## Security and release boundary
 
-The repository and endpoint addresses may be public; the service is not public
-access. Every model, status, and wake request requires a valid Bearer token.
-The private Modal backends additionally require Modal proxy credentials.
+The repository is public and the endpoint address is intentionally
+documented. Neither is an access credential. Every model, status, and wake
+request requires a valid Bearer token. The private Modal backends additionally
+require Modal proxy credentials.
 
 Never commit:
 
@@ -150,10 +197,18 @@ Never commit:
 - Pi authentication, settings, or session files;
 - local `.mn/` state.
 
-This remains a private evaluation deployment, not a production resale
-platform. Before selling public access, add quotas, per-token model
-permissions, metering, billing reconciliation, abuse controls, terms, privacy
-controls, and legal review.
+The deployed API remains a private evaluation service, not a production resale
+platform. Before selling access, add quotas, per-token model permissions,
+metering, billing reconciliation, abuse controls, terms, privacy controls, and
+legal review.
+
+## Deploy your own copy
+
+A separate deployment needs a Modal account, Modal CLI authentication, a
+Hugging Face token accepted for the pinned repositories, macOS Keychain
+credentials, and its own API tokens. Start with the complete
+[operations guide](docs/OPERATIONS.md); do not copy credentials from the
+existing deployment.
 
 See:
 

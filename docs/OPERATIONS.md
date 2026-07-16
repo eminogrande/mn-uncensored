@@ -141,7 +141,7 @@ Clients can opt in per request with:
 Every deployment must start from a clean, signed commit:
 
 ```sh
-./scripts/deploy-release.sh catalog v0.3.0
+./scripts/deploy-release.sh catalog v1.2.3
 ```
 
 The `catalog` target:

@@ -108,10 +108,11 @@ of its base model or of another checkpoint.
 
 ## Public service warning
 
-This first release is a private evaluation deployment, not a complete
-multi-tenant resale platform. Before public access, add metering, quotas, rate
-limits, abuse handling, billing reconciliation, audit logging without prompt
-content, terms, privacy controls, incident response, and model/license review.
+The source repository is public, but the deployed API is a private evaluation
+service, not a complete multi-tenant resale platform. Before public access, add
+metering, quotas, rate limits, abuse handling, billing reconciliation, audit
+logging without prompt content, terms, privacy controls, incident response,
+and model/license review.
 
 The current tokens are access credentials, not customer billing accounts. Do
 not expose this service as a paid public API until authorization, usage

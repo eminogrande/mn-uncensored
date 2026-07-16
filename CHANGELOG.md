@@ -4,6 +4,13 @@ All notable changes to MN Uncensored are documented here.
 
 ## [Unreleased]
 
+### Documentation
+
+- Reworked the README to distinguish the public source repository from the
+  authenticated private API and document the current catalog, cloud-only model
+  storage, cold-start behavior, client configuration, and cost boundary.
+- Replaced the stale release-command example with a neutral version example.
+
 ## [0.3.1] - 2026-07-16
 
 ### Fixed
