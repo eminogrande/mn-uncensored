@@ -1,0 +1,24 @@
+.env
+.env.*
+!.env.example
+deployment.env
+.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+dist/
+build/
+*.egg-info/
+*.pyc
+.DS_Store
+
+# Local agent state and credentials. Only the shareable model catalog is tracked.
+config/pi-agent/auth.json
+config/pi-agent/settings.json
+config/pi-agent/sessions/
+config/pi-agent/bin/
+
+# Local runtime state.
+.mn/

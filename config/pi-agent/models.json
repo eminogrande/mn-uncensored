@@ -1,0 +1,31 @@
+{
+  "providers": {
+    "mn": {
+      "baseUrl": "https://replace-after-gateway-deploy.modal.run/v1",
+      "api": "openai-completions",
+      "apiKey": "$MN_API_TOKEN",
+      "compat": {
+        "supportsDeveloperRole": false,
+        "supportsReasoningEffort": false
+      },
+      "models": [
+        {
+          "id": "nuri/ornith-397b-abliterated",
+          "name": "MN Ornith 397B Abliterated",
+          "reasoning": false,
+          "input": [
+            "text"
+          ],
+          "contextWindow": 32768,
+          "maxTokens": 8192,
+          "cost": {
+            "input": 0,
+            "output": 0,
+            "cacheRead": 0,
+            "cacheWrite": 0
+          }
+        }
+      ]
+    }
+  }
+}
