@@ -96,5 +96,9 @@ tool_response = client.chat.completions.create(
 )
 tool_calls = tool_response.choices[0].message.tool_calls or []
 if not tool_calls or tool_calls[0].function.name != "mn_echo":
-    raise SystemExit(f"{model.model} tool smoke failed.")
+    message = tool_response.choices[0].message
+    raise SystemExit(
+        f"{model.model} tool smoke failed: "
+        f"content={message.content!r}, tool_calls={tool_calls!r}"
+    )
 print(f"{model.model}: tool calling OK")

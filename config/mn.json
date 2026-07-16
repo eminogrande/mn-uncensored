@@ -29,7 +29,7 @@
       "quantization": "",
       "reasoning_parser": "qwen3",
       "server_name": "VllmServer",
-      "tool_call_parser": "qwen3_coder",
+      "tool_call_parser": "qwen3_xml",
       "trust_remote_code": true
     },
     "code": {
@@ -81,7 +81,7 @@
       "quantization": "",
       "reasoning_parser": "qwen3",
       "server_name": "VllmServer",
-      "tool_call_parser": "qwen3_coder",
+      "tool_call_parser": "qwen3_xml",
       "trust_remote_code": true
     }
   }

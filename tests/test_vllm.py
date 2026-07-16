@@ -21,6 +21,7 @@ def test_vllm_commands_are_model_specific() -> None:
             model.gpu_count
         )
         assert argument_value(command, "--tool-call-parser") == model.tool_call_parser
+        assert model.tool_call_parser == "qwen3_xml"
         assert argument_value(command, "--reasoning-parser") == "qwen3"
         assert (
             argument_value(command, "--default-chat-template-kwargs")
@@ -31,8 +32,13 @@ def test_vllm_commands_are_model_specific() -> None:
         assert key in {"god", "code", "fast"}
 
 
-def test_code_uses_ornith_tool_parser() -> None:
-    model = load_settings().models["code"]
-    command = build_vllm_command(model, model.hf_model)
+def test_catalog_uses_model_chat_template_tool_parser() -> None:
+    settings = load_settings()
 
-    assert argument_value(command, "--tool-call-parser") == "qwen3_xml"
+    assert {
+        argument_value(
+            build_vllm_command(model, model.hf_model),
+            "--tool-call-parser",
+        )
+        for model in settings.models.values()
+    } == {"qwen3_xml"}

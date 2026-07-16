@@ -31,6 +31,8 @@ All notable changes to MN Uncensored are documented here.
   starts.
 - Disabled Qwen thinking by default for clients that consume only the standard
   OpenAI `content` field; requests can explicitly opt back in.
+- Aligned every catalog model with the XML tool-call format declared by its
+  pinned Hugging Face chat template.
 
 ### Security
 
