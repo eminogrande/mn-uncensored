@@ -32,12 +32,12 @@ Authorization: Bearer sk-mn-...
 
 ## Models
 
-- `mn/god`
-- `mn/code`
-- `mn/fast`
-- `mn/ornith-397b` after the budgeted four-model release
+- `huihui-ai/Huihui-Qwen3.6-35B-A3B-abliterated` — API model ID `mn/god`; deployed and currently stopped.
+- `YuYu1015/YuYu1015-Ornith-1.0-35B-abliterated` — API model ID `mn/code`; deployed and currently stopped.
+- `huihui-ai/Huihui-Qwythos-9B-Claude-Mythos-5-1M-abliterated` — API model ID `mn/fast`; deployed and currently stopped.
+- `cebeuq/Ornith-1.0-397B-abliterated-W4A16` — planned API model ID `mn/ornith-397b`; not deployed.
 
-The legacy ID `nuri/ornith-397b-abliterated` maps to the 397B route after that release.
+The API model IDs are routing identifiers, not alternative model names. The legacy ID `nuri/ornith-397b-abliterated` will map to the 397B route after its budgeted release.
 
 ## Supported contract
 

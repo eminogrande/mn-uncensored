@@ -1,0 +1,20 @@
+{
+  "name": "ABLITERATED.cloud Public Site MCP",
+  "description": "Public read-only MCP server for the model catalog and service documentation.",
+  "version": "1.0.0",
+  "serverInfo": {
+    "name": "ABLITERATED.cloud Public Site MCP",
+    "version": "1.0.0"
+  },
+  "documentationUrl": "https://abliterated.cloud/llms-full.txt",
+  "transport": {
+    "type": "streamable-http",
+    "url": "https://abliterated.cloud/mcp"
+  },
+  "capabilities": {
+    "tools": true,
+    "resources": false,
+    "prompts": false
+  },
+  "tools": ["get_site_summary", "list_models"]
+}

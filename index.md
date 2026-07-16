@@ -1,7 +1,7 @@
 ---
 title: ABLITERATED.cloud - Intelligence, freed.
 description: Private access to exact uncensored and abliterated Hugging Face models through one controlled OpenAI-compatible cloud API.
-canonical: https://eminogrande.github.io/mn-uncensored/
+canonical: https://abliterated.cloud/
 ---
 
 # ABLITERATED.cloud
@@ -21,9 +21,10 @@ your message:
 
 ## Model catalog
 
-### mn/god
+### Qwen3.6 35B A3B — Abliterated
 
-- Artifact: `huihui-ai/Huihui-Qwen3.6-35B-A3B-abliterated`
+- Hugging Face repository: `huihui-ai/Huihui-Qwen3.6-35B-A3B-abliterated`
+- API model ID: `mn/god`
 - Revision: `8f0ee727aff5e771ea72466d64d13ecd851d2cc7`
 - Hugging Face metadata: Apache-2.0, uncensored, abliterated, image-text-to-text, 36B parameters, BF16
 - Context: 131,072 tokens
@@ -32,9 +33,10 @@ your message:
 - ABLITERATED.cloud price: $5.45/hour
 - Status: live route, currently hard-stopped
 
-### mn/code
+### Ornith 1.0 35B — Abliterated
 
-- Artifact: `YuYu1015/YuYu1015-Ornith-1.0-35B-abliterated`
+- Hugging Face repository: `YuYu1015/YuYu1015-Ornith-1.0-35B-abliterated`
+- API model ID: `mn/code`
 - Revision: `86065d1a9008773086a177637d54ec6dc2a56cbf`
 - Hugging Face metadata: Apache-2.0, 35B Qwen3.5 MoE, reasoning/thinking, English and Chinese, abliterated and uncensored
 - Context: 131,072 tokens
@@ -43,9 +45,10 @@ your message:
 - ABLITERATED.cloud price: $5.45/hour
 - Status: live route, currently hard-stopped
 
-### mn/fast
+### Qwythos 9B Claude Mythos 5 — Abliterated
 
-- Artifact: `huihui-ai/Huihui-Qwythos-9B-Claude-Mythos-5-1M-abliterated`
+- Hugging Face repository: `huihui-ai/Huihui-Qwythos-9B-Claude-Mythos-5-1M-abliterated`
+- API model ID: `mn/fast`
 - Revision: `efcc73cac15ff8fc5d46b8d41b53c22d571cf97d`
 - Hugging Face metadata: Apache-2.0, 10B parameters, BF16, long-context, function-calling, tool-use, uncensored and abliterated
 - Context: 131,072 tokens
@@ -54,9 +57,10 @@ your message:
 - ABLITERATED.cloud price: $2.34/hour
 - Status: live route, currently hard-stopped
 
-### mn/ornith-397b
+### Ornith 1.0 397B W4A16 — Abliterated
 
-- Artifact: `cebeuq/Ornith-1.0-397B-abliterated-W4A16`
+- Hugging Face repository: `cebeuq/Ornith-1.0-397B-abliterated-W4A16`
+- API model ID: `mn/ornith-397b`
 - Revision: `e5651d291be1c65ff1360eee47ab533ab13b3d97`
 - Legacy alias: `nuri/ornith-397b-abliterated`
 - Hugging Face metadata: MIT, 397B total / about 17B active, multimodal Qwen3.5 MoE, W4A16, about 196 GB, uncensored and abliterated
@@ -71,7 +75,7 @@ The upstream terms "abliterated", "decensored" and "uncensored" describe publish
 
 ## How it works
 
-1. An invited user receives a revocable MN Bearer token.
+1. An invited user receives a revocable ABLITERATED.cloud Bearer token.
 2. The client sends an OpenAI Chat Completions request to one gateway.
 3. The gateway validates the token and resolves the exact model ID.
 4. Modal starts only the selected private vLLM backend when its lifecycle is armed.
@@ -99,10 +103,10 @@ Cursor is a compatibility target, not a promise of complete feature parity.
 ## Model prices
 
 - The exact model weight files have no purchase price on Hugging Face.
-- `mn/god`: $5.45/hour.
-- `mn/code`: $5.45/hour.
-- `mn/fast`: $2.34/hour.
-- `mn/ornith-397b`: $10.90/hour.
+- Qwen3.6 35B A3B (`mn/god`): $5.45/hour.
+- Ornith 1.0 35B (`mn/code`): $5.45/hour.
+- Qwythos 9B Claude Mythos 5 (`mn/fast`): $2.34/hour.
+- Ornith 1.0 397B W4A16 (`mn/ornith-397b`): $10.90/hour.
 
 Automated billing is not live yet. Private-beta access is invitation-based
 while customer metering, payments and invoicing remain roadmap work.
@@ -111,7 +115,7 @@ while customer metering, payments and invoicing remain roadmap work.
 
 - Model weights remain in Hugging Face and persistent Modal volumes.
 - No model weights are downloaded to the operator's Mac.
-- API access requires an MN Bearer token.
+- API access requires an ABLITERATED.cloud Bearer token.
 - Gateway-to-backend traffic uses separate private Modal proxy credentials.
 - Token digests, not recoverable plaintext tokens, are stored in the shared lifecycle state.
 - The public landing page never calls, polls, wakes, or embeds the inference API.

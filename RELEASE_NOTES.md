@@ -1,5 +1,29 @@
 # ABLITERATED.cloud website releases
 
+## website-v0.4.0
+
+A quieter, larger-type landing page with readable model names, complete
+Hugging Face repository identities, and the Agent-Ready Cloudflare edge layer.
+
+### Changed
+
+- Removed decorative API-window, badge, card and diagram treatments.
+- Reorganized the page into a short explanation, three steps, four model rows,
+  one API example, transparency notes, FAQ and access request.
+- Made readable factual model names the headings, exact Hugging Face
+  `owner/repository` paths the linked source field, and `mn/*` values the
+  secondary API model IDs.
+- Increased body, model, section and FAQ typography and whitespace.
+
+### Agent readiness
+
+- Added Markdown negotiation, discovery headers and exact media types through
+  a Cloudflare Worker.
+- Added OAuth, A2A, MCP, Agent Skills, WebMCP and HTTP-signature discovery.
+- Added a local verifier for all application-controlled scanner requirements.
+- Kept GitHub Pages as the public preview until the final domain moves from
+  Porkbun DNS to an active Cloudflare zone with DNSSEC and DNS-AID.
+
 ## website-v0.3.0
 
 A calmer, more powerful identity centered on “Intelligence, freed.”

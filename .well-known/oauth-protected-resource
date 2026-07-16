@@ -1,0 +1,7 @@
+{
+  "resource": "https://abliterated.cloud",
+  "authorization_servers": ["https://abliterated.cloud"],
+  "scopes_supported": ["public:read"],
+  "bearer_methods_supported": ["header"],
+  "resource_documentation": "https://abliterated.cloud/llms-full.txt"
+}
