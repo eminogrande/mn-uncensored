@@ -64,6 +64,15 @@ All notable changes to MN Uncensored are documented here.
 - Clarified that model weight downloads are free while managed cloud inference
   is paid, and that customer billing, metering, balances, and invoicing are not
   live yet.
+- Reframed the public landing page around the original line “Intelligence,
+  freed.” with owner-supplied brain-and-broken-chains hero artwork, a quieter
+  neutral visual system, and clearer background on artifact identity,
+  lifecycle control, pricing, and open-source inspectability.
+- Simplified public pricing to show only ABLITERATED.cloud model prices and
+  removed markup and margin explanations from the active landing page and
+  machine-readable product documents.
+- Replaced active WhatsApp access requests with the verified Signal phone link
+  `https://signal.me/#p/+13103408213`; historical release notes remain intact.
 
 ### Added
 

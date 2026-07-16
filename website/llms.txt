@@ -17,14 +17,15 @@ ABLITERATED.cloud is currently a private evaluation service. Live v0.3.1 exposes
 
 ## Model identifiers
 
-- `mn/god` → `huihui-ai/Huihui-Qwen3.6-35B-A3B-abliterated` → planned $5.44752/hour
-- `mn/code` → `YuYu1015/YuYu1015-Ornith-1.0-35B-abliterated` → planned $5.44752/hour
-- `mn/fast` → `huihui-ai/Huihui-Qwythos-9B-Claude-Mythos-5-1M-abliterated` → planned $2.34144/hour
-- `mn/ornith-397b` → `cebeuq/Ornith-1.0-397B-abliterated-W4A16` → planned $10.89504/hour; next budgeted release; legacy alias `nuri/ornith-397b-abliterated`
+- `mn/god` → `huihui-ai/Huihui-Qwen3.6-35B-A3B-abliterated` → $5.45/hour
+- `mn/code` → `YuYu1015/YuYu1015-Ornith-1.0-35B-abliterated` → $5.45/hour
+- `mn/fast` → `huihui-ai/Huihui-Qwythos-9B-Claude-Mythos-5-1M-abliterated` → $2.34/hour
+- `mn/ornith-397b` → `cebeuq/Ornith-1.0-397B-abliterated-W4A16` → $10.90/hour; next budgeted release; legacy alias `nuri/ornith-397b-abliterated`
 
-Model weight downloads are free. Managed GPU inference is paid. These +20% reference rates are planned, not currently metered or charged.
+Model weight downloads are free. Managed GPU inference is paid. Automated
+billing is not currently live.
 
 ## Access
 
-Request private access through WhatsApp:
-https://wa.me/13103408213?text=Hi%20Emin%2C%20I%20would%20like%20to%20request%20access%20to%20ABLITERATED.cloud
+Request private access through Signal:
+https://signal.me/#p/+13103408213

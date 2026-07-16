@@ -120,26 +120,35 @@ def test_internal_assets_and_documents_exist() -> None:
         assert target.exists(), f"missing website resource: {value}"
 
 
-def test_whatsapp_access_cta_is_consistent() -> None:
+def test_signal_access_cta_is_consistent() -> None:
     html, _ = parse_index()
     links = set(
-        re.findall(r'href="(https://wa\.me/[^"]+)"', html)
+        re.findall(r'href="(https://signal\.me/[^"]+)"', html)
     )
 
-    assert links == {
-        "https://wa.me/13103408213?text=Hi%20Emin%2C%20I%20would%20like%20to%20request%20access%20to%20ABLITERATED.cloud"
-    }
+    assert links == {"https://signal.me/#p/+13103408213"}
+
+    active_access_documents = [
+        html,
+        (WEBSITE / "index.md").read_text(),
+        (WEBSITE / "auth.md").read_text(),
+        (WEBSITE / "llms.txt").read_text(),
+        (WEBSITE / "llms-full.txt").read_text(),
+    ]
+    for document in active_access_documents:
+        assert "wa.me" not in document
+        assert "WhatsApp" not in document
 
 
 def test_real_model_names_and_planned_prices_are_explicit() -> None:
     html, _ = parse_index()
 
     models = {
-        "huihui-ai/Huihui-Qwen3.6-35B-A3B-abliterated": "$5.4475/h",
-        "YuYu1015/YuYu1015-Ornith-1.0-35B-abliterated": "$5.4475/h",
+        "huihui-ai/Huihui-Qwen3.6-35B-A3B-abliterated": "$5.45/h",
+        "YuYu1015/YuYu1015-Ornith-1.0-35B-abliterated": "$5.45/h",
         "huihui-ai/Huihui-Qwythos-9B-Claude-Mythos-5-1M-abliterated":
-            "$2.3414/h",
-        "cebeuq/Ornith-1.0-397B-abliterated-W4A16": "$10.8950/h",
+            "$2.34/h",
+        "cebeuq/Ornith-1.0-397B-abliterated-W4A16": "$10.90/h",
     }
     plain_html = html.replace("<wbr>", "")
 
@@ -148,11 +157,13 @@ def test_real_model_names_and_planned_prices_are_explicit() -> None:
         assert price in html
 
     assert "Free means the weight files have no purchase price." in html
-    assert "Planned rate · not yet charged" in html
-    assert "Customer metering, balances, payments and invoicing" in html
-    assert "managed cloud GPUs are the paid part" in html
+    assert "Published prices · access by invitation" in html
+    assert "customer metering, balances, payments, and invoicing" in html
+    assert "managed cloud inference" in html
     assert "jailbroken" in html
     assert "zero refusals" in html
+    assert "20% markup" not in html
+    assert "gross margin" not in html
 
 
 def test_agent_and_discovery_files_are_present_and_valid() -> None:
@@ -187,8 +198,8 @@ def test_agent_and_discovery_files_are_present_and_valid() -> None:
         "cebeuq/Ornith-1.0-397B-abliterated-W4A16",
     }
     assert {
-        entry["planned_reference_usd_per_hour"] for entry in model_catalog
-    } == {5.44752, 2.34144, 10.89504}
+        entry["price_usd_per_hour"] for entry in model_catalog
+    } == {5.45, 2.34, 10.9}
     api_catalog_json = json.loads(
         (WEBSITE / ".well-known/api-catalog.json").read_text()
     )
@@ -237,7 +248,7 @@ def test_homepage_has_no_external_runtime_dependencies_or_api_polling() -> None:
         if value.startswith(("http://", "https://"))
         and not value.startswith(
             (
-                "https://wa.me/",
+                "https://signal.me/",
                 "https://github.com/",
                 "https://huggingface.co/",
                 "https://eminogrande.github.io/",
@@ -265,3 +276,5 @@ def test_homepage_performance_budget() -> None:
 
     assert total_bytes < 125_000
     assert (WEBSITE / "assets/og-card.png").stat().st_size < 250_000
+    assert (WEBSITE / "assets/hero-brain.avif").stat().st_size < 200_000
+    assert (WEBSITE / "assets/hero-brain.webp").stat().st_size < 500_000

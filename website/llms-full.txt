@@ -38,8 +38,7 @@ HF metadata: Apache-2.0; 35,951,822,704 parameters, displayed as 36B; BF16; mult
 Hardware: 1 x H200
 Context: 131072
 Maximum output: 16384
-Base GPU estimate: $4.5396/hour
-Planned private-beta reference rate: $5.44752/hour
+ABLITERATED.cloud price: $5.45/hour
 
 ### mn/code
 
@@ -49,8 +48,7 @@ HF metadata: Apache-2.0; 35B Qwen3.5 MoE; reasoning/thinking; English and Chines
 Hardware: 1 x H200
 Context: 131072
 Maximum output: 16384
-Base GPU estimate: $4.5396/hour
-Planned private-beta reference rate: $5.44752/hour
+ABLITERATED.cloud price: $5.45/hour
 
 ### mn/fast
 
@@ -60,8 +58,7 @@ HF metadata: Apache-2.0; 9,653,104,368 parameters, displayed as 10B; BF16; dense
 Hardware: 1 x L40S
 Context: 131072
 Maximum output: 16384
-Base GPU estimate: $1.9512/hour
-Planned private-beta reference rate: $2.34144/hour
+ABLITERATED.cloud price: $2.34/hour
 
 ### mn/ornith-397b
 
@@ -72,8 +69,7 @@ HF metadata: MIT; 397B total / about 17B active; multimodal Qwen3.5 MoE; W4A16; 
 Hardware: 2 x H200
 Context: 32768 configured
 Maximum output: 8192
-Base GPU estimate: $9.0792/hour
-Planned private-beta reference rate: $10.89504/hour
+ABLITERATED.cloud price: $10.90/hour
 Upstream native context claim: 262144
 Status: next budgeted release; not live in v0.3.1
 
@@ -131,24 +127,15 @@ Cursor is a compatibility target and may keep proprietary features on its own pr
 - Modal account credentials and all secret values stay out of Git.
 - Public website code contains no API token, Modal credential, backend proxy secret, or inference polling.
 
-## Free weights and planned pricing
+## Model prices
 
-Current three-route simultaneous base GPU ceiling: $11.0304/hour.
-Future four-route simultaneous base GPU ceiling: $20.1096/hour.
-Current three five-minute tails: $0.9192.
-Future four five-minute tails: $1.6758.
-397B alone: $9.0792/hour and $0.7566 per five-minute idle tail.
+- god: $5.45/hour
+- code: $5.45/hour
+- fast: $2.34/hour
+- 397B: $10.90/hour
 
-Planned reference rates use exactly 20% markup over base GPU list price:
-
-- god: $5.44752/hour
-- code: $5.44752/hour
-- fast: $2.34144/hour
-- 397B: $10.89504/hour
-- current three-route ceiling: $13.23648/hour
-- future four-route ceiling: $24.13152/hour
-
-These are not live customer charges because customer metering, balance tracking, payments, allocation and invoicing are not implemented. Estimates exclude CPU, memory, volumes, network, payment fees, tax and future provider price changes. A 20% markup equals 16.67% gross margin before those costs.
+Model weight downloads are free. These prices cover managed cloud inference.
+Automated customer metering, balances, payments and invoicing are not live yet.
 
 ## Open source and licenses
 
@@ -159,4 +146,4 @@ The MN control plane and website use Apache-2.0, an open-source license. Hugging
 ## Access
 
 Private access request:
-https://wa.me/13103408213?text=Hi%20Emin%2C%20I%20would%20like%20to%20request%20access%20to%20ABLITERATED.cloud
+https://signal.me/#p/+13103408213
