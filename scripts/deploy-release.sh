@@ -39,6 +39,9 @@ git rev-parse "$version" >/dev/null 2>&1 && {
 
 .venv/bin/python -m pytest -q
 ./scripts/check-secrets.sh
+release_notes="$(
+  .venv/bin/python scripts/extract-release-notes.py "$version"
+)"
 
 deploy_backend() {
   local model="$1"
@@ -75,4 +78,6 @@ trap - EXIT
 git tag -s "$version" -m "MN Uncensored $version"
 git push origin HEAD
 git push origin "$version"
-gh release create "$version" --generate-notes --title "MN Uncensored $version"
+gh release create "$version" \
+  --title "MN Uncensored $version" \
+  --notes "$release_notes"

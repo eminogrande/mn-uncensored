@@ -6,10 +6,24 @@ All notable changes to MN Uncensored are documented here.
 
 ### Documentation
 
-- Reworked the README to distinguish the public source repository from the
-  authenticated private API and document the current catalog, cloud-only model
-  storage, cold-start behavior, client configuration, and cost boundary.
+- Expanded the README into a complete architecture and operations guide with
+  Mermaid diagrams for routing, cold starts, lifecycle state, token security,
+  cloud storage, capacity, and the future resale stack.
+- Documented the original 397B direction, the 35B/35B/9B catalog decision,
+  provider comparison, current official price calculations, multi-user
+  capacity, client-specific setup, troubleshooting, and commercial gaps.
+- Added curated historical release notes for every published version.
 - Replaced the stale release-command example with a neutral version example.
+
+### Changed
+
+- Future GitHub releases now use the matching curated `CHANGELOG.md` section
+  instead of publishing only automatically generated commit links.
+
+### Added
+
+- Added a tested release-note extractor that fails if the requested version is
+  missing or empty.
 
 ## [0.3.1] - 2026-07-16
 

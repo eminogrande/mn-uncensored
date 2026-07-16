@@ -152,7 +152,12 @@ The `catalog` target:
 4. deploys the shared gateway;
 5. creates a signed annotated tag;
 6. pushes the branch and tag;
-7. creates the GitHub release.
+7. extracts the matching curated section from `CHANGELOG.md`;
+8. creates the GitHub release with those notes.
+
+Before deploying `vX.Y.Z`, move the completed changes out of `Unreleased` into
+a non-empty `## [X.Y.Z] - YYYY-MM-DD` section. The release fails instead of
+publishing empty or generic notes when that section is missing.
 
 Do not reuse a version tag. If a deployment fails before tagging, correct the
 cause and rerun from the same clean signed commit. If it fails after a partial
