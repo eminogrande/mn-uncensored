@@ -1,7 +1,8 @@
 [project]
 name = "mn-uncensored"
-version = "0.1.0"
-description = "Minimal start/stop CLI and OpenAI-compatible gateway for MN Uncensored"
+version = "0.3.0"
+description = "Minimal three-model OpenAI-compatible catalog for MN Uncensored"
+license = "Apache-2.0"
 requires-python = ">=3.11"
 dependencies = [
   "fastapi>=0.128,<0.129",

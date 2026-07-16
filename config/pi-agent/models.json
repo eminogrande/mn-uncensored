@@ -10,14 +10,46 @@
       },
       "models": [
         {
-          "id": "nuri/ornith-397b-abliterated",
-          "name": "MN Ornith 397B Abliterated",
-          "reasoning": false,
+          "id": "mn/god",
+          "name": "MN God — Qwen3.6 35B A3B Abliterated",
+          "reasoning": true,
           "input": [
             "text"
           ],
-          "contextWindow": 65536,
-          "maxTokens": 8192,
+          "contextWindow": 131072,
+          "maxTokens": 16384,
+          "cost": {
+            "input": 0,
+            "output": 0,
+            "cacheRead": 0,
+            "cacheWrite": 0
+          }
+        },
+        {
+          "id": "mn/code",
+          "name": "MN Code — Ornith 35B Abliterated",
+          "reasoning": true,
+          "input": [
+            "text"
+          ],
+          "contextWindow": 131072,
+          "maxTokens": 16384,
+          "cost": {
+            "input": 0,
+            "output": 0,
+            "cacheRead": 0,
+            "cacheWrite": 0
+          }
+        },
+        {
+          "id": "mn/fast",
+          "name": "MN Fast — Qwythos 9B Abliterated",
+          "reasoning": true,
+          "input": [
+            "text"
+          ],
+          "contextWindow": 131072,
+          "maxTokens": 16384,
           "cost": {
             "input": 0,
             "output": 0,

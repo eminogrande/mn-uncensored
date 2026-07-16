@@ -1,77 +1,68 @@
 # MN Uncensored
 
-MN Uncensored is a minimal control tool for a private, OpenAI-compatible
-deployment of `nuri/ornith-397b-abliterated`.
+MN Uncensored is a minimal three-model catalog with one authenticated,
+OpenAI-compatible API:
 
-The model runs with vLLM on two Modal H200 GPUs. A separate lightweight API
-gateway provides ordinary Bearer tokens, so Hermes, Pi, OpenCode, Cursor, and
-other OpenAI-compatible applications all use the same endpoint.
+| Model | Purpose | Modal GPU | Base active cost |
+| --- | --- | --- | ---: |
+| `mn/god` | Qwen3.6 35B A3B abliterated general agent | 1 x H200 | about $4.54/hour |
+| `mn/code` | Ornith 35B abliterated coding agent | 1 x H200 | about $4.54/hour |
+| `mn/fast` | Qwythos 9B abliterated fast/cheap agent | 1 x L40S | about $1.95/hour |
 
-## Everyday use
+Each model has its own private vLLM backend and independent scale-to-zero
+lifecycle. The lightweight gateway and Bearer tokens are shared, so Hermes,
+Pi, OpenCode, Cursor, and other OpenAI-compatible applications use the same
+base URL.
 
-Install the local CLI once:
+## Install and enable automatic mode
 
 ```sh
 ./scripts/install-macos.sh
-```
-
-Then use either the live menu:
-
-```sh
-mn
-```
-
-or enable the normal automatic mode once:
-
-```sh
 mn auto
 mn status
+```
+
+`mn auto` enables wake-on-request for all three models without keeping a GPU
+warm. An authenticated request starts only the selected model. Ten minutes
+after its last backend request, that model scales back to zero.
+
+Manual controls are model-aware:
+
+```sh
+mn start code     # keep mn/code warm
+mn stop fast      # hard-stop only mn/fast
+mn stop           # hard-stop all models
+mn auto god       # restore automatic mode for one model
+mn wake fast      # explicitly wake one model
+```
+
+The first start downloads the pinned weights into the shared Modal volume.
+Later cold starts reuse that cache.
+
+## Launch coding agents
+
+The default is `mn/god`:
+
+```sh
 mn launch hermes
-```
-
-In automatic mode, the first completion request starts the model and the H200
-pair shuts down after 10 minutes without API traffic. A cached cold start
-currently takes roughly 20 minutes. The gateway waits through Modal's temporary
-cold-start 503 responses instead of passing them directly to the client.
-
-Manual controls remain available:
-
-```sh
-mn start  # keep one replica warm until changed
-mn stop   # hard stop running/pending containers; API calls cannot wake it
-mn auto   # restore wake-on-request plus idle shutdown
-```
-
-## Hermes Agent
-
-Hermes is a first-class launcher:
-
-```sh
-mn launch hermes
-```
-
-The launcher automatically wakes a cold model, then reads the owner token from
-the macOS Keychain and configures Hermes through its own atomic config command:
-
-- named provider `custom:mn-uncensored`
-- endpoint to the MN `/v1` URL
-- `key_env` to `MN_API_TOKEN`; the token exists only in the child process
-- 45-minute API, stream-read, and stale-request timeouts
-- model to `nuri/ornith-397b-abliterated`
-- real context window to 65,536 tokens
-
-Extra Hermes arguments can be appended:
-
-```sh
-mn launch hermes --yolo
-```
-
-The same model can be opened in the other installed coding agents:
-
-```sh
 mn launch pi
 mn launch opencode
 ```
+
+Select another catalog model by placing `--model` before the tool name:
+
+```sh
+mn launch --model code hermes --yolo
+mn launch --model fast pi
+mn launch --model code opencode
+```
+
+The launcher reads the owner token from the macOS Keychain, wakes only the
+selected backend, and passes the token only to the child process.
+
+All catalog models expose a real 131,072-token context and a 16,384-token output
+ceiling. Hermes therefore receives more than its required 64K context without
+the old 33K workaround.
 
 ## API tokens
 
@@ -81,109 +72,103 @@ Create the local owner token once:
 mn token create owner
 ```
 
-The owner token is stored in the macOS login Keychain. Create separate tokens
-for friends:
+The owner token is stored in the macOS login Keychain. Named friend tokens can
+be created and revoked independently:
 
 ```sh
 mn token copy owner
 mn token create alice
-mn token create bob
 mn token list
 mn token revoke alice
 ```
 
-`mn token copy owner` places the owner token directly on the clipboard without
-printing it. Friend tokens are displayed once. The gateway stores only SHA-256
-token digests, never plaintext tokens.
+`mn token copy owner` writes the token directly to the clipboard. The gateway
+stores only SHA-256 token digests, never plaintext tokens.
 
 ## Standard OpenAI API
 
-Show the current connection values:
+Show the connection values:
 
 ```sh
 mn api
 ```
 
-Any compatible application uses:
+Current base URL:
 
 ```text
-Base URL: https://<gateway>.modal.run/v1
-API key:  sk-mn-...
-Model:    nuri/ornith-397b-abliterated
+https://eminhenri--mn-uncensored-api-api.modal.run/v1
 ```
 
 Example:
 
 ```sh
-curl "$MN_GATEWAY_URL/v1/chat/completions" \
+curl "https://eminhenri--mn-uncensored-api-api.modal.run/v1/chat/completions" \
   -H "Authorization: Bearer $MN_API_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "nuri/ornith-397b-abliterated",
+    "model": "mn/code",
     "messages": [{"role": "user", "content": "Say hello briefly."}],
     "max_tokens": 80
   }'
 ```
 
-For Cursor or another GUI, paste the same base URL and API key into its custom
-OpenAI provider settings. The gateway rewrites model aliases to the deployed MN
-model, while `/v1/models` reports the canonical model name.
+The authenticated `/v1/models` endpoint lists `mn/god`, `mn/code`, and
+`mn/fast` without waking a GPU. Unknown model IDs are rejected before an
+upstream connection is created. During the v0.3 migration, the old
+`nuri/ornith-397b-abliterated` ID resolves to the default `mn/god` route so an
+old client does not accidentally wake two backends.
 
 ## Cost and capacity
 
-Modal currently lists H200 compute at `$0.001261/second`, or approximately
-`$4.54/hour` per GPU. This deployment uses two H200s, so the GPU ceiling is
-approximately `$9.08/active hour`, plus a very small CPU gateway cost.
+Modal publishes base prices of approximately $4.54/hour for an H200 and
+$1.95/hour for an L40S. All three models running simultaneously are therefore
+about $11.03/hour of base GPU compute, plus the small gateway and any regional
+or ancillary charges.
 
-The initial deployment is deliberately capped at:
+Each backend is capped at:
 
-- one GPU container
-- two H200s in that container
-- one vLLM sequence at a time
+- one GPU container;
+- the configured GPU count;
+- one vLLM generation sequence;
+- 16,384 output tokens per request;
+- ten billable idle minutes before scale-to-zero.
 
-Several people may hold tokens and send requests, but they share that one model
-replica. With `--max-num-seqs 1`, only one generation runs at a time and other
-requests wait or time out. The hourly GPU price does not increase with the
-number of users unless the deployment is changed to allow more GPU replicas.
+Multiple users share each model replica. Requests to different models can run
+and become billable simultaneously. Scale-to-zero is not a workspace spending
+limit.
 
-Auto mode keeps the pair billable while it is starting, serving requests, and
-for 10 idle minutes after the last backend request. The lightweight gateway can
-remain available without an active GPU.
+## Security and release boundary
 
-## Safety boundary
+The repository and endpoint addresses may be public; the service is not public
+access. Every model, status, and wake request requires a valid Bearer token.
+The private Modal backends additionally require Modal proxy credentials.
 
-In `auto` mode, an authenticated model request intentionally wakes the backend
-and waits for readiness. In hard `stopped` mode, the public gateway returns a
-structured 503 without forwarding, so no client can wake the expensive GPU
-backend.
+Never commit:
 
-The private backend still requires Modal's `Modal-Key` and `Modal-Secret`.
-Those values live only in the macOS Keychain and the Modal secret
-`nuri-backend-proxy`.
+- `.env`, `.env.*`, or `deployment.env`;
+- Modal, Hugging Face, or MN plaintext tokens;
+- Pi authentication, settings, or session files;
+- local `.mn/` state.
 
-Do not commit:
+This remains a private evaluation deployment, not a production resale
+platform. Before selling public access, add quotas, per-token model
+permissions, metering, billing reconciliation, abuse controls, terms, privacy
+controls, and legal review.
 
-- `.env` or `deployment.env`
-- Pi authentication, settings, or session files
-- Modal proxy credentials
-- Hugging Face tokens
-- MN plaintext API tokens
+See:
 
-See [OPERATIONS.md](docs/OPERATIONS.md) for deployment and release procedures
-and [SECURITY.md](SECURITY.md) for the credential model.
+- [Operations](docs/OPERATIONS.md)
+- [Model pins, licenses, and compatibility exception](docs/MODELS.md)
+- [Security boundary](SECURITY.md)
+- [Apache-2.0 project license](LICENSE)
 
-## Model notes
+## Model accuracy note
 
-The deployed checkpoint is
-`cebeuq/Ornith-1.0-397B-abliterated-W4A16`, pinned to revision
-`e5651d291be1c65ff1360eee47ab533ab13b3d97`.
+The configured model artifacts and full Hugging Face revisions are pinned in
+`config/mn.json`. Benchmark results from a base model or another abliterated
+checkpoint must not be presented as results of the deployed MN artifact.
 
-Its aligned parent reports 82.4% on SWE-bench Verified. That score must not be
-presented as a benchmark of this modified checkpoint. Benchmark the exact
-deployment before making performance claims, and review both the model license
-and infrastructure terms before offering paid public access.
-
-The persistent Hugging Face cache contains every runtime file required for the
-pinned revision. The deployed server opens that exact local snapshot path in
-offline mode, avoiding both unrelated Hub metadata outages and checks for
-non-runtime card/assets files.
+In particular, the originally selected WWTCyber Qwen3.6 checkpoint is not
+compatible with vLLM 0.21's registered architectures. `mn/god` therefore uses
+the pinned Huihui Qwen3.6 fallback documented in
+[docs/MODELS.md](docs/MODELS.md).

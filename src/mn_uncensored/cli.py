@@ -9,6 +9,7 @@ import shutil
 import subprocess
 import sys
 import time
+import uuid
 from datetime import UTC, datetime
 from typing import NoReturn
 
@@ -16,7 +17,7 @@ import httpx
 import modal
 
 from .security import generate_token, name_key, token_digest, token_key
-from .settings import PROJECT_ROOT, Settings, load_settings
+from .settings import ModelSettings, PROJECT_ROOT, Settings, load_settings
 
 
 OWNER_KEYCHAIN_SERVICE = "mn-uncensored-owner-token"
@@ -75,9 +76,69 @@ def backend_headers() -> dict[str, str]:
     }
 
 
-def set_desired_state(state: modal.Dict, value: str) -> None:
-    state.put("desired_state", value)
-    state.put("state_updated_at", datetime.now(UTC).isoformat())
+def model_lifecycle(
+    state: modal.Dict,
+    model: ModelSettings,
+    settings: Settings,
+) -> dict[str, object]:
+    record = state.get(model.lifecycle_key)
+    if isinstance(record, dict) and "desired_state" in record:
+        return record
+    if model.key == settings.default_model:
+        return {
+            "schema": 0,
+            "desired_state": state.get("desired_state", "stopped"),
+            "updated_at": state.get("state_updated_at", "unknown"),
+        }
+    return {
+        "schema": 1,
+        "desired_state": "stopped",
+        "updated_at": "unknown",
+    }
+
+
+def set_desired_state(
+    state: modal.Dict,
+    model: ModelSettings,
+    settings: Settings,
+    value: str,
+    *,
+    operation_id: str | None = None,
+) -> None:
+    updated_at = datetime.now(UTC).isoformat()
+    record: dict[str, object] = {
+        "schema": 1,
+        "desired_state": value,
+        "updated_at": updated_at,
+    }
+    if operation_id is not None:
+        record["operation_id"] = operation_id
+    state.put(
+        model.lifecycle_key,
+        record,
+    )
+    if model.key == settings.default_model:
+        state.put("desired_state", value)
+        state.put("state_updated_at", updated_at)
+
+
+def resolve_model(settings: Settings, value: str | None) -> ModelSettings:
+    try:
+        return settings.resolve_model(value)
+    except ValueError as error:
+        fail(str(error))
+
+
+def resolve_models(
+    settings: Settings,
+    value: str | None,
+    *,
+    default_all: bool,
+) -> list[ModelSettings]:
+    candidate = value or ("all" if default_all else settings.default_model)
+    if candidate == "all":
+        return list(settings.models.values())
+    return [resolve_model(settings, candidate)]
 
 
 def modal_cli_path() -> str:
@@ -90,21 +151,7 @@ def modal_cli_path() -> str:
     return executable
 
 
-def deployment_environment() -> dict[str, str]:
-    environment = os.environ.copy()
-    path = PROJECT_ROOT / "deployment.env"
-    if not path.exists():
-        return environment
-    for raw_line in path.read_text().splitlines():
-        line = raw_line.strip()
-        if not line or line.startswith("#") or "=" not in line:
-            continue
-        key, value = line.split("=", 1)
-        environment[key.strip()] = value.strip()
-    return environment
-
-
-def backend_app_is_stopped(settings: Settings) -> bool:
+def backend_app_is_stopped(model: ModelSettings) -> bool:
     result = subprocess.run(
         [modal_cli_path(), "app", "list", "--json"],
         check=False,
@@ -118,28 +165,30 @@ def backend_app_is_stopped(settings: Settings) -> bool:
     except json.JSONDecodeError:
         return False
     for app in apps:
-        if app.get("description") == settings.app_name:
+        if app.get("description") == model.app_name:
             return app.get("state") == "stopped"
     return True
 
 
-def reset_backend_to_static(settings: Settings) -> None:
+def reset_backend_to_static(model: ModelSettings) -> None:
     result = subprocess.run(
         [
             modal_cli_path(),
             "app",
             "rollover",
-            settings.app_name,
+            model.app_name,
             "--strategy",
             "recreate",
         ],
         check=False,
     )
     if result.returncode != 0:
-        fail("Could not reset the Modal backend app; gateway remains fail-closed.")
+        fail(
+            f"Could not reset backend `{model.key}`; its gateway route remains fail-closed."
+        )
 
 
-def deploy_backend(settings: Settings, tag: str) -> None:
+def deploy_backend(model: ModelSettings, tag: str) -> None:
     status_result = subprocess.run(
         ["git", "status", "--porcelain"],
         cwd=PROJECT_ROOT,
@@ -165,7 +214,9 @@ def deploy_backend(settings: Settings, tag: str) -> None:
         capture_output=True,
         text=True,
     )
-    deployment_tag = f"{tag}-{commit_result.stdout.strip()}"
+    environment = os.environ.copy()
+    environment["MN_MODEL"] = model.key
+    deployment_tag = f"{tag}-{model.key}-{commit_result.stdout.strip()}"
     result = subprocess.run(
         [
             modal_cli_path(),
@@ -175,28 +226,57 @@ def deploy_backend(settings: Settings, tag: str) -> None:
             deployment_tag,
         ],
         check=False,
-        env=deployment_environment(),
+        env=environment,
     )
     if result.returncode != 0:
-        fail("Could not deploy the scale-to-zero backend; state remains stopped.")
+        fail(
+            f"Could not deploy the `{model.key}` scale-to-zero backend; state remains stopped."
+        )
 
 
-def command_start(args: argparse.Namespace, settings: Settings) -> None:
+def start_model(
+    args: argparse.Namespace,
+    settings: Settings,
+    model: ModelSettings,
+) -> None:
     state = state_dict(settings)
-    current = state.get("desired_state", "stopped")
+    current = str(
+        model_lifecycle(state, model, settings).get("desired_state", "stopped")
+    )
     if current == "started":
-        print("MN Uncensored is marked as started; verifying the backend.")
+        print(f"{model.model} is marked as started; verifying the backend.")
+
+    operation_id = uuid.uuid4().hex
+
+    def start_is_current() -> bool:
+        record = model_lifecycle(state, model, settings)
+        return (
+            record.get("desired_state") == "starting"
+            and record.get("operation_id") == operation_id
+        )
 
     print(
-        "Starting MN Uncensored on 2 x H200 "
-        f"(approximately ${settings.gpu_hourly_usd:.2f}/active hour)..."
+        f"Starting {model.model} on {model.gpu_label} "
+        f"(approximately ${model.gpu_hourly_usd:.2f}/active hour)..."
     )
-    set_desired_state(state, "starting")
-    if backend_app_is_stopped(settings):
-        set_desired_state(state, "stopped")
-        deploy_backend(settings, "manual-start")
-        set_desired_state(state, "starting")
-    server = modal.Server.from_name(settings.app_name, settings.server_name)
+    set_desired_state(
+        state,
+        model,
+        settings,
+        "starting",
+        operation_id=operation_id,
+    )
+    if backend_app_is_stopped(model):
+        try:
+            deploy_backend(model, "manual-start")
+        except SystemExit:
+            if start_is_current():
+                set_desired_state(state, model, settings, "stopped")
+            raise
+        if not start_is_current():
+            print(f"Start canceled while deploying {model.model}.")
+            return
+    server = modal.Server.from_name(model.app_name, model.server_name)
     try:
         server.update_autoscaler(
             min_containers=1,
@@ -204,7 +284,8 @@ def command_start(args: argparse.Namespace, settings: Settings) -> None:
             scaledown_window=300,
         )
     except Exception:
-        set_desired_state(state, current)
+        if start_is_current():
+            set_desired_state(state, model, settings, current)
         raise
 
     timeout_seconds = args.timeout * 60
@@ -215,16 +296,26 @@ def command_start(args: argparse.Namespace, settings: Settings) -> None:
 
     with httpx.Client(timeout=60, follow_redirects=True) as client:
         while time.monotonic() < deadline:
+            if not start_is_current():
+                print(
+                    f"Start canceled because {model.model} lifecycle changed."
+                )
+                return
             elapsed = time.monotonic() - started_at
             try:
-                response = client.get(f"{settings.backend_url}/health", headers=headers)
+                response = client.get(f"{model.backend_url}/health", headers=headers)
             except httpx.HTTPError:
                 response = None
 
             if response is not None and response.status_code == 200:
-                set_desired_state(state, "started")
-                print(f"Ready after {elapsed / 60:.1f} minutes.")
-                print_api_details(settings)
+                if not start_is_current():
+                    print(
+                        f"Start canceled because {model.model} lifecycle changed."
+                    )
+                    return
+                set_desired_state(state, model, settings, "started")
+                print(f"{model.model} ready after {elapsed / 60:.1f} minutes.")
+                print_api_details(settings, model)
                 return
             if response is not None and response.status_code not in {502, 503, 504}:
                 print(
@@ -239,68 +330,122 @@ def command_start(args: argparse.Namespace, settings: Settings) -> None:
             time.sleep(5)
 
     fail(
-        f"The model is still starting after {args.timeout} minutes. "
-        "It remains billable; run `mn status` or `mn stop`."
+        f"{model.model} is still starting after {args.timeout} minutes. "
+        f"It remains billable; run `mn status {model.key}` or `mn stop {model.key}`."
     )
 
 
-def command_stop(_args: argparse.Namespace, settings: Settings) -> None:
+def command_start(args: argparse.Namespace, settings: Settings) -> None:
+    start_model(args, settings, resolve_model(settings, args.model))
+
+
+def command_stop(args: argparse.Namespace, settings: Settings) -> None:
     state = state_dict(settings)
-    if backend_app_is_stopped(settings):
-        set_desired_state(state, "stopped")
-        print("MN Uncensored is already hard-stopped.")
-        return
-    set_desired_state(state, "stopping")
-    reset_backend_to_static(settings)
-    set_desired_state(state, "stopped")
-    print("Stopped accepting API requests.")
-    print("The backend was reset to its static scale-to-zero deployment.")
+    for model in resolve_models(settings, args.model, default_all=True):
+        if backend_app_is_stopped(model):
+            set_desired_state(state, model, settings, "stopped")
+            print(f"{model.model} is already hard-stopped.")
+            continue
+        set_desired_state(state, model, settings, "stopping")
+        reset_backend_to_static(model)
+        set_desired_state(state, model, settings, "stopped")
+        print(f"Stopped {model.model}; its backend is at static scale-to-zero.")
 
 
-def command_auto(_args: argparse.Namespace, settings: Settings) -> None:
+def command_auto(args: argparse.Namespace, settings: Settings) -> None:
     state = state_dict(settings)
-    previous_state = state.get("desired_state", "stopped")
-    if backend_app_is_stopped(settings):
-        set_desired_state(state, "stopping")
-        set_desired_state(state, "stopped")
-        deploy_backend(settings, "auto-lifecycle")
-    elif previous_state in {"started", "starting", "stopping"}:
-        set_desired_state(state, "stopping")
-        reset_backend_to_static(settings)
-    set_desired_state(state, "auto")
-    print("Auto mode enabled.")
-    print(
-        "The first API request starts the model; it scales to zero after "
-        f"{settings.idle_shutdown_seconds // 60} idle minutes."
-    )
+    for model in resolve_models(settings, args.model, default_all=True):
+        operation_id = uuid.uuid4().hex
 
-
-def command_status(_args: argparse.Namespace, settings: Settings) -> None:
-    state = state_dict(settings)
-    desired_state = state.get("desired_state", "stopped")
-    updated_at = state.get("state_updated_at", "unknown")
-    print(f"State: {desired_state}")
-    print(f"Model: {settings.model}")
-    print(f"Last change: {updated_at}")
-    print(f"GPU ceiling: 1 pair (2 x H200, ~${settings.gpu_hourly_usd:.2f}/hour)")
-    print(f"Auto idle shutdown: {settings.idle_shutdown_seconds // 60} minutes")
-
-    if desired_state == "started":
-        try:
-            response = httpx.get(
-                f"{settings.backend_url}/health",
-                headers=backend_headers(),
-                timeout=30,
-                follow_redirects=True,
+        def operation_is_current() -> bool:
+            return (
+                model_lifecycle(state, model, settings).get("operation_id")
+                == operation_id
             )
-            print(f"Backend health: HTTP {response.status_code}")
-        except httpx.HTTPError as error:
-            print(f"Backend health: unavailable ({error.__class__.__name__})")
 
-    if settings.api_base_url:
-        print(f"API base URL: {settings.api_base_url}")
-    else:
-        print("API base URL: not deployed yet")
+        previous_state = str(
+            model_lifecycle(state, model, settings).get(
+                "desired_state",
+                "stopped",
+            )
+        )
+        if backend_app_is_stopped(model):
+            set_desired_state(
+                state,
+                model,
+                settings,
+                "stopped",
+                operation_id=operation_id,
+            )
+            try:
+                deploy_backend(model, "auto-lifecycle")
+            except SystemExit:
+                if operation_is_current():
+                    set_desired_state(state, model, settings, "stopped")
+                raise
+        elif previous_state in {"started", "starting", "stopping"}:
+            set_desired_state(
+                state,
+                model,
+                settings,
+                "stopping",
+                operation_id=operation_id,
+            )
+            reset_backend_to_static(model)
+        else:
+            set_desired_state(
+                state,
+                model,
+                settings,
+                previous_state,
+                operation_id=operation_id,
+            )
+        if not operation_is_current():
+            print(f"Auto canceled because {model.model} lifecycle changed.")
+            continue
+        set_desired_state(state, model, settings, "auto")
+        print(
+            f"Auto enabled for {model.model}: wake on request, scale to zero after "
+            f"{settings.idle_shutdown_seconds // 60} idle minutes."
+        )
+
+
+def command_status(args: argparse.Namespace, settings: Settings) -> None:
+    state = state_dict(settings)
+    selected = resolve_models(settings, args.model, default_all=True)
+    for index, model in enumerate(selected):
+        if index:
+            print()
+        record = model_lifecycle(state, model, settings)
+        desired_state = str(record.get("desired_state", "stopped"))
+        print(f"Model: {model.model} ({model.key})")
+        print(f"Name: {model.display_name}")
+        print(f"State: {desired_state}")
+        print(f"Last change: {record.get('updated_at', 'unknown')}")
+        print(
+            f"GPU ceiling: {model.gpu_label}, "
+            f"~${model.gpu_hourly_usd:.2f}/active hour"
+        )
+        print(
+            f"Context: {model.context_window:,} tokens; "
+            f"idle shutdown: {settings.idle_shutdown_seconds // 60} minutes"
+        )
+
+        if desired_state == "started":
+            try:
+                response = httpx.get(
+                    f"{model.backend_url}/health",
+                    headers=backend_headers(),
+                    timeout=30,
+                    follow_redirects=True,
+                )
+                print(f"Backend health: HTTP {response.status_code}")
+            except httpx.HTTPError as error:
+                print(f"Backend health: unavailable ({error.__class__.__name__})")
+    print()
+    print(
+        f"API base URL: {settings.api_base_url or 'not deployed yet'}"
+    )
 
 
 def validate_token_name(name: str) -> str:
@@ -390,33 +535,53 @@ def owner_token() -> str:
     return keychain_password(OWNER_KEYCHAIN_SERVICE)
 
 
-def require_launch_allowed(settings: Settings) -> str:
+def require_launch_allowed(
+    settings: Settings,
+    model: ModelSettings,
+) -> str:
     if not settings.api_base_url:
         fail("The API gateway has not been deployed yet.")
-    desired_state = state_dict(settings).get("desired_state", "stopped")
+    desired_state = str(
+        model_lifecycle(state_dict(settings), model, settings).get(
+            "desired_state",
+            "stopped",
+        )
+    )
     if desired_state not in {"auto", "started"}:
-        fail(f"MN Uncensored is `{desired_state}`. Run `mn auto` or `mn start` first.")
+        fail(
+            f"{model.model} is `{desired_state}`. "
+            f"Run `mn auto {model.key}` or `mn start {model.key}` first."
+        )
     return desired_state
 
 
-def wake_model(settings: Settings, token: str) -> None:
-    print("Waking MN Uncensored if needed; a cold start can take about 20 minutes...")
+def wake_model(settings: Settings, model: ModelSettings, token: str) -> None:
+    print(
+        f"Waking {model.model} if needed; a first download or cold start can take time..."
+    )
     try:
         response = httpx.post(
             f"{settings.gateway_url}/wake",
+            params={"model": model.model},
             headers={"Authorization": f"Bearer {token}"},
             timeout=45 * 60,
             follow_redirects=True,
         )
     except httpx.HTTPError as error:
-        fail(f"Could not wake the model ({error.__class__.__name__}).")
+        fail(f"Could not wake {model.model} ({error.__class__.__name__}).")
     if response.status_code != 200:
         try:
             message = response.json()["error"]["message"]
         except (KeyError, TypeError, ValueError):
             message = f"HTTP {response.status_code}"
-        fail(f"Could not wake the model: {message}")
-    print("Model ready.")
+        fail(f"Could not wake {model.model}: {message}")
+    print(f"{model.model} ready.")
+
+
+def command_wake(args: argparse.Namespace, settings: Settings) -> None:
+    model = resolve_model(settings, args.model)
+    require_launch_allowed(settings, model)
+    wake_model(settings, model, owner_token())
 
 
 def exec_tool(command: list[str], environment: dict[str, str]) -> NoReturn:
@@ -428,7 +593,12 @@ def exec_tool(command: list[str], environment: dict[str, str]) -> NoReturn:
     raise AssertionError("execvpe returned unexpectedly")
 
 
-def launch_hermes(args: list[str], settings: Settings, token: str) -> NoReturn:
+def launch_hermes(
+    args: list[str],
+    settings: Settings,
+    model: ModelSettings,
+    token: str,
+) -> NoReturn:
     hermes = shutil.which("hermes")
     if not hermes:
         fail("`hermes` is not installed or not on PATH.")
@@ -436,8 +606,8 @@ def launch_hermes(args: list[str], settings: Settings, token: str) -> NoReturn:
         "api": settings.api_base_url,
         "key_env": "MN_API_TOKEN",
         "transport": "chat_completions",
-        "default_model": settings.model,
-        "context_length": str(settings.context_window),
+        "default_model": model.model,
+        "context_length": str(model.context_window),
         "request_timeout_seconds": "2700",
         "stale_timeout_seconds": "2700",
     }
@@ -471,7 +641,7 @@ def launch_hermes(args: list[str], settings: Settings, token: str) -> NoReturn:
             "--provider",
             "custom:mn-uncensored",
             "--model",
-            settings.model,
+            model.model,
             "--tui",
             *args,
         ],
@@ -479,7 +649,12 @@ def launch_hermes(args: list[str], settings: Settings, token: str) -> NoReturn:
     )
 
 
-def launch_pi(args: list[str], settings: Settings, token: str) -> NoReturn:
+def launch_pi(
+    args: list[str],
+    _settings: Settings,
+    model: ModelSettings,
+    token: str,
+) -> NoReturn:
     environment = os.environ.copy()
     environment.update(
         {
@@ -493,15 +668,20 @@ def launch_pi(args: list[str], settings: Settings, token: str) -> NoReturn:
             "--provider",
             "mn",
             "--model",
-            settings.model,
+            model.model,
             *args,
         ],
         environment,
     )
 
 
-def launch_opencode(args: list[str], settings: Settings, token: str) -> NoReturn:
-    provider_model = f"mn/{settings.model}"
+def launch_opencode(
+    args: list[str],
+    settings: Settings,
+    model: ModelSettings,
+    token: str,
+) -> NoReturn:
+    provider_model = f"mn/{model.key}"
     config = {
         "$schema": "https://opencode.ai/config.json",
         "model": provider_model,
@@ -514,11 +694,11 @@ def launch_opencode(args: list[str], settings: Settings, token: str) -> NoReturn
                     "baseURL": settings.api_base_url,
                 },
                 "models": {
-                    settings.model: {
-                        "name": "MN Ornith 397B Abliterated",
+                    model.key: {
+                        "name": model.display_name,
                         "limit": {
-                            "context": settings.context_window,
-                            "output": settings.max_output_tokens,
+                            "context": model.context_window,
+                            "output": model.max_output_tokens,
                         },
                     }
                 },
@@ -536,40 +716,52 @@ def launch_opencode(args: list[str], settings: Settings, token: str) -> NoReturn
 
 
 def command_launch(args: argparse.Namespace, settings: Settings) -> None:
-    desired_state = require_launch_allowed(settings)
+    model = resolve_model(settings, args.model)
+    desired_state = require_launch_allowed(settings, model)
     token = owner_token()
     if desired_state == "auto":
-        wake_model(settings, token)
+        wake_model(settings, model, token)
     launchers = {
         "hermes": launch_hermes,
         "pi": launch_pi,
         "opencode": launch_opencode,
     }
-    launchers[args.tool](args.tool_args, settings, token)
+    launchers[args.tool](args.tool_args, settings, model, token)
 
 
-def print_api_details(settings: Settings) -> None:
+def print_api_details(settings: Settings, selected: ModelSettings | None = None) -> None:
     if not settings.api_base_url:
         print("Gateway: not deployed yet")
         return
     print(f"Base URL: {settings.api_base_url}")
-    print(f"Model:    {settings.model}")
+    models = [selected] if selected is not None else settings.models.values()
+    for model in models:
+        print(
+            f"Model:    {model.model:<10} {model.display_name} "
+            f"({model.context_window:,} context)"
+        )
     print("API key:  run `mn token copy owner` or create a named friend token")
 
 
-def command_api(_args: argparse.Namespace, settings: Settings) -> None:
-    print_api_details(settings)
+def command_api(args: argparse.Namespace, settings: Settings) -> None:
+    selected = None if args.model == "all" else resolve_model(settings, args.model)
+    print_api_details(settings, selected)
 
 
 def interactive_menu(settings: Settings) -> None:
     while True:
-        desired_state = state_dict(settings).get("desired_state", "stopped")
         print()
         print("MN Uncensored")
-        print(f"Model state: {desired_state}")
-        print("1. Start")
-        print("2. Auto mode")
-        print("3. Stop")
+        for model in settings.models.values():
+            desired_state = model_lifecycle(
+                state_dict(settings),
+                model,
+                settings,
+            ).get("desired_state", "stopped")
+            print(f"  {model.key:<4} {model.model:<10} {desired_state}")
+        print("1. Start one model")
+        print("2. Auto mode for all")
+        print("3. Stop all")
         print("4. Status")
         print("5. Launch Hermes")
         print("6. Launch Pi")
@@ -583,17 +775,19 @@ def interactive_menu(settings: Settings) -> None:
         if choice == "0":
             return
         if choice == "1":
-            command_start(argparse.Namespace(timeout=90), settings)
+            model = input("Model [god/code/fast]: ").strip() or settings.default_model
+            command_start(argparse.Namespace(timeout=90, model=model), settings)
         elif choice == "2":
-            command_auto(argparse.Namespace(), settings)
+            command_auto(argparse.Namespace(model="all"), settings)
         elif choice == "3":
-            command_stop(argparse.Namespace(), settings)
+            command_stop(argparse.Namespace(model="all"), settings)
         elif choice == "4":
-            command_status(argparse.Namespace(), settings)
+            command_status(argparse.Namespace(model="all"), settings)
         elif choice in {"5", "6", "7"}:
             tool = {"5": "hermes", "6": "pi", "7": "opencode"}[choice]
+            model = input("Model [god/code/fast]: ").strip() or settings.default_model
             command_launch(
-                argparse.Namespace(tool=tool, tool_args=[]),
+                argparse.Namespace(tool=tool, tool_args=[], model=model),
                 settings,
             )
         elif choice == "8":
@@ -603,7 +797,7 @@ def interactive_menu(settings: Settings) -> None:
             name = input("Token name: ").strip()
             command_token_revoke(argparse.Namespace(name=name), settings)
         elif choice == "10":
-            command_api(argparse.Namespace(), settings)
+            command_api(argparse.Namespace(model="all"), settings)
         else:
             print("Unknown choice.")
 
@@ -611,11 +805,12 @@ def interactive_menu(settings: Settings) -> None:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="mn",
-        description="Start, stop, and use MN Uncensored.",
+        description="Start, stop, and use the MN Uncensored model catalog.",
     )
     subparsers = parser.add_subparsers(dest="command")
 
-    start_parser = subparsers.add_parser("start", help="Start the H200 model")
+    start_parser = subparsers.add_parser("start", help="Start one model and keep it warm")
+    start_parser.add_argument("model", nargs="?", default=None)
     start_parser.add_argument(
         "--timeout",
         type=int,
@@ -623,13 +818,29 @@ def build_parser() -> argparse.ArgumentParser:
         help="Minutes to wait for the model (default: 90)",
     )
 
-    subparsers.add_parser("stop", help="Stop accepting traffic and scale GPUs down")
-    subparsers.add_parser(
-        "auto",
-        help="Wake on the first API call and shut down after idle time",
+    stop_parser = subparsers.add_parser(
+        "stop",
+        help="Stop one model or all models",
     )
-    subparsers.add_parser("status", help="Show model and endpoint status")
-    subparsers.add_parser("api", help="Show OpenAI-compatible API settings")
+    stop_parser.add_argument("model", nargs="?", default="all")
+
+    auto_parser = subparsers.add_parser(
+        "auto",
+        help="Wake on request and shut down after idle time",
+    )
+    auto_parser.add_argument("model", nargs="?", default="all")
+
+    status_parser = subparsers.add_parser("status", help="Show catalog status")
+    status_parser.add_argument("model", nargs="?", default="all")
+
+    wake_parser = subparsers.add_parser("wake", help="Wake one model")
+    wake_parser.add_argument("model", nargs="?", default=None)
+
+    api_parser = subparsers.add_parser(
+        "api",
+        help="Show OpenAI-compatible API settings",
+    )
+    api_parser.add_argument("model", nargs="?", default="all")
 
     token_parser = subparsers.add_parser("token", help="Manage Bearer API tokens")
     token_subparsers = token_parser.add_subparsers(dest="token_command", required=True)
@@ -642,6 +853,11 @@ def build_parser() -> argparse.ArgumentParser:
     token_subparsers.add_parser("list")
 
     launch_parser = subparsers.add_parser("launch", help="Launch an agent using MN")
+    launch_parser.add_argument(
+        "--model",
+        default=None,
+        help="Catalog model: god, code, or fast (place before the tool name)",
+    )
     launch_parser.add_argument("tool", choices=["hermes", "pi", "opencode"])
     launch_parser.add_argument("tool_args", nargs=argparse.REMAINDER)
     return parser
@@ -662,6 +878,8 @@ def main() -> None:
         command_auto(args, settings)
     elif args.command == "status":
         command_status(args, settings)
+    elif args.command == "wake":
+        command_wake(args, settings)
     elif args.command == "api":
         command_api(args, settings)
     elif args.command == "token":

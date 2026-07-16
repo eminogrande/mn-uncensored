@@ -1,5 +1,11 @@
 .env
+.env.*
+deployment.env
 .git
 .venv
 __pycache__
 .pytest_cache
+.mn
+config/pi-agent/auth.json
+config/pi-agent/settings.json
+config/pi-agent/sessions

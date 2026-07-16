@@ -4,6 +4,39 @@ All notable changes to MN Uncensored are documented here.
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-07-16
+
+### Added
+
+- Three independently autoscaling catalog models: `mn/god`, `mn/code`, and
+  `mn/fast`.
+- Strict model routing, per-model lifecycle records, and isolated wake/status
+  endpoints.
+- Model selection for Hermes, Pi, OpenCode, CLI controls, and endpoint tests.
+- Pinned model/license record with the documented Qwen3.6 compatibility
+  fallback.
+- Apache-2.0 project license.
+- Request-side 16,384-token output enforcement.
+
+### Changed
+
+- Replaced the single 397B backend with two 35B H200 profiles and one 9B L40S
+  profile.
+- Increased the advertised and served context from 65,536 to 131,072 tokens.
+- Made hard stop and automatic mode operate per backend without affecting the
+  other catalog models.
+- Updated the release workflow to deploy all three backends and the shared
+  gateway under one signed release.
+
+### Security
+
+- Backend destinations and model aliases are resolved only from the tracked
+  catalog.
+- Unknown or malformed model IDs and excessive output requests fail before an
+  upstream client is created.
+- Expanded Docker-context exclusions for environment files and local agent
+  credentials.
+
 ## [0.2.0] - 2026-07-16
 
 ### Added

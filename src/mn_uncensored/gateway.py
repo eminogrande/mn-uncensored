@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import asyncio
 import json
-import os
 import uuid
 from collections.abc import AsyncIterator
 from typing import Any
@@ -47,13 +46,24 @@ async def state_get(state: Any, key: str, default: Any = None) -> Any:
 def create_app(
     *,
     state: Any,
-    backend_url: str,
-    context_window: int,
-    max_output_tokens: int,
-    model: str,
+    models: dict[str, dict[str, Any]],
+    default_model: str,
     proxy_key: str,
     proxy_secret: str,
 ) -> FastAPI:
+    if default_model not in models:
+        raise ValueError("The default model is not present in the gateway catalog.")
+
+    routes: dict[str, dict[str, Any]] = {}
+    identifiers: dict[str, str] = {}
+    for key, raw in models.items():
+        route = {**raw, "key": key}
+        routes[key] = route
+        for identifier in (route["model"], *route.get("aliases", [])):
+            if identifier in identifiers:
+                raise ValueError(f"Duplicate gateway model identifier: {identifier}")
+            identifiers[identifier] = key
+
     app = FastAPI(
         title="MN Uncensored",
         docs_url=None,
@@ -68,7 +78,10 @@ def create_app(
 
     @app.exception_handler(HTTPException)
     async def openai_http_error(_request: Request, error: HTTPException) -> JSONResponse:
-        if isinstance(error.detail, dict) and {"message", "type", "code"} <= error.detail.keys():
+        if (
+            isinstance(error.detail, dict)
+            and {"message", "type", "code"} <= error.detail.keys()
+        ):
             content = {"error": error.detail}
         else:
             content = error_payload(
@@ -140,33 +153,92 @@ def create_app(
             )
         return metadata
 
+    def resolve_model(requested: Any = None) -> dict[str, Any]:
+        if requested is None or requested == "":
+            return routes[default_model]
+        if not isinstance(requested, str):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=error_payload(
+                    "The `model` field must be a string.",
+                    "invalid_request_error",
+                    "invalid_model",
+                )["error"],
+            )
+        key = requested if requested in routes else identifiers.get(requested)
+        if key is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=error_payload(
+                    f"The model `{requested}` does not exist.",
+                    "invalid_request_error",
+                    "model_not_found",
+                )["error"],
+            )
+        return routes[key]
+
+    async def lifecycle(route: dict[str, Any]) -> dict[str, Any]:
+        record = await state_get(state, route["lifecycle_key"])
+        if isinstance(record, dict) and "desired_state" in record:
+            return record
+        if route["key"] == default_model:
+            legacy_state = await state_get(state, "desired_state", "stopped")
+            legacy_updated_at = await state_get(state, "state_updated_at", "unknown")
+            return {
+                "schema": 0,
+                "desired_state": legacy_state,
+                "updated_at": legacy_updated_at,
+            }
+        return {
+            "schema": 1,
+            "desired_state": "stopped",
+            "updated_at": "unknown",
+        }
+
     @app.get("/healthz")
     async def healthz() -> dict[str, str]:
         return {"status": "ok"}
 
     @app.get("/status", dependencies=[Depends(authenticate)])
-    async def model_status() -> dict[str, Any]:
-        desired_state = await state_get(state, "desired_state", "stopped")
-        return {
-            "model": model,
-            "state": desired_state,
-            "ready": True if desired_state == "started" else None,
-        }
+    async def model_status(model: str | None = None) -> dict[str, Any]:
+        if model is not None:
+            route = resolve_model(model)
+            record = await lifecycle(route)
+            return {
+                "model": route["model"],
+                "state": record["desired_state"],
+                "updated_at": record.get("updated_at"),
+                "ready": (
+                    True if record["desired_state"] == "started" else None
+                ),
+            }
+        data = []
+        for route in routes.values():
+            record = await lifecycle(route)
+            data.append(
+                {
+                    "model": route["model"],
+                    "state": record["desired_state"],
+                    "updated_at": record.get("updated_at"),
+                }
+            )
+        return {"object": "list", "data": data}
 
     @app.get("/v1/models", dependencies=[Depends(authenticate)])
-    async def models() -> dict[str, Any]:
+    async def list_models() -> dict[str, Any]:
         return {
             "object": "list",
             "data": [
                 {
-                    "id": model,
+                    "id": route["model"],
                     "object": "model",
                     "created": 0,
-                    "context_length": context_window,
-                    "max_model_len": context_window,
-                    "max_output_tokens": max_output_tokens,
+                    "context_length": route["context_window"],
+                    "max_model_len": route["context_window"],
+                    "max_output_tokens": route["max_output_tokens"],
                     "owned_by": "mn",
                 }
+                for route in routes.values()
             ],
         }
 
@@ -190,38 +262,42 @@ def create_app(
             headers["X-Request-ID"] = request_id
         return headers
 
-    async def wait_for_backend(client: httpx.AsyncClient) -> str:
+    async def wait_for_backend(
+        client: httpx.AsyncClient,
+        route: dict[str, Any],
+    ) -> str:
         deadline = asyncio.get_running_loop().time() + AUTO_START_TIMEOUT_SECONDS
         while asyncio.get_running_loop().time() < deadline:
-            desired_state = await state_get(state, "desired_state", "stopped")
-            if desired_state in {"stopped", "stopping"}:
+            record = await lifecycle(route)
+            if record["desired_state"] in {"stopped", "stopping"}:
                 return "stopped"
             try:
                 response = await client.get(
-                    f"{backend_url}/health",
+                    f"{route['backend_url']}/health",
                     headers=backend_headers(),
                     timeout=60,
                 )
             except httpx.HTTPError:
                 response = None
             if response is not None and response.status_code == 200:
-                desired_state = await state_get(state, "desired_state", "stopped")
+                record = await lifecycle(route)
                 return (
                     "ready"
-                    if desired_state not in {"stopped", "stopping"}
+                    if record["desired_state"] not in {"stopped", "stopping"}
                     else "stopped"
                 )
             await asyncio.sleep(AUTO_START_POLL_SECONDS)
         return "timeout"
 
     @app.post("/wake", dependencies=[Depends(authenticate)])
-    async def wake() -> JSONResponse:
-        desired_state = await state_get(state, "desired_state", "stopped")
-        if desired_state in {"stopped", "stopping"}:
+    async def wake(model: str | None = None) -> JSONResponse:
+        route = resolve_model(model)
+        record = await lifecycle(route)
+        if record["desired_state"] in {"stopped", "stopping"}:
             return JSONResponse(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
                 content=error_payload(
-                    "MN Uncensored is hard-stopped. Run `mn auto` first.",
+                    f"{route['model']} is hard-stopped. Run `mn auto {route['key']}` first.",
                     "service_unavailable",
                     "model_stopped",
                 ),
@@ -231,14 +307,14 @@ def create_app(
             follow_redirects=False,
         )
         try:
-            result = await wait_for_backend(client)
+            result = await wait_for_backend(client, route)
         finally:
             await client.aclose()
         if result == "stopped":
             return JSONResponse(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
                 content=error_payload(
-                    "MN Uncensored was stopped while starting.",
+                    f"{route['model']} was stopped while starting.",
                     "service_unavailable",
                     "model_stopped",
                 ),
@@ -247,35 +323,19 @@ def create_app(
             return JSONResponse(
                 status_code=status.HTTP_504_GATEWAY_TIMEOUT,
                 content=error_payload(
-                    "The model did not become ready within 45 minutes.",
+                    f"{route['model']} did not become ready within 45 minutes.",
                     "api_connection_error",
                     "model_start_timeout",
                 ),
             )
-        return JSONResponse({"status": "ready", "model": model})
+        return JSONResponse({"status": "ready", "model": route["model"]})
 
     @app.api_route(
         "/v1/{path:path}",
         methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
         dependencies=[Depends(authenticate)],
     )
-    async def proxy(path: str, request: Request) -> StreamingResponse:
-        desired_state = await state_get(state, "desired_state", "stopped")
-        if desired_state in {"stopped", "stopping"}:
-            state_message = {
-                "stopping": "MN Uncensored is stopping.",
-                "stopped": "MN Uncensored is stopped. Run `mn auto` or `mn start`.",
-            }.get(desired_state, "MN Uncensored is unavailable.")
-            return JSONResponse(
-                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                content=error_payload(
-                    state_message,
-                    "service_unavailable",
-                    f"model_{desired_state}",
-                ),
-                headers={"Retry-After": "15"},
-            )
-
+    async def proxy(path: str, request: Request) -> Response:
         body = await request.body()
         if len(body) > MAX_REQUEST_BYTES:
             return JSONResponse(
@@ -287,10 +347,11 @@ def create_app(
                 ),
             )
 
+        payload: dict[str, Any] | None = None
         content_type = request.headers.get("content-type", "")
         if body and "application/json" in content_type:
             try:
-                payload = json.loads(body)
+                decoded = json.loads(body)
             except json.JSONDecodeError:
                 return JSONResponse(
                     status_code=status.HTTP_400_BAD_REQUEST,
@@ -300,9 +361,60 @@ def create_app(
                         "invalid_json",
                     ),
                 )
-            if isinstance(payload, dict) and "model" in payload:
-                payload["model"] = model
-                body = json.dumps(payload, separators=(",", ":")).encode()
+            if isinstance(decoded, dict):
+                payload = decoded
+
+        route = resolve_model(payload.get("model") if payload is not None else None)
+        if payload is not None:
+            for field in ("max_tokens", "max_completion_tokens", "max_output_tokens"):
+                requested_tokens = payload.get(field)
+                if requested_tokens is None:
+                    continue
+                if (
+                    isinstance(requested_tokens, bool)
+                    or not isinstance(requested_tokens, int)
+                    or requested_tokens < 1
+                ):
+                    return JSONResponse(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        content=error_payload(
+                            f"`{field}` must be a positive integer.",
+                            "invalid_request_error",
+                            "invalid_max_tokens",
+                        ),
+                    )
+                if requested_tokens > route["max_output_tokens"]:
+                    return JSONResponse(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        content=error_payload(
+                            f"`{field}` exceeds the {route['max_output_tokens']}-token "
+                            f"limit for {route['model']}.",
+                            "invalid_request_error",
+                            "max_tokens_exceeded",
+                        ),
+                    )
+            payload["model"] = route["model"]
+            body = json.dumps(payload, separators=(",", ":")).encode()
+
+        record = await lifecycle(route)
+        desired_state = record["desired_state"]
+        if desired_state in {"stopped", "stopping"}:
+            state_message = {
+                "stopping": f"{route['model']} is stopping.",
+                "stopped": (
+                    f"{route['model']} is stopped. "
+                    f"Run `mn auto {route['key']}` or `mn start {route['key']}`."
+                ),
+            }.get(desired_state, f"{route['model']} is unavailable.")
+            return JSONResponse(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                content=error_payload(
+                    state_message,
+                    "service_unavailable",
+                    f"model_{desired_state}",
+                ),
+                headers={"Retry-After": "15"},
+            )
 
         request_id = request.headers.get("x-request-id") or f"mn_{uuid.uuid4().hex}"
         headers = {
@@ -310,29 +422,30 @@ def create_app(
             for key, value in request.headers.items()
             if key.lower() in FORWARDED_REQUEST_HEADERS
         }
-        headers.update(
-            backend_headers(request_id)
-        )
+        headers.update(backend_headers(request_id))
 
         client = httpx.AsyncClient(
             timeout=httpx.Timeout(connect=30, read=3600, write=60, pool=30),
             follow_redirects=False,
         )
-        upstream_request = client.build_request(
-            request.method,
-            f"{backend_url}/v1/{path}",
-            params=request.query_params,
-            headers=headers,
-            content=body,
-        )
+
+        def upstream_request() -> httpx.Request:
+            return client.build_request(
+                request.method,
+                f"{route['backend_url']}/v1/{path}",
+                params=request.query_params,
+                headers=headers,
+                content=body,
+            )
+
         try:
-            upstream = await client.send(upstream_request, stream=True)
+            upstream = await client.send(upstream_request(), stream=True)
         except httpx.HTTPError:
             await client.aclose()
             return JSONResponse(
                 status_code=status.HTTP_502_BAD_GATEWAY,
                 content=error_payload(
-                    "The model backend could not be reached.",
+                    f"The {route['model']} backend could not be reached.",
                     "api_connection_error",
                     "backend_unreachable",
                 ),
@@ -362,13 +475,13 @@ def create_app(
                 )
         if is_modal_cold_start:
             await upstream.aclose()
-            wait_result = await wait_for_backend(client)
+            wait_result = await wait_for_backend(client, route)
             if wait_result == "stopped":
                 await client.aclose()
                 return JSONResponse(
                     status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
                     content=error_payload(
-                        "MN Uncensored was stopped while starting.",
+                        f"{route['model']} was stopped while starting.",
                         "service_unavailable",
                         "model_stopped",
                     ),
@@ -378,37 +491,30 @@ def create_app(
                 return JSONResponse(
                     status_code=status.HTTP_504_GATEWAY_TIMEOUT,
                     content=error_payload(
-                        "The model did not become ready within 45 minutes.",
+                        f"{route['model']} did not become ready within 45 minutes.",
                         "api_connection_error",
                         "model_start_timeout",
                     ),
                 )
-            latest_state = await state_get(state, "desired_state", "stopped")
-            if latest_state in {"stopped", "stopping"}:
+            latest = await lifecycle(route)
+            if latest["desired_state"] in {"stopped", "stopping"}:
                 await client.aclose()
                 return JSONResponse(
                     status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
                     content=error_payload(
-                        "MN Uncensored was stopped while starting.",
+                        f"{route['model']} was stopped while starting.",
                         "service_unavailable",
                         "model_stopped",
                     ),
                 )
-            retry_request = client.build_request(
-                request.method,
-                f"{backend_url}/v1/{path}",
-                params=request.query_params,
-                headers=headers,
-                content=body,
-            )
             try:
-                upstream = await client.send(retry_request, stream=True)
+                upstream = await client.send(upstream_request(), stream=True)
             except httpx.HTTPError:
                 await client.aclose()
                 return JSONResponse(
                     status_code=status.HTTP_502_BAD_GATEWAY,
                     content=error_payload(
-                        "The model backend could not be reached after startup.",
+                        f"The {route['model']} backend could not be reached after startup.",
                         "api_connection_error",
                         "backend_unreachable",
                     ),
@@ -419,7 +525,8 @@ def create_app(
             for key, value in upstream.headers.items()
             if key.lower() in FORWARDED_RESPONSE_HEADERS
         }
-        response_headers.setdefault("X-Request-ID", request_id)
+        if not any(key.lower() == "x-request-id" for key in response_headers):
+            response_headers["X-Request-ID"] = request_id
         return StreamingResponse(
             stream_upstream(upstream),
             status_code=upstream.status_code,

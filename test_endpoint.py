@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import argparse
 import subprocess
 
 from openai import OpenAI
@@ -26,6 +27,13 @@ def owner_token() -> str:
 settings = load_settings()
 if not settings.api_base_url:
     raise SystemExit("The gateway URL has not been configured.")
+parser = argparse.ArgumentParser()
+parser.add_argument("model", nargs="?", default=settings.default_model)
+args = parser.parse_args()
+try:
+    model = settings.resolve_model(args.model)
+except ValueError as error:
+    raise SystemExit(str(error)) from error
 client = OpenAI(
     base_url=settings.api_base_url,
     api_key=owner_token(),
@@ -34,7 +42,7 @@ client = OpenAI(
 )
 
 stream = client.chat.completions.create(
-    model=settings.model,
+    model=model.model,
     messages=[
         {
             "role": "user",

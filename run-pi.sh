@@ -3,4 +3,5 @@
 set -euo pipefail
 
 launcher_dir="${0:A:h}"
-exec "$launcher_dir/.venv/bin/mn" launch pi "$@"
+model="${MN_MODEL:-god}"
+exec "$launcher_dir/.venv/bin/mn" launch --model "$model" pi "$@"

@@ -4,22 +4,31 @@ import os
 
 import modal
 
+from mn_uncensored.settings import load_settings
+
 
 APP_NAME = "mn-uncensored-api"
-STATE_DICT_NAME = "nuri-api-state"
-BACKEND_URL = (
-    "https://eminhenri--nuri-ornith-397b-vllmserver.eu-west.modal.direct"
-)
-CONTEXT_WINDOW = 65536
-MAX_OUTPUT_TOKENS = 8192
-MODEL = "nuri/ornith-397b-abliterated"
+settings = load_settings()
+catalog = {
+    key: {
+        "aliases": list(model.aliases),
+        "backend_url": model.backend_url,
+        "context_window": model.context_window,
+        "lifecycle_key": model.lifecycle_key,
+        "max_output_tokens": model.max_output_tokens,
+        "model": model.model,
+    }
+    for key, model in settings.models.items()
+}
 
 image = (
     modal.Image.debian_slim(python_version="3.12")
     .uv_pip_install("fastapi>=0.128,<0.129", "httpx>=0.28,<1")
     .add_local_python_source("mn_uncensored")
+    .add_local_file("config/mn.json", "/root/mn/config/mn.json", copy=True)
+    .env({"MN_CONFIG_PATH": "/root/mn/config/mn.json"})
 )
-state = modal.Dict.from_name(STATE_DICT_NAME, create_if_missing=True)
+state = modal.Dict.from_name(settings.state_dict, create_if_missing=True)
 backend_proxy = modal.Secret.from_name("nuri-backend-proxy")
 app = modal.App(APP_NAME)
 
@@ -39,10 +48,8 @@ def api():
 
     return create_app(
         state=state,
-        backend_url=BACKEND_URL,
-        context_window=CONTEXT_WINDOW,
-        max_output_tokens=MAX_OUTPUT_TOKENS,
-        model=MODEL,
+        models=catalog,
+        default_model=settings.default_model,
         proxy_key=os.environ["MODAL_PROXY_KEY"],
         proxy_secret=os.environ["MODAL_PROXY_SECRET"],
     )
