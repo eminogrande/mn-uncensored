@@ -1,0 +1,14 @@
+{
+  "signature_agent": "https://abliterated.cloud",
+  "keys": [
+    {
+      "keyid": "abliterated-owner-ed25519-1",
+      "kid": "abliterated-owner-ed25519-1",
+      "kty": "OKP",
+      "crv": "Ed25519",
+      "alg": "EdDSA",
+      "use": "sig",
+      "x": "9rpBX0losEmrZ9C5WIYyV1kvH7A8KsaZ6yz1X09Ueik"
+    }
+  ]
+}

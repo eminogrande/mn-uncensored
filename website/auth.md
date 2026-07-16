@@ -1,6 +1,6 @@
 # ABLITERATED.cloud authentication
 
-ABLITERATED.cloud uses revocable MN Bearer tokens for the OpenAI-compatible API.
+ABLITERATED.cloud uses revocable Bearer access tokens for the OpenAI-compatible inference API.
 
 ## Request header
 
@@ -25,9 +25,9 @@ A valid token cannot wake a hard-stopped route. The operator must explicitly arm
 
 The 397B route additionally requires explicit operator cost acknowledgement for start, automatic mode, wake, or agent launch.
 
-## OAuth status
+## OAuth and agent-discovery status
 
-OAuth is not currently implemented. Do not attempt OAuth discovery or represent MN Bearer tokens as OAuth access tokens.
+The public website exposes OAuth-style discovery and anonymous read-only registration for agents that inspect public model metadata. That public credential does not authorize inference. The model API itself currently uses operator-issued Bearer tokens; inference OAuth is not implemented.
 
 ## Request access
 

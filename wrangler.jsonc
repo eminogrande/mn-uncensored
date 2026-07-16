@@ -1,0 +1,41 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "abliterated-cloud-website",
+  "main": "website-worker.mjs",
+  "compatibility_date": "2026-07-16",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  "vars": {
+    "SITE_ORIGIN": "https://abliterated.cloud",
+    "SITE_ENV": "preview"
+  },
+  "assets": {
+    "directory": "./website",
+    "binding": "ASSETS",
+    "run_worker_first": true
+  },
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 0.1
+  },
+  "env": {
+    "production": {
+      "name": "abliterated-cloud-website-production",
+      "workers_dev": false,
+      "vars": {
+        "SITE_ORIGIN": "https://abliterated.cloud",
+        "SITE_ENV": "production"
+      },
+      "routes": [
+        {
+          "pattern": "abliterated.cloud",
+          "custom_domain": true
+        },
+        {
+          "pattern": "www.abliterated.cloud",
+          "custom_domain": true
+        }
+      ]
+    }
+  }
+}

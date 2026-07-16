@@ -156,10 +156,10 @@ def test_real_model_names_and_planned_prices_are_explicit() -> None:
         assert model in plain_html
         assert price in html
 
-    assert "Free means the weight files have no purchase price." in html
+    assert "Free means the model weight files have no purchase price." in html
     assert "Published prices · access by invitation" in html
-    assert "customer metering, balances, payments, and invoicing" in html
-    assert "managed cloud inference" in html
+    assert "Customer accounts, quotas, metering, billing and invoicing" in html
+    assert "Managed cloud inference is paid" in html
     assert "jailbroken" in html
     assert "zero refusals" in html
     assert "20% markup" not in html
@@ -178,6 +178,15 @@ def test_agent_and_discovery_files_are_present_and_valid() -> None:
         ".well-known/api-catalog.json",
         ".well-known/api-catalog",
         ".well-known/agent-skills/index.json",
+        ".well-known/agent-card.json",
+        ".well-known/agent.json",
+        ".well-known/http-message-signature-directory",
+        ".well-known/http-message-signatures-directory",
+        ".well-known/mcp/server-card.json",
+        ".well-known/oauth-authorization-server",
+        ".well-known/oauth-protected-resource",
+        ".well-known/openid-configuration",
+        ".well-known/webmcp.json",
         ".well-known/skills/index.json",
         ".well-known/security.txt",
         ".well-known/skills.json",

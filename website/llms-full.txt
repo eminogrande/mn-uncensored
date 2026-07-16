@@ -16,23 +16,24 @@ Live deployed release: v0.3.1.
 
 Live routes:
 
-1. `mn/god`
-2. `mn/code`
-3. `mn/fast`
+1. Qwen3.6 35B A3B — `huihui-ai/Huihui-Qwen3.6-35B-A3B-abliterated` — API model ID `mn/god`
+2. Ornith 1.0 35B — `YuYu1015/YuYu1015-Ornith-1.0-35B-abliterated` — API model ID `mn/code`
+3. Qwythos 9B Claude Mythos 5 — `huihui-ai/Huihui-Qwythos-9B-Claude-Mythos-5-1M-abliterated` — API model ID `mn/fast`
 
 All live GPU routes are currently hard-stopped.
 
 Prepared next-release route:
 
-4. `mn/ornith-397b`
+4. Ornith 1.0 397B W4A16 — `cebeuq/Ornith-1.0-397B-abliterated-W4A16` — API model ID `mn/ornith-397b`
 
 The 397B route is a real configured catalog entry but is not live in v0.3.1. Its release requires a confirmed Modal hard budget, explicit two-H200 acknowledgement, streaming validation, text-plus-image validation, forced structured tool validation, scale-to-zero observation, and hard-stop verification.
 
 ## Exact models
 
-### mn/god
+### Qwen3.6 35B A3B — Abliterated
 
-Artifact: `huihui-ai/Huihui-Qwen3.6-35B-A3B-abliterated`
+Hugging Face repository: `huihui-ai/Huihui-Qwen3.6-35B-A3B-abliterated`
+API model ID: `mn/god`
 Revision: `8f0ee727aff5e771ea72466d64d13ecd851d2cc7`
 HF metadata: Apache-2.0; 35,951,822,704 parameters, displayed as 36B; BF16; multimodal MoE; uncensored and abliterated
 Hardware: 1 x H200
@@ -40,9 +41,10 @@ Context: 131072
 Maximum output: 16384
 ABLITERATED.cloud price: $5.45/hour
 
-### mn/code
+### Ornith 1.0 35B — Abliterated
 
-Artifact: `YuYu1015/YuYu1015-Ornith-1.0-35B-abliterated`
+Hugging Face repository: `YuYu1015/YuYu1015-Ornith-1.0-35B-abliterated`
+API model ID: `mn/code`
 Revision: `86065d1a9008773086a177637d54ec6dc2a56cbf`
 HF metadata: Apache-2.0; 35B Qwen3.5 MoE; reasoning/thinking; English and Chinese; uncensored and abliterated
 Hardware: 1 x H200
@@ -50,9 +52,10 @@ Context: 131072
 Maximum output: 16384
 ABLITERATED.cloud price: $5.45/hour
 
-### mn/fast
+### Qwythos 9B Claude Mythos 5 — Abliterated
 
-Artifact: `huihui-ai/Huihui-Qwythos-9B-Claude-Mythos-5-1M-abliterated`
+Hugging Face repository: `huihui-ai/Huihui-Qwythos-9B-Claude-Mythos-5-1M-abliterated`
+API model ID: `mn/fast`
 Revision: `efcc73cac15ff8fc5d46b8d41b53c22d571cf97d`
 HF metadata: Apache-2.0; 9,653,104,368 parameters, displayed as 10B; BF16; dense Qwen3.5; long-context and tool-use tags; uncensored and abliterated
 Hardware: 1 x L40S
@@ -60,9 +63,10 @@ Context: 131072
 Maximum output: 16384
 ABLITERATED.cloud price: $2.34/hour
 
-### mn/ornith-397b
+### Ornith 1.0 397B W4A16 — Abliterated
 
-Artifact: `cebeuq/Ornith-1.0-397B-abliterated-W4A16`
+Hugging Face repository: `cebeuq/Ornith-1.0-397B-abliterated-W4A16`
+API model ID: `mn/ornith-397b`
 Revision: `e5651d291be1c65ff1360eee47ab533ab13b3d97`
 Legacy alias: `nuri/ornith-397b-abliterated`
 HF metadata: MIT; 397B total / about 17B active; multimodal Qwen3.5 MoE; W4A16; about 196 GB; decensored, uncensored and abliterated
@@ -129,10 +133,10 @@ Cursor is a compatibility target and may keep proprietary features on its own pr
 
 ## Model prices
 
-- god: $5.45/hour
-- code: $5.45/hour
-- fast: $2.34/hour
-- 397B: $10.90/hour
+- Qwen3.6 35B A3B (`mn/god`): $5.45/hour
+- Ornith 1.0 35B (`mn/code`): $5.45/hour
+- Qwythos 9B Claude Mythos 5 (`mn/fast`): $2.34/hour
+- Ornith 1.0 397B W4A16 (`mn/ornith-397b`): $10.90/hour
 
 Model weight downloads are free. These prices cover managed cloud inference.
 Automated customer metering, balances, payments and invoicing are not live yet.

@@ -1,7 +1,8 @@
 # ABLITERATED.cloud website
 
-This directory contains the dependency-free static landing page deployed with
-GitHub Pages.
+This directory contains the dependency-free static landing page. GitHub Pages
+remains the public preview. The repository also contains a Cloudflare Worker
+edge layer for the final `abliterated.cloud` deployment.
 
 ## Goals
 
@@ -16,14 +17,23 @@ GitHub Pages.
 
 ## Local preview
 
+Use the real edge behavior locally:
+
 ```sh
-python3 -m http.server 4173 --directory website
+npm install
+npm run dev:website
 ```
 
 Open:
 
 ```text
-http://127.0.0.1:4173/
+http://127.0.0.1:8788/
+```
+
+Then verify the complete local agent surface:
+
+```sh
+npm run verify:agent-ready:local
 ```
 
 ## Hero artwork
@@ -75,7 +85,7 @@ Initial URL:
 https://eminogrande.github.io/mn-uncensored/
 ```
 
-## Later custom domain
+## Final custom domain and edge deployment
 
 The intended domain is:
 
@@ -83,41 +93,55 @@ The intended domain is:
 https://abliterated.cloud/
 ```
 
-Before switching:
+`abliterated.cloud` currently uses Porkbun nameservers and parking records.
+Cloudflare Workers custom domains require an active Cloudflare zone. Before
+the production switch:
 
-1. verify `abliterated.cloud` in the owner's GitHub Pages settings;
-2. set the repository Pages custom domain;
-3. replace Porkbun parking records with GitHub Pages DNS records;
-4. wait for certificate provisioning and enable HTTPS;
-5. update canonical, Open Graph, sitemap, security, OpenAPI, skill, and LLM
-   URLs from the temporary GitHub Pages URL to `https://abliterated.cloud/`;
-6. test redirects, Search Console, PageSpeed Insights, Rich Results, and
-   isitagentready.com.
+1. add `abliterated.cloud` to the intended Cloudflare account;
+2. reproduce every existing Porkbun DNS record in Cloudflare;
+3. enable DNSSEC and update the Porkbun nameservers to Cloudflare;
+4. confirm the zone is active before deploying the Worker;
+5. run `npm run deploy:website:production`;
+6. configure DNS-AID for the final hostname;
+7. run `npm run verify:agent-ready -- https://abliterated.cloud`;
+8. verify PageSpeed, Search Console, Rich Results and redirects separately.
 
 A custom domain is required for root-level `/robots.txt`, `/.well-known/*`,
 and the strongest agent-readiness result. GitHub project Pages serves the
 temporary site below `/mn-uncensored/`.
 
-## Agent-readiness limit on plain GitHub Pages
+## Agent-ready edge layer
 
 Static GitHub Pages can publish discoverability files but cannot vary the
 homepage response on `Accept: text/markdown` or add arbitrary HTTP response
-headers. A future Cloudflare layer in front of `abliterated.cloud` can provide:
+headers. `website-worker.mjs` now provides:
 
-- real Markdown content negotiation;
-- `Link` discovery headers;
-- `Content-Signal` headers;
-- DNS-AID;
-- Web Bot Auth.
+- real Markdown content negotiation at `/`;
+- `Link` and `Content-Signal` headers on every response;
+- the correct `application/linkset+json` media type;
+- OAuth and protected-resource discovery for public agent metadata;
+- A2A, MCP, Agent Skills and WebMCP discovery;
+- a real read-only MCP endpoint with `get_site_summary` and `list_models`;
+- a public HTTP-signature directory tied to the owner's existing Ed25519
+  public signing key.
+
+DNS-AID and the final public score cannot be completed by application code.
+They require the final custom hostname, DNSSEC and DNS records. The local gate
+tests every application-controlled check before deployment.
 
 The repository already publishes explicit Markdown alternatives so agents do
 not need to scrape the visual page.
 
-The static site also publishes truthful discovery resources at the paths used
-by current agent tooling:
+The site publishes truthful discovery resources at the paths used by current
+agent tooling:
 
 - `/.well-known/api-catalog`
+- `/.well-known/agent-card.json`
 - `/.well-known/agent-skills/index.json`
+- `/.well-known/mcp/server-card.json`
+- `/.well-known/oauth-authorization-server`
+- `/.well-known/oauth-protected-resource`
+- `/.well-known/webmcp.json`
 - `/.well-known/skills/index.json` for legacy clients
 - `/auth.md`
 - `/openapi.json`
@@ -127,10 +151,8 @@ the Pages custom domain. The temporary project Pages URL cannot control the
 root of `eminogrande.github.io`, which is why origin-based scanners cannot
 award the final root-level checks there.
 
-The extensionless API catalog follows RFC 9727's Linkset JSON structure.
-GitHub Pages may serve extensionless files with a generic media type; the
-future custom-domain edge layer should explicitly return
-`application/linkset+json`.
+The extensionless API catalog follows RFC 9727's Linkset JSON structure. The
+Worker explicitly serves it as `application/linkset+json`.
 
 ## Performance budget
 

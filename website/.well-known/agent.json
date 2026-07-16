@@ -1,0 +1,15 @@
+{
+  "name": "ABLITERATED.cloud Public Site Agent",
+  "description": "Discovery document for the public model catalog and API documentation.",
+  "url": "https://abliterated.cloud/a2a",
+  "skills": [
+    {
+      "name": "model-catalog",
+      "description": "Read exact Hugging Face model identities, availability, hosting details and prices."
+    }
+  ],
+  "auth": {
+    "type": "oauth2",
+    "discovery": "https://abliterated.cloud/.well-known/oauth-authorization-server"
+  }
+}

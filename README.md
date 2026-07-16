@@ -29,9 +29,19 @@ requires a valid `sk-mn-*` Bearer token.
 > The safety changes are on `main` but will not be deployed to Modal until a
 > Workspace hard budget is confirmed. Do not restart a model before that.
 
+> **Website status:** the clean static landing page remains live on GitHub
+> Pages. `website-worker.mjs` now adds the Agent-Ready edge behavior that plain
+> GitHub Pages cannot provide: Markdown negotiation, discovery headers, OAuth,
+> A2A, MCP, Agent Skills, WebMCP and correct machine-readable content types.
+> The local application-controlled gate passes. A public 100% result still
+> requires moving `abliterated.cloud` from Porkbun parking DNS to an active
+> Cloudflare zone with DNSSEC and DNS-AID. See
+> [website/README.md](website/README.md).
+
 ## Contents
 
 - [What runs where](#what-runs-where)
+- [Website and agent readiness](#website-and-agent-readiness)
 - [Current model catalog](#current-model-catalog)
 - [Architecture](#architecture)
 - [How a request starts and stops a model](#how-a-request-starts-and-stops-a-model)
@@ -68,6 +78,27 @@ not interchangeable:
 is therefore the inference engine, not the hosting provider. The selected
 hosting combination is **Modal + vLLM**, with model artifacts sourced from
 Hugging Face.
+
+## Website and agent readiness
+
+The website has two deliberately separate delivery targets:
+
+- GitHub Pages publishes the dependency-free visual preview from `website/`.
+- Cloudflare Workers serves the same files through `website-worker.mjs` and
+  adds the HTTP behavior required by agent-ready scanners.
+
+Local verification:
+
+```sh
+npm install
+npm run dev:website
+npm run verify:agent-ready:local
+```
+
+The final public target is `https://abliterated.cloud`. Reaching 100% on the
+public hostname requires application checks plus DNS-AID and DNSSEC. The code
+now covers the application layer; the remaining DNS migration is documented
+step by step in [website/README.md](website/README.md).
 
 ## Current model catalog
 

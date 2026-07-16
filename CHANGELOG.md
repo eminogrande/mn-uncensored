@@ -73,6 +73,9 @@ All notable changes to MN Uncensored are documented here.
   machine-readable product documents.
 - Replaced active WhatsApp access requests with the verified Signal phone link
   `https://signal.me/#p/+13103408213`; historical release notes remain intact.
+- Rebuilt the public landing page with larger typography, more whitespace,
+  fewer decorative interface components, readable factual model headings,
+  exact linked Hugging Face repositories, and secondary API model IDs.
 
 ### Added
 
@@ -90,6 +93,10 @@ All notable changes to MN Uncensored are documented here.
   launch operations.
 - Added a release-wide `MN_RELEASE_ORNITH397=I_ACCEPT_2XH200` gate that must be
   present before deploying and smoke-testing all four routes.
+- Added a Cloudflare Worker edge layer with Markdown negotiation, discovery
+  headers, exact machine-readable media types, OAuth protected-resource
+  discovery, A2A, MCP, Agent Skills, WebMCP, HTTP-signature discovery, and a
+  local agent-readiness verification command.
 
 ## [0.3.1] - 2026-07-16
 

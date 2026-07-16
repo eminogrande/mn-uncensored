@@ -3,6 +3,8 @@
 !.env.example
 deployment.env
 .venv/
+node_modules/
+.wrangler/
 __pycache__/
 .pytest_cache/
 .ruff_cache/

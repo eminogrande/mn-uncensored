@@ -3,7 +3,7 @@
   "info": {
     "title": "ABLITERATED.cloud API",
     "version": "0.3.1",
-    "description": "Private, token-protected OpenAI-compatible Chat Completions access to exact pinned Hugging Face models. Live v0.3.1 currently exposes mn/god, mn/code, and mn/fast. mn/ornith-397b is prepared for the next budgeted release.",
+    "description": "Token-protected OpenAI-compatible Chat Completions access to four exact pinned Hugging Face models. The Qwen3.6 35B, Ornith 35B, and Qwythos 9B routes are deployed and hard-stopped. Ornith 397B W4A16 is prepared but not deployed.",
     "license": {
       "name": "Apache-2.0",
       "identifier": "Apache-2.0"
@@ -84,7 +84,7 @@
       "post": {
         "operationId": "createChatCompletion",
         "summary": "Create or stream a chat completion",
-        "description": "Routes an OpenAI-compatible Chat Completions request to one explicitly selected MN model. A hard-stopped model fails closed.",
+        "description": "Routes an OpenAI-compatible Chat Completions request to one explicitly selected model. The request uses the documented API model ID; the catalog maps that ID to an exact pinned Hugging Face repository. A hard-stopped model fails closed.",
         "requestBody": {
           "required": true,
           "content": {
@@ -149,7 +149,7 @@
         "type": "http",
         "scheme": "bearer",
         "bearerFormat": "sk-mn-*",
-        "description": "Revocable MN token supplied privately by the operator"
+        "description": "Revocable ABLITERATED.cloud access token supplied privately by the operator"
       }
     },
     "schemas": {
