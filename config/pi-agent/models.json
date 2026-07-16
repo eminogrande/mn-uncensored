@@ -56,6 +56,23 @@
             "cacheRead": 0,
             "cacheWrite": 0
           }
+        },
+        {
+          "id": "mn/ornith-397b",
+          "name": "MN Ornith 397B — Ornith 1.0 397B Abliterated W4A16",
+          "reasoning": true,
+          "input": [
+            "text",
+            "image"
+          ],
+          "contextWindow": 32768,
+          "maxTokens": 8192,
+          "cost": {
+            "input": 0,
+            "output": 0,
+            "cacheRead": 0,
+            "cacheWrite": 0
+          }
         }
       ]
     }

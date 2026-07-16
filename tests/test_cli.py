@@ -13,34 +13,48 @@ def model_settings(key: str) -> ModelSettings:
         "god": ("God", "mn/god", "mn-god", "GodServer"),
         "code": ("Code", "mn/code", "mn-code", "CodeServer"),
         "fast": ("Fast", "mn/fast", "mn-fast", "FastServer"),
+        "ornith397": (
+            "Ornith 397B",
+            "mn/ornith-397b",
+            "mn-ornith-397b",
+            "Ornith397Server",
+        ),
     }
     display_name, public_model, app_name, server_name = names[key]
+    is_large = key == "ornith397"
     return ModelSettings(
-        aliases=(f"{key}-alias",),
+        aliases=(
+            ("nuri/ornith-397b-abliterated",)
+            if is_large
+            else (f"{key}-alias",)
+        ),
         app_name=app_name,
         backend_url=f"https://{key}.example",
-        context_window=131072,
+        context_window=32768 if is_large else 131072,
+        deployment_enabled=True,
         display_name=display_name,
         fast_boot=True,
-        gpu_count=1,
-        gpu_hourly_usd=4.54,
+        gpu_count=2 if is_large else 1,
+        gpu_hourly_usd=9.0792 if is_large else 4.54,
         gpu_memory_utilization=0.90,
         gpu_type="H200",
         hf_model=f"test/{key}",
         hf_revision=f"{key}-revision",
         hf_secret_name="",
         key=key,
-        kv_cache_dtype="auto",
-        language_model_only=True,
+        kv_cache_dtype="fp8" if is_large else "auto",
+        language_model_only=not is_large,
         local_snapshot=False,
         max_num_batched_tokens=8192,
         max_num_seqs=1,
-        max_output_tokens=16384,
+        max_output_tokens=8192 if is_large else 16384,
         model=public_model,
+        prefix_caching=False,
         quantization="",
         reasoning_parser="qwen3",
+        requires_cost_acknowledgement=is_large,
         server_name=server_name,
-        tool_call_parser="qwen3_coder",
+        tool_call_parser="qwen3_xml",
         trust_remote_code=True,
     )
 
@@ -52,7 +66,7 @@ def settings() -> Settings:
         idle_shutdown_seconds=300,
         models={
             key: model_settings(key)
-            for key in ("god", "code", "fast")
+            for key in ("god", "code", "fast", "ornith397")
         },
         state_dict="test-state",
     )
@@ -152,10 +166,41 @@ def test_command_launch_passes_selected_model_to_hermes(
     assert selected == ["code"]
 
 
+def test_expensive_model_cannot_be_started_without_acknowledgement() -> None:
+    with pytest.raises(SystemExit):
+        cli.command_start(
+            SimpleNamespace(model="ornith397"),
+            settings(),
+        )
+
+
+def test_expensive_model_cannot_be_armed_or_mutate_state_without_acknowledgement(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        cli,
+        "state_dict",
+        lambda _settings: pytest.fail("disabled model must fail before state access"),
+    )
+
+    with pytest.raises(SystemExit):
+        cli.command_auto(
+            SimpleNamespace(model="ornith397"),
+            settings(),
+        )
+
+
 def test_stop_only_resets_selected_model(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    state = FakeState({"god": "auto", "code": "started", "fast": "stopped"})
+    state = FakeState(
+        {
+            "god": "auto",
+            "code": "started",
+            "fast": "stopped",
+            "ornith397": "auto",
+        }
+    )
     reset_models: list[str] = []
     checked_models: list[str] = []
     monkeypatch.setattr(cli, "state_dict", lambda _settings: state)
@@ -178,6 +223,7 @@ def test_stop_only_resets_selected_model(
     assert desired_state(state, "god") == "auto"
     assert desired_state(state, "code") == "stopped"
     assert desired_state(state, "fast") == "stopped"
+    assert desired_state(state, "ornith397") == "auto"
 
 
 def test_static_reset_retries_transient_modal_rollover(
@@ -214,7 +260,14 @@ def test_static_reset_fails_after_retry(
 def test_auto_redeploys_selected_scale_to_zero_backend(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    state = FakeState({"god": "stopped", "code": "stopped", "fast": "stopped"})
+    state = FakeState(
+        {
+            "god": "stopped",
+            "code": "stopped",
+            "fast": "stopped",
+            "ornith397": "stopped",
+        }
+    )
     deployments: list[tuple[str, str]] = []
     monkeypatch.setattr(cli, "state_dict", lambda _settings: state)
     monkeypatch.setattr(cli, "backend_app_is_stopped", lambda _model: True)
@@ -231,6 +284,7 @@ def test_auto_redeploys_selected_scale_to_zero_backend(
     assert desired_state(state, "god") == "stopped"
     assert desired_state(state, "code") == "auto"
     assert desired_state(state, "fast") == "stopped"
+    assert desired_state(state, "ornith397") == "stopped"
 
 
 def test_auto_deploy_failure_stays_fail_closed(
@@ -335,6 +389,33 @@ def test_start_arms_auto_and_wakes_selected_model(
     assert events == [("auto", "code"), ("wake:code", "sk-owner")]
 
 
+def test_expensive_start_passes_acknowledgement_to_auto(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, object] = {}
+    monkeypatch.setattr(
+        cli,
+        "command_auto",
+        lambda args, _settings: captured.update(
+            model=args.model,
+            allow_expensive=args.allow_expensive,
+        ),
+    )
+    monkeypatch.setattr(cli, "owner_token", lambda: "sk-owner")
+    monkeypatch.setattr(cli, "wake_model", lambda *_args: None)
+    monkeypatch.setattr(cli, "print_api_details", lambda *_args: None)
+
+    cli.command_start(
+        SimpleNamespace(model="ornith397", allow_expensive=True),
+        settings(),
+    )
+
+    assert captured == {
+        "model": "ornith397",
+        "allow_expensive": True,
+    }
+
+
 def test_wake_uses_selected_model_query(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -374,6 +455,12 @@ def test_start_parser_requires_explicit_model() -> None:
 
     args = parser.parse_args(["start", "fast"])
     assert args.model == "fast"
+
+    expensive = parser.parse_args(
+        ["start", "ornith397", "--allow-expensive"]
+    )
+    assert expensive.model == "ornith397"
+    assert expensive.allow_expensive is True
 
 
 def test_auto_parser_requires_explicit_model() -> None:

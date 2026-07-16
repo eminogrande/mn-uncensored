@@ -5,12 +5,11 @@
   "state_dict": "nuri-api-state",
   "models": {
     "god": {
-      "aliases": [
-        "nuri/ornith-397b-abliterated"
-      ],
+      "aliases": [],
       "app_name": "mn-god-qwen36-35b",
       "backend_url": "https://eminhenri--mn-god-qwen36-35b-vllmserver.eu-west.modal.direct",
       "context_window": 131072,
+      "deployment_enabled": true,
       "display_name": "MN God — Qwen3.6 35B A3B Abliterated",
       "fast_boot": true,
       "gpu_count": 1,
@@ -28,6 +27,7 @@
       "model": "mn/god",
       "quantization": "",
       "reasoning_parser": "qwen3",
+      "requires_cost_acknowledgement": false,
       "server_name": "VllmServer",
       "tool_call_parser": "qwen3_xml",
       "trust_remote_code": true
@@ -37,6 +37,7 @@
       "app_name": "mn-code-ornith-35b",
       "backend_url": "https://eminhenri--mn-code-ornith-35b-vllmserver.eu-west.modal.direct",
       "context_window": 131072,
+      "deployment_enabled": true,
       "display_name": "MN Code — Ornith 35B Abliterated",
       "fast_boot": true,
       "gpu_count": 1,
@@ -54,6 +55,7 @@
       "model": "mn/code",
       "quantization": "",
       "reasoning_parser": "qwen3",
+      "requires_cost_acknowledgement": false,
       "server_name": "VllmServer",
       "tool_call_parser": "qwen3_xml",
       "trust_remote_code": true
@@ -63,6 +65,7 @@
       "app_name": "mn-fast-qwythos-9b",
       "backend_url": "https://eminhenri--mn-fast-qwythos-9b-vllmserver.eu-west.modal.direct",
       "context_window": 131072,
+      "deployment_enabled": true,
       "display_name": "MN Fast — Qwythos 9B Abliterated",
       "fast_boot": true,
       "gpu_count": 1,
@@ -80,6 +83,38 @@
       "model": "mn/fast",
       "quantization": "",
       "reasoning_parser": "qwen3",
+      "requires_cost_acknowledgement": false,
+      "server_name": "VllmServer",
+      "tool_call_parser": "qwen3_xml",
+      "trust_remote_code": true
+    },
+    "ornith397": {
+      "aliases": [
+        "nuri/ornith-397b-abliterated"
+      ],
+      "app_name": "nuri-ornith-397b",
+      "backend_url": "https://eminhenri--nuri-ornith-397b-vllmserver.eu-west.modal.direct",
+      "context_window": 32768,
+      "deployment_enabled": true,
+      "display_name": "MN Ornith 397B — Ornith 1.0 397B Abliterated W4A16",
+      "fast_boot": true,
+      "gpu_count": 2,
+      "gpu_hourly_usd": 9.0792,
+      "gpu_memory_utilization": 0.9,
+      "gpu_type": "H200",
+      "hf_model": "cebeuq/Ornith-1.0-397B-abliterated-W4A16",
+      "hf_revision": "e5651d291be1c65ff1360eee47ab533ab13b3d97",
+      "kv_cache_dtype": "fp8",
+      "language_model_only": false,
+      "local_snapshot": false,
+      "max_num_batched_tokens": 8192,
+      "max_num_seqs": 1,
+      "max_output_tokens": 8192,
+      "model": "mn/ornith-397b",
+      "prefix_caching": false,
+      "quantization": "",
+      "reasoning_parser": "qwen3",
+      "requires_cost_acknowledgement": true,
       "server_name": "VllmServer",
       "tool_call_parser": "qwen3_xml",
       "trust_remote_code": true

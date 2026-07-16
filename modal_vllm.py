@@ -12,6 +12,10 @@ from mn_uncensored.vllm import build_runtime_environment, build_vllm_command
 settings = load_settings()
 model_key = os.getenv("MN_MODEL", settings.default_model)
 model = settings.resolve_model(model_key)
+if not model.deployment_enabled:
+    raise RuntimeError(
+        f"{model.model} is prepared in the source catalog but deployment is disabled."
+    )
 
 MAX_CONTAINERS = 1
 ROUTING_REGION = "eu-west"

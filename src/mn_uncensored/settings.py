@@ -17,6 +17,7 @@ class ModelSettings:
     app_name: str
     backend_url: str
     context_window: int
+    deployment_enabled: bool
     display_name: str
     fast_boot: bool
     gpu_count: int
@@ -34,8 +35,10 @@ class ModelSettings:
     max_num_seqs: int
     max_output_tokens: int
     model: str
+    prefix_caching: bool
     quantization: str
     reasoning_parser: str
+    requires_cost_acknowledgement: bool
     server_name: str
     tool_call_parser: str
     trust_remote_code: bool
@@ -46,8 +49,7 @@ class ModelSettings:
 
     @property
     def gpu_label(self) -> str:
-        suffix = "" if self.gpu_count == 1 else "s"
-        return f"{self.gpu_count} x {self.gpu_type}{suffix}"
+        return f"{self.gpu_count} x {self.gpu_type}"
 
 
 @dataclass(frozen=True)
@@ -67,6 +69,14 @@ class Settings:
     @property
     def default(self) -> ModelSettings:
         return self.models[self.default_model]
+
+    @property
+    def deployed_models(self) -> dict[str, ModelSettings]:
+        return {
+            key: model
+            for key, model in self.models.items()
+            if model.deployment_enabled
+        }
 
     def resolve_model(self, value: str | None) -> ModelSettings:
         candidate = (value or self.default_model).strip()
@@ -92,6 +102,7 @@ def _model_settings(key: str, data: dict[str, Any]) -> ModelSettings:
         app_name=str(_required(data, "app_name", context)),
         backend_url=str(_required(data, "backend_url", context)).rstrip("/"),
         context_window=int(_required(data, "context_window", context)),
+        deployment_enabled=bool(data.get("deployment_enabled", True)),
         display_name=str(_required(data, "display_name", context)),
         fast_boot=bool(data.get("fast_boot", True)),
         gpu_count=int(_required(data, "gpu_count", context)),
@@ -109,8 +120,12 @@ def _model_settings(key: str, data: dict[str, Any]) -> ModelSettings:
         max_num_seqs=int(data.get("max_num_seqs", 1)),
         max_output_tokens=int(_required(data, "max_output_tokens", context)),
         model=str(_required(data, "model", context)),
+        prefix_caching=bool(data.get("prefix_caching", False)),
         quantization=str(data.get("quantization", "")),
         reasoning_parser=str(data.get("reasoning_parser", "")),
+        requires_cost_acknowledgement=bool(
+            data.get("requires_cost_acknowledgement", False)
+        ),
         server_name=str(data.get("server_name", "VllmServer")),
         tool_call_parser=str(data.get("tool_call_parser", "")),
         trust_remote_code=bool(data.get("trust_remote_code", True)),
@@ -148,6 +163,8 @@ def load_settings(path: Path | None = None) -> Settings:
     default_model = str(_required(data, "default_model", "catalog"))
     if default_model not in models:
         raise ValueError("`default_model` must name a configured model.")
+    if not models[default_model].deployment_enabled:
+        raise ValueError("`default_model` must be deployment-enabled.")
 
     identifiers: dict[str, str] = {}
     for key, model in models.items():

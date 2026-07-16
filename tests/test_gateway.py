@@ -15,7 +15,7 @@ from mn_uncensored.security import token_key
 TOKEN = "sk-mn-test-token"
 MODELS: dict[str, dict[str, Any]] = {
     "god": {
-        "aliases": ["nuri/ornith-397b-abliterated"],
+        "aliases": [],
         "backend_url": "https://god.backend.example",
         "context_window": 262144,
         "lifecycle_key": "model:god:lifecycle",
@@ -37,6 +37,14 @@ MODELS: dict[str, dict[str, Any]] = {
         "lifecycle_key": "model:fast:lifecycle",
         "max_output_tokens": 8192,
         "model": "mn/fast",
+    },
+    "ornith397": {
+        "aliases": ["nuri/ornith-397b-abliterated"],
+        "backend_url": "https://ornith397.backend.example",
+        "context_window": 32768,
+        "lifecycle_key": "model:ornith397:lifecycle",
+        "max_output_tokens": 8192,
+        "model": "mn/ornith-397b",
     },
 }
 
@@ -124,12 +132,24 @@ def test_models_list_all_catalog_entries_without_waking_backends(
             raise AssertionError("listing models must not create an upstream client")
 
     monkeypatch.setattr(gateway.httpx, "AsyncClient", BackendMustNotStart)
-    with client_for(state_values(god="stopped", code="stopped", fast="stopped")) as client:
+    with client_for(
+        state_values(
+            god="stopped",
+            code="stopped",
+            fast="stopped",
+            ornith397="stopped",
+        )
+    ) as client:
         response = client.get("/v1/models", headers=auth_headers())
 
     assert response.status_code == 200
     data = response.json()["data"]
-    assert [entry["id"] for entry in data] == ["mn/god", "mn/code", "mn/fast"]
+    assert [entry["id"] for entry in data] == [
+        "mn/god",
+        "mn/code",
+        "mn/fast",
+        "mn/ornith-397b",
+    ]
     assert {
         entry["id"]: (
             entry["context_length"],
@@ -140,6 +160,7 @@ def test_models_list_all_catalog_entries_without_waking_backends(
         "mn/god": (262144, 32768),
         "mn/code": (131072, 16384),
         "mn/fast": (65536, 8192),
+        "mn/ornith-397b": (32768, 8192),
     }
 
 
@@ -161,6 +182,7 @@ def test_status_reports_isolated_model_lifecycles() -> None:
         "mn/god": "auto",
         "mn/code": "stopped",
         "mn/fast": "started",
+        "mn/ornith-397b": "stopped",
     }
     assert code_response.json() == {
         "model": "mn/code",
@@ -393,6 +415,31 @@ def test_routes_code_to_its_backend_and_rewrites_alias(
     assert upstream_headers["modal-secret"] == "proxy-secret"
     assert upstream_headers["x-request-id"] == "request-code"
     assert "authorization" not in upstream_headers
+
+
+def test_legacy_397b_alias_routes_to_large_backend(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    RecordingSuccessClient.reset()
+    monkeypatch.setattr(gateway.httpx, "AsyncClient", RecordingSuccessClient)
+    values = state_values(ornith397="started")
+    with client_for(values) as client:
+        response = client.post(
+            "/v1/chat/completions",
+            headers=auth_headers(),
+            json={
+                "model": "nuri/ornith-397b-abliterated",
+                "messages": [],
+            },
+        )
+
+    assert response.status_code == 200
+    assert RecordingSuccessClient.urls == [
+        "https://ornith397.backend.example/v1/chat/completions"
+    ]
+    assert json.loads(RecordingSuccessClient.bodies[0])["model"] == (
+        "mn/ornith-397b"
+    )
 
 
 class ColdStartClient(RecordingSuccessClient):

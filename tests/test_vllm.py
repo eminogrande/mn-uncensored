@@ -16,20 +16,25 @@ def test_vllm_commands_are_model_specific() -> None:
         assert command[:3] == ["vllm", "serve", model.hf_model]
         assert argument_value(command, "--served-model-name") == model.model
         assert argument_value(command, "--revision") == model.hf_revision
-        assert argument_value(command, "--max-model-len") == "131072"
+        assert argument_value(command, "--max-model-len") == (
+            "32768" if key == "ornith397" else "131072"
+        )
         assert argument_value(command, "--tensor-parallel-size") == str(
             model.gpu_count
         )
         assert argument_value(command, "--tool-call-parser") == model.tool_call_parser
+        if key == "ornith397":
+            assert "--language-model-only" not in command
+        else:
+            assert "--language-model-only" in command
         assert model.tool_call_parser == "qwen3_xml"
         assert argument_value(command, "--reasoning-parser") == "qwen3"
         assert (
             argument_value(command, "--default-chat-template-kwargs")
             == '{"enable_thinking": false}'
         )
-        assert "--language-model-only" in command
         assert "--enable-prefix-caching" not in command
-        assert key in {"god", "code", "fast"}
+        assert key in {"god", "code", "fast", "ornith397"}
 
 
 def test_catalog_uses_model_chat_template_tool_parser() -> None:

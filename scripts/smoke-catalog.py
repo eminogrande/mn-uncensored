@@ -63,6 +63,39 @@ if "MN STREAM OK" not in stream_text:
     raise SystemExit(f"{model.model} streaming smoke failed: {stream_text!r}")
 print(f"{model.model}: streaming OK")
 
+if not model.language_model_only:
+    vision_response = client.chat.completions.create(
+        model=model.model,
+        messages=[
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": "Reply with exactly: MN VISION OK",
+                    },
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": (
+                                "data:image/png;base64,"
+                                "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwC"
+                                "AAAAC0lEQVR42mP8/x8AAusB9Wl2n7sAAAAASUVORK5CYII="
+                            )
+                        },
+                    },
+                ],
+            }
+        ],
+        max_tokens=64,
+    )
+    vision_text = vision_response.choices[0].message.content or ""
+    if "MN VISION OK" not in vision_text:
+        raise SystemExit(
+            f"{model.model} vision smoke failed: {vision_text!r}"
+        )
+    print(f"{model.model}: vision OK")
+
 tool_response = client.chat.completions.create(
     model=model.model,
     messages=[

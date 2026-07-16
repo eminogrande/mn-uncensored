@@ -109,6 +109,12 @@ The old `nuri-ornith-397b` service existed separately from the later
 `mn/god`, `mn/code`, and `mn/fast` catalog. New catalog lifecycle commands did
 not retroactively control every historical app ID.
 
+The exact artifact was
+[`cebeuq/Ornith-1.0-397B-abliterated-W4A16`](https://huggingface.co/cebeuq/Ornith-1.0-397B-abliterated-W4A16)
+at revision `e5651d291be1c65ff1360eee47ab533ab13b3d97`, using two H200s at an
+estimated base rate of `$9.0792/hour`. Its high rate made repeated starts and
+unsafe warm capacity especially costly.
+
 ## Why five-minute auto-stop is not a spending cap
 
 The idle timer begins only after there is no active or queued backend work.
@@ -164,6 +170,14 @@ confirmed:
 - Release smoke tests end with all models hard-stopped.
 - Tests assert that the scale-to-zero policy cannot keep a warm container.
 - More GPU testing is blocked operationally until a Workspace budget is set.
+- The exact 397B artifact is retained as the source-catalog record
+  `mn/ornith-397b`, with legacy alias `nuri/ornith-397b-abliterated`, so its
+  cost and supply-chain metadata remain visible.
+- That retained record has `deployment_enabled=true` for the next budgeted
+  release. Live `v0.3.1` remains unchanged with three routes and zero running
+  GPU tasks until that release is explicitly executed.
+- The release requires `MN_RELEASE_ORNITH397=I_ACCEPT_2XH200`, and individual
+  397B lifecycle operations require `--allow-expensive`.
 
 ## Safe operating procedure
 
@@ -178,6 +192,14 @@ Run only the inexpensive model:
 
 ```sh
 mn start fast
+```
+
+On live `v0.3.1`, do not substitute `mn/ornith-397b`; that route is not
+deployed yet. After the next budgeted release, use it only with explicit
+acknowledgement:
+
+```sh
+mn start ornith397 --allow-expensive
 ```
 
 After the session:
@@ -211,6 +233,12 @@ Modal documents the Workspace budget as the hard outer monthly cap.
 Environment budgets are additional compute-only guardrails and do not replace
 the Workspace cap.
 
+For future planning, the dormant 397B record represents `$9.0792/hour`,
+`$0.15132/minute`, and `$0.7566` for a five-minute idle tail. If all four
+source-catalog models were ever deployed simultaneously, the base GPU ceiling
+would be `$20.1096/hour`, or `$1.6758` for five-minute tails. These values are
+warnings, not current running costs.
+
 ## Evidence limitations
 
 Git history proves the unsafe lifecycle code and polling behavior. Modal
@@ -220,3 +248,7 @@ start, so this report does not attribute every dollar to one command.
 
 There is no evidence that Modal failed to shut down a stable automatic session
 after its configured idle interval.
+
+Preparing a new guarded 397B route after the incident does not change this
+conclusion and does not recreate the historical deployment. No deployment is
+performed by the documentation or source changes alone.

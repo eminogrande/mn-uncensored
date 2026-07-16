@@ -18,6 +18,11 @@ Before any GPU test:
 4. stop it explicitly after the session;
 5. inspect the Modal billing report and running containers.
 
+`mn/ornith-397b` is the expensive fourth route for the next budgeted release.
+It uses two H200s. CLI start, auto, wake, and launch operations require
+`--allow-expensive`; the interactive menu requires typing `ornith397`.
+Live `v0.3.1` still has only three routes and no running GPU.
+
 Safe session:
 
 ```sh
@@ -49,9 +54,15 @@ Hermes / Pi / OpenCode / Cursor / friends
      H200           H200         L40S
 ```
 
-The gateway selects a backend only from the tracked catalog. Each backend is a
-separate Modal application with `min_containers=0`, `max_containers=1`, and a
-300-second scale-down window.
+The current live `v0.3.1` gateway selects one of three deployed backends. The
+next budgeted release adds the fourth. Each backend is a separate Modal app with
+`min_containers=0`, `max_containers=1`, and a 300-second scale-down window.
+
+The source catalog also retains `mn/ornith-397b`, pinned to
+[`cebeuq/Ornith-1.0-397B-abliterated-W4A16`](https://huggingface.co/cebeuq/Ornith-1.0-397B-abliterated-W4A16)
+at revision `e5651d291be1c65ff1360eee47ab533ab13b3d97`. It has no current
+live `v0.3.1` gateway route; `deployment_enabled=true` prepares it for the next
+budgeted release.
 
 An authenticated request in `auto` mode triggers only the requested model,
 waits through Modal's empty cold-start 503, and retries the original request
@@ -85,9 +96,12 @@ to the tracked catalog.
 
 ## Catalog configuration
 
-`config/mn.json` is the single tracked catalog. Every model contains:
+`config/mn.json` is the tracked source catalog and contains all four pinned
+profiles, including the budget-gated `mn/ornith-397b` record. A catalog model
+contains:
 
 - public MN ID and display name;
+- explicit `deployment_enabled` policy;
 - exact Hugging Face repository and 40-character revision;
 - independent Modal app and backend URL;
 - GPU/count and cost estimate;
@@ -95,10 +109,22 @@ to the tracked catalog.
 - vLLM reasoning and tool parsers;
 - lifecycle and cache behavior.
 
-`modal_vllm.py` selects one profile through `MN_MODEL=god|code|fast`. This
-allows the same reproducible source to deploy three separate Modal apps. The
-selected non-secret profile key is also baked into that model's Modal image so
-the container resolves the same profile when it imports the module at runtime.
+`Settings.deployed_models` supplies all four prepared profiles to the next
+gateway and release workflow. The release has a separate two-H200 acceptance
+gate before it deploys anything. The selected non-secret profile key is also
+baked into that model's Modal image so the container resolves the same profile
+when it imports the module at runtime.
+
+The fourth route is guarded consistently by the CLI and release workflow.
+`--allow-expensive` acknowledges individual lifecycle operations. A full
+release requires the exact environment acknowledgement
+`MN_RELEASE_ORNITH397=I_ACCEPT_2XH200`; without it, the release exits before
+deploying any model.
+Its retained serving profile uses `qwen3_xml`, `qwen3` reasoning with thinking
+disabled by default, `language_model_only=false`, and
+`prefix_caching=false`. These choices reflect the pinned chat template and
+conservative reintroduction policy; they still require budgeted text, vision,
+and tool-call validation before deployment.
 
 Model weights, vLLM compilation artifacts, and FlashInfer CUDA kernels remain
 in persistent Modal volumes. The first MoE cold start can spend several
@@ -174,7 +200,7 @@ mn launch --model code opencode
 mn stop code
 ```
 
-The selected model ID, 131,072 context, 16,384 output ceiling, endpoint, and
+The selected model ID, model-specific context/output limits, endpoint, and
 non-secret provider metadata are configured automatically. The owner token is
 read from the Keychain and passed in the child process environment.
 
@@ -203,7 +229,7 @@ The `catalog` target:
 1. verifies Git signing configuration;
 2. runs the full test suite and secret scan;
 3. extracts the matching curated section from `CHANGELOG.md`;
-4. deploys `god`, `code`, and `fast` as separate Modal apps;
+4. deploys `god`, `code`, `fast`, and `ornith397` as separate Modal apps;
 5. deploys the shared gateway;
 6. arms, tests, and hard-stops each route individually;
 7. creates a signed annotated tag;
@@ -225,6 +251,16 @@ and hard-stops that route before moving to the next. It finishes with all
 models hard-stopped. A failed smoke test triggers a best-effort hard stop and
 no tag or GitHub release is created.
 
+The next `catalog` release deploys and smoke-tests all four routes only when:
+
+```sh
+MN_RELEASE_ORNITH397=I_ACCEPT_2XH200 \
+  ./scripts/deploy-release.sh catalog v1.2.3
+```
+
+Without that exact value, the release refuses to begin. The operator must
+confirm the Workspace hard budget first.
+
 ## Verification
 
 List models without waking a GPU:
@@ -240,7 +276,11 @@ Expected IDs:
 mn/god
 mn/code
 mn/fast
+mn/ornith-397b
 ```
+
+Live `v0.3.1` currently returns only the first three. The next successfully
+validated four-model release must return all four.
 
 Test each selected model:
 
@@ -248,6 +288,7 @@ Test each selected model:
 .venv/bin/python test_endpoint.py god
 .venv/bin/python test_endpoint.py code
 .venv/bin/python test_endpoint.py fast
+.venv/bin/python test_endpoint.py ornith397
 ```
 
 Agent/tool smoke tests should include:
@@ -286,10 +327,13 @@ remain authoritative.
 Base estimates:
 
 ```text
-mn/god   1 x H200  ~$4.54/hour
-mn/code  1 x H200  ~$4.54/hour
-mn/fast  1 x L40S  ~$1.95/hour
-all                    ~$11.03/hour
+mn/god          1 x H200  $4.5396/hour
+mn/code         1 x H200  $4.5396/hour
+mn/fast         1 x L40S  $1.9512/hour
+deployed three            $11.0304/hour
+
+mn/ornith-397b  2 x H200  $9.0792/hour  next release, explicit acknowledgement
+all four                  $20.1096/hour
 ```
 
 Cold starts, inference, queued work, and each model's five-minute idle window
@@ -297,3 +341,9 @@ are billable. Backend startup is capped at 30 minutes, but that cap is not a
 substitute for a Workspace budget.
 The one-container limit applies per model, not across the workspace. Configure
 a Modal Workspace hard budget before any further GPU testing.
+
+Five-minute base GPU tails are approximately `$0.3783` for either one-H200
+route, `$0.1626` for `mn/fast`, `$0.7566` for the dormant two-H200 397B
+profile, `$0.9192` for live `v0.3.1`'s three routes, and `$1.6758` for all
+four after the next release. The four-model amount is a risk ceiling, not
+evidence of a currently running 397B backend.

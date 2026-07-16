@@ -140,6 +140,30 @@ def resolve_models(
     return [resolve_model(settings, candidate)]
 
 
+def require_deployment_enabled(model: ModelSettings) -> None:
+    if not model.deployment_enabled:
+        fail(
+            f"{model.model} is prepared but deployment-disabled. "
+            "Set and verify a Modal hard budget, then enable it in a signed release."
+        )
+
+
+def require_cost_acknowledgement(
+    model: ModelSettings,
+    args: argparse.Namespace,
+) -> None:
+    if (
+        model.requires_cost_acknowledgement
+        and not getattr(args, "allow_expensive", False)
+    ):
+        fail(
+            f"{model.model} uses {model.gpu_label} at approximately "
+            f"${model.gpu_hourly_usd:.4f}/active hour. "
+            "Repeat the command with `--allow-expensive` after confirming "
+            "the Modal hard budget."
+        )
+
+
 def modal_cli_path() -> str:
     project_cli = PROJECT_ROOT / ".venv" / "bin" / "modal"
     if project_cli.exists():
@@ -253,6 +277,8 @@ def deploy_backend(model: ModelSettings, tag: str) -> None:
 
 def command_start(args: argparse.Namespace, settings: Settings) -> None:
     model = resolve_model(settings, args.model)
+    require_deployment_enabled(model)
+    require_cost_acknowledgement(model, args)
     print(
         f"Safe-starting {model.model} on {model.gpu_label} "
         f"(approximately ${model.gpu_hourly_usd:.2f}/active hour)."
@@ -261,7 +287,10 @@ def command_start(args: argparse.Namespace, settings: Settings) -> None:
         f"The GPU will scale to zero after "
         f"{settings.idle_shutdown_seconds // 60} idle minutes."
     )
-    command_auto(argparse.Namespace(model=model.key), settings)
+    command_auto(
+        argparse.Namespace(model=model.key, allow_expensive=True),
+        settings,
+    )
     wake_model(settings, model, owner_token())
     print_api_details(settings, model)
 
@@ -280,8 +309,12 @@ def command_stop(args: argparse.Namespace, settings: Settings) -> None:
 
 
 def command_auto(args: argparse.Namespace, settings: Settings) -> None:
+    models = resolve_models(settings, args.model, default_all=True)
+    for model in models:
+        require_deployment_enabled(model)
+        require_cost_acknowledgement(model, args)
     state = state_dict(settings)
-    for model in resolve_models(settings, args.model, default_all=True):
+    for model in models:
         operation_id = uuid.uuid4().hex
 
         def operation_is_current() -> bool:
@@ -477,6 +510,7 @@ def require_launch_allowed(
     settings: Settings,
     model: ModelSettings,
 ) -> str:
+    require_deployment_enabled(model)
     if not settings.api_base_url:
         fail("The API gateway has not been deployed yet.")
     desired_state = str(
@@ -518,6 +552,7 @@ def wake_model(settings: Settings, model: ModelSettings, token: str) -> None:
 
 def command_wake(args: argparse.Namespace, settings: Settings) -> None:
     model = resolve_model(settings, args.model)
+    require_cost_acknowledgement(model, args)
     require_launch_allowed(settings, model)
     wake_model(settings, model, owner_token())
 
@@ -655,6 +690,7 @@ def launch_opencode(
 
 def command_launch(args: argparse.Namespace, settings: Settings) -> None:
     model = resolve_model(settings, args.model)
+    require_cost_acknowledgement(model, args)
     desired_state = require_launch_allowed(settings, model)
     token = owner_token()
     if desired_state == "auto":
@@ -672,11 +708,12 @@ def print_api_details(settings: Settings, selected: ModelSettings | None = None)
         print("Gateway: not deployed yet")
         return
     print(f"Base URL: {settings.api_base_url}")
-    models = [selected] if selected is not None else settings.models.values()
+    models = [selected] if selected is not None else settings.deployed_models.values()
     for model in models:
+        availability = "" if model.deployment_enabled else " [deployment disabled]"
         print(
             f"Model:    {model.model:<10} {model.display_name} "
-            f"({model.context_window:,} context)"
+            f"({model.context_window:,} context){availability}"
         )
     print("API key:  run `mn token copy owner` or create a named friend token")
 
@@ -686,7 +723,23 @@ def command_api(args: argparse.Namespace, settings: Settings) -> None:
     print_api_details(settings, selected)
 
 
+def interactive_model_selection(
+    settings: Settings,
+    value: str,
+) -> tuple[str, bool]:
+    model = resolve_model(settings, value or settings.default_model)
+    allow_expensive = False
+    if model.requires_cost_acknowledgement:
+        confirmation = input(
+            f"Type `{model.key}` to acknowledge approximately "
+            f"${model.gpu_hourly_usd:.4f}/active hour: "
+        ).strip()
+        allow_expensive = confirmation == model.key
+    return model.key, allow_expensive
+
+
 def interactive_menu(settings: Settings) -> None:
+    model_choices = "/".join(settings.deployed_models)
     while True:
         print()
         print("MN Uncensored")
@@ -713,20 +766,46 @@ def interactive_menu(settings: Settings) -> None:
         if choice == "0":
             return
         if choice == "1":
-            model = input("Model [god/code/fast]: ").strip() or settings.default_model
-            command_start(argparse.Namespace(model=model), settings)
+            model, allow_expensive = interactive_model_selection(
+                settings,
+                input(f"Model [{model_choices}]: ").strip(),
+            )
+            command_start(
+                argparse.Namespace(
+                    model=model,
+                    allow_expensive=allow_expensive,
+                ),
+                settings,
+            )
         elif choice == "2":
-            model = input("Model [god/code/fast]: ").strip() or settings.default_model
-            command_auto(argparse.Namespace(model=model), settings)
+            model, allow_expensive = interactive_model_selection(
+                settings,
+                input(f"Model [{model_choices}]: ").strip(),
+            )
+            command_auto(
+                argparse.Namespace(
+                    model=model,
+                    allow_expensive=allow_expensive,
+                ),
+                settings,
+            )
         elif choice == "3":
             command_stop(argparse.Namespace(model="all"), settings)
         elif choice == "4":
             command_status(argparse.Namespace(model="all"), settings)
         elif choice in {"5", "6", "7"}:
             tool = {"5": "hermes", "6": "pi", "7": "opencode"}[choice]
-            model = input("Model [god/code/fast]: ").strip() or settings.default_model
+            model, allow_expensive = interactive_model_selection(
+                settings,
+                input(f"Model [{model_choices}]: ").strip(),
+            )
             command_launch(
-                argparse.Namespace(tool=tool, tool_args=[], model=model),
+                argparse.Namespace(
+                    tool=tool,
+                    tool_args=[],
+                    model=model,
+                    allow_expensive=allow_expensive,
+                ),
                 settings,
             )
         elif choice == "8":
@@ -753,6 +832,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="Wake one model with automatic idle shutdown",
     )
     start_parser.add_argument("model")
+    start_parser.add_argument(
+        "--allow-expensive",
+        action="store_true",
+        help="Acknowledge the displayed multi-GPU cost for guarded models",
+    )
 
     stop_parser = subparsers.add_parser(
         "stop",
@@ -765,12 +849,22 @@ def build_parser() -> argparse.ArgumentParser:
         help="Arm one model for wake-on-request without starting it",
     )
     auto_parser.add_argument("model")
+    auto_parser.add_argument(
+        "--allow-expensive",
+        action="store_true",
+        help="Acknowledge the displayed multi-GPU cost for guarded models",
+    )
 
     status_parser = subparsers.add_parser("status", help="Show catalog status")
     status_parser.add_argument("model", nargs="?", default="all")
 
     wake_parser = subparsers.add_parser("wake", help="Wake one armed model")
     wake_parser.add_argument("model")
+    wake_parser.add_argument(
+        "--allow-expensive",
+        action="store_true",
+        help="Acknowledge the displayed multi-GPU cost for guarded models",
+    )
 
     api_parser = subparsers.add_parser(
         "api",
@@ -792,7 +886,15 @@ def build_parser() -> argparse.ArgumentParser:
     launch_parser.add_argument(
         "--model",
         default=None,
-        help="Catalog model: god, code, or fast (place before the tool name)",
+        help=(
+            "Catalog model: god, code, fast, or ornith397 "
+            "(place before the tool name)"
+        ),
+    )
+    launch_parser.add_argument(
+        "--allow-expensive",
+        action="store_true",
+        help="Acknowledge the displayed multi-GPU cost for guarded models",
     )
     launch_parser.add_argument("tool", choices=["hermes", "pi", "opencode"])
     launch_parser.add_argument("tool_args", nargs=argparse.REMAINDER)

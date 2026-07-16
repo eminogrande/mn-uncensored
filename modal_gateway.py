@@ -18,7 +18,7 @@ catalog = {
         "max_output_tokens": model.max_output_tokens,
         "model": model.model,
     }
-    for key, model in settings.models.items()
+    for key, model in settings.deployed_models.items()
 }
 
 image = (

@@ -14,6 +14,12 @@ if [[ ! "$version" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
   print -u2 "Version must look like v1.2.3."
   exit 2
 fi
+if [[ "${MN_RELEASE_ORNITH397:-}" != "I_ACCEPT_2XH200" ]]; then
+  print -u2 "This release includes mn/ornith-397b on 2 x H200."
+  print -u2 "Confirm the Modal hard budget, then set:"
+  print -u2 "MN_RELEASE_ORNITH397=I_ACCEPT_2XH200"
+  exit 2
+fi
 
 cd "$repo_dir"
 
@@ -59,6 +65,7 @@ deploy_gateway() {
 deploy_backend god
 deploy_backend code
 deploy_backend fast
+deploy_backend ornith397
 deploy_gateway
 
 cleanup_models() {
@@ -66,8 +73,12 @@ cleanup_models() {
 }
 trap cleanup_models EXIT
 
-for model in god code fast; do
-  .venv/bin/mn auto "$model"
+for model in god code fast ornith397; do
+  if [[ "$model" == "ornith397" ]]; then
+    .venv/bin/mn auto "$model" --allow-expensive
+  else
+    .venv/bin/mn auto "$model"
+  fi
   PYTHONPATH="$repo_dir/src" .venv/bin/python scripts/smoke-catalog.py "$model"
   .venv/bin/mn stop "$model"
 done

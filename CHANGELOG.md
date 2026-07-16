@@ -24,6 +24,17 @@ All notable changes to MN Uncensored are documented here.
 
 ### Documentation
 
+- Added `mn/ornith-397b` to the source catalog, pinned to
+  `cebeuq/Ornith-1.0-397B-abliterated-W4A16` revision
+  `e5651d291be1c65ff1360eee47ab533ab13b3d97`, with MIT metadata,
+  conservative 32,768 context, 8,192 output, and a two-H200
+  `$9.0792/hour` estimate.
+- Prepared the retained 397B profile as `deployment_enabled=true` for the next
+  budgeted four-route release while keeping live `v0.3.1` unchanged and
+  hard-stopped.
+- Documented the potential four-model ceiling of `$20.1096/hour` and
+  `$1.6758` for five-minute idle tails, while preserving `$11.0304/hour` as
+  the current three-route deployment ceiling.
 - Added a full post-incident report for the 2026-07-16 Modal GPU cost event,
   including the `$45.9634` pre-credit breakdown, verified timeline, root
   causes, limitations, containment, and safe operating procedure.
@@ -48,6 +59,12 @@ All notable changes to MN Uncensored are documented here.
 
 - Added a tested release-note extractor that fails if the requested version is
   missing or empty.
+- Added `mn/ornith-397b` with the real legacy alias
+  `nuri/ornith-397b-abliterated` as the fourth route for the next release.
+- Added `--allow-expensive` acknowledgement for 397B start, auto, wake, and
+  launch operations.
+- Added a release-wide `MN_RELEASE_ORNITH397=I_ACCEPT_2XH200` gate that must be
+  present before deploying and smoke-testing all four routes.
 
 ## [0.3.1] - 2026-07-16
 

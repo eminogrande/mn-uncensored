@@ -1,7 +1,7 @@
 [project]
 name = "mn-uncensored"
 version = "0.3.1"
-description = "Minimal three-model OpenAI-compatible catalog for MN Uncensored"
+description = "Minimal four-model OpenAI-compatible MN catalog with explicit two-H200 cost guards"
 license = "Apache-2.0"
 requires-python = ">=3.11"
 dependencies = [

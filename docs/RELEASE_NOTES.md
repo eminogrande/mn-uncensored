@@ -6,6 +6,27 @@ runtime without implying that a new Modal deployment occurred.
 
 ## Unreleased — Cost-safety correction
 
+### Fourth route
+
+- Prepared `mn/ornith-397b` as the fourth route for the next budgeted release,
+  using
+  [`cebeuq/Ornith-1.0-397B-abliterated-W4A16`](https://huggingface.co/cebeuq/Ornith-1.0-397B-abliterated-W4A16)
+  at revision `e5651d291be1c65ff1360eee47ab533ab13b3d97`.
+- Recorded the legacy alias `nuri/ornith-397b-abliterated`, MIT metadata,
+  two-H200 `$9.0792/hour` estimate, conservative 32,768 context, and 8,192
+  output ceiling.
+- The model has `deployment_enabled=true`; live `v0.3.1` remains unchanged
+  with three routes and zero running GPUs until the next release is explicitly
+  executed.
+- Individual 397B start, auto, wake, and launch operations require
+  `--allow-expensive`.
+- The four-model release refuses to begin without
+  `MN_RELEASE_ORNITH397=I_ACCEPT_2XH200`, then deploys, smoke-tests, and
+  hard-stops all four routes.
+- The potential four-model ceiling is `$20.1096/hour`, or `$1.6758` for five
+  minutes of idle tails across all four. The current deployed three-route
+  ceiling remains `$11.0304/hour`.
+
 ### Safety changes
 
 - `mn start MODEL` now safely arms and wakes one explicit model; it can no
@@ -25,6 +46,8 @@ runtime without implying that a new Modal deployment occurred.
   397B app caused the exposure.
 - Modal Workspace hard budget is now a mandatory prerequisite for more GPU
   testing.
+- The 397B release must pass text, vision, forced tool-call, scale-to-zero, and
+  hard-stop checks on the exact two-H200 runtime.
 
 ## v0.3.1 — Reliable cold-start waiting
 

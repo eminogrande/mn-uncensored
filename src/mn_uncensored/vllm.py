@@ -58,6 +58,8 @@ def build_vllm_command(
         command.extend(["--revision", model.hf_revision])
     if model.fast_boot:
         command.append("--enforce-eager")
+    if model.prefix_caching:
+        command.append("--enable-prefix-caching")
     if model.trust_remote_code:
         command.append("--trust-remote-code")
     if model.quantization:
