@@ -24,6 +24,7 @@ All notable changes to MN Uncensored are documented here.
 - Hard stop preserves the ten-minute timer for the next automatic start.
 - The singleton Server leaves target concurrency unset, following Modal's
   recommended configuration.
+- Gateway streaming decodes compressed upstream chunks before forwarding.
 
 ### Security
 

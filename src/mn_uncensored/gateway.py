@@ -178,7 +178,7 @@ def create_app(
         await client.aclose()
 
     async def stream_upstream(response: httpx.Response) -> AsyncIterator[bytes]:
-        async for chunk in response.aiter_raw():
+        async for chunk in response.aiter_bytes():
             yield chunk
 
     def backend_headers(request_id: str | None = None) -> dict[str, str]:

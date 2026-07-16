@@ -118,6 +118,9 @@ class FakeUpstreamResponse:
     async def aiter_raw(self) -> AsyncIterator[bytes]:
         yield self.body
 
+    async def aiter_bytes(self) -> AsyncIterator[bytes]:
+        yield self.body
+
 
 class FakeAutoStartClient:
     send_count = 0
