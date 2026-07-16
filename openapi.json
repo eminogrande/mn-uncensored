@@ -13,6 +13,44 @@
     "description": "Source and complete operations documentation",
     "url": "https://github.com/eminogrande/mn-uncensored"
   },
+  "x-model-catalog": [
+    {
+      "api_id": "mn/god",
+      "hugging_face_model": "huihui-ai/Huihui-Qwen3.6-35B-A3B-abliterated",
+      "hugging_face_url": "https://huggingface.co/huihui-ai/Huihui-Qwen3.6-35B-A3B-abliterated",
+      "license_metadata": "Apache-2.0",
+      "base_gpu_usd_per_hour": 4.5396,
+      "planned_reference_usd_per_hour": 5.44752,
+      "status": "live-route-hard-stopped"
+    },
+    {
+      "api_id": "mn/code",
+      "hugging_face_model": "YuYu1015/YuYu1015-Ornith-1.0-35B-abliterated",
+      "hugging_face_url": "https://huggingface.co/YuYu1015/YuYu1015-Ornith-1.0-35B-abliterated",
+      "license_metadata": "Apache-2.0",
+      "base_gpu_usd_per_hour": 4.5396,
+      "planned_reference_usd_per_hour": 5.44752,
+      "status": "live-route-hard-stopped"
+    },
+    {
+      "api_id": "mn/fast",
+      "hugging_face_model": "huihui-ai/Huihui-Qwythos-9B-Claude-Mythos-5-1M-abliterated",
+      "hugging_face_url": "https://huggingface.co/huihui-ai/Huihui-Qwythos-9B-Claude-Mythos-5-1M-abliterated",
+      "license_metadata": "Apache-2.0",
+      "base_gpu_usd_per_hour": 1.9512,
+      "planned_reference_usd_per_hour": 2.34144,
+      "status": "live-route-hard-stopped"
+    },
+    {
+      "api_id": "mn/ornith-397b",
+      "hugging_face_model": "cebeuq/Ornith-1.0-397B-abliterated-W4A16",
+      "hugging_face_url": "https://huggingface.co/cebeuq/Ornith-1.0-397B-abliterated-W4A16",
+      "license_metadata": "MIT",
+      "base_gpu_usd_per_hour": 9.0792,
+      "planned_reference_usd_per_hour": 10.89504,
+      "status": "next-budgeted-release"
+    }
+  ],
   "servers": [
     {
       "url": "https://eminhenri--mn-uncensored-api-api.modal.run",

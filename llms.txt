@@ -1,6 +1,6 @@
 # ABLITERATED.cloud
 
-> Open-source, token-protected access to exact pinned Hugging Face models through one OpenAI-compatible API powered by vLLM and scale-to-zero Modal GPUs.
+> Free open-licensed Hugging Face model weights labeled uncensored and abliterated, available through one token-protected OpenAI-compatible API powered by vLLM and scale-to-zero Modal GPUs.
 
 ABLITERATED.cloud is currently a private evaluation service. Live v0.3.1 exposes three hard-stopped routes. A guarded Ornith 397B fourth route is prepared for the next budgeted release.
 
@@ -17,10 +17,12 @@ ABLITERATED.cloud is currently a private evaluation service. Live v0.3.1 exposes
 
 ## Model identifiers
 
-- `mn/god`
-- `mn/code`
-- `mn/fast`
-- `mn/ornith-397b` (next budgeted release; legacy alias `nuri/ornith-397b-abliterated`)
+- `mn/god` → `huihui-ai/Huihui-Qwen3.6-35B-A3B-abliterated` → planned $5.44752/hour
+- `mn/code` → `YuYu1015/YuYu1015-Ornith-1.0-35B-abliterated` → planned $5.44752/hour
+- `mn/fast` → `huihui-ai/Huihui-Qwythos-9B-Claude-Mythos-5-1M-abliterated` → planned $2.34144/hour
+- `mn/ornith-397b` → `cebeuq/Ornith-1.0-397B-abliterated-W4A16` → planned $10.89504/hour; next budgeted release; legacy alias `nuri/ornith-397b-abliterated`
+
+Model weight downloads are free. Managed GPU inference is paid. These +20% reference rates are planned, not currently metered or charged.
 
 ## Access
 

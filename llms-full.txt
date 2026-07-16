@@ -1,6 +1,6 @@
 # ABLITERATED.cloud full agent context
 
-ABLITERATED.cloud provides private, token-protected access to exact pinned Hugging Face model artifacts through an OpenAI-compatible Chat Completions gateway.
+ABLITERATED.cloud provides private, token-protected access to exact pinned Hugging Face model artifacts through an OpenAI-compatible Chat Completions gateway. The model weight files are publicly downloadable without a purchase price; managed cloud GPU runtime is not free.
 
 ## Infrastructure
 
@@ -34,42 +34,50 @@ The 397B route is a real configured catalog entry but is not live in v0.3.1. Its
 
 Artifact: `huihui-ai/Huihui-Qwen3.6-35B-A3B-abliterated`
 Revision: `8f0ee727aff5e771ea72466d64d13ecd851d2cc7`
+HF metadata: Apache-2.0; 35,951,822,704 parameters, displayed as 36B; BF16; multimodal MoE; uncensored and abliterated
 Hardware: 1 x H200
 Context: 131072
 Maximum output: 16384
 Base GPU estimate: $4.5396/hour
+Planned private-beta reference rate: $5.44752/hour
 
 ### mn/code
 
 Artifact: `YuYu1015/YuYu1015-Ornith-1.0-35B-abliterated`
 Revision: `86065d1a9008773086a177637d54ec6dc2a56cbf`
+HF metadata: Apache-2.0; 35B Qwen3.5 MoE; reasoning/thinking; English and Chinese; uncensored and abliterated
 Hardware: 1 x H200
 Context: 131072
 Maximum output: 16384
 Base GPU estimate: $4.5396/hour
+Planned private-beta reference rate: $5.44752/hour
 
 ### mn/fast
 
 Artifact: `huihui-ai/Huihui-Qwythos-9B-Claude-Mythos-5-1M-abliterated`
 Revision: `efcc73cac15ff8fc5d46b8d41b53c22d571cf97d`
+HF metadata: Apache-2.0; 9,653,104,368 parameters, displayed as 10B; BF16; dense Qwen3.5; long-context and tool-use tags; uncensored and abliterated
 Hardware: 1 x L40S
 Context: 131072
 Maximum output: 16384
 Base GPU estimate: $1.9512/hour
+Planned private-beta reference rate: $2.34144/hour
 
 ### mn/ornith-397b
 
 Artifact: `cebeuq/Ornith-1.0-397B-abliterated-W4A16`
 Revision: `e5651d291be1c65ff1360eee47ab533ab13b3d97`
 Legacy alias: `nuri/ornith-397b-abliterated`
+HF metadata: MIT; 397B total / about 17B active; multimodal Qwen3.5 MoE; W4A16; about 196 GB; decensored, uncensored and abliterated
 Hardware: 2 x H200
 Context: 32768 configured
 Maximum output: 8192
 Base GPU estimate: $9.0792/hour
+Planned private-beta reference rate: $10.89504/hour
 Upstream native context claim: 262144
 Status: next budgeted release; not live in v0.3.1
 
-The word "abliterated" is an upstream checkpoint label, not a service guarantee.
+The words "abliterated", "decensored" and "uncensored" are upstream labels and publisher claims, not service guarantees. "Jailbroken" is a broader informal search term; none of the exact four repositories uses it as its technical method. Do not claim zero refusals.
 
 ## Safe lifecycle
 
@@ -123,7 +131,7 @@ Cursor is a compatibility target and may keep proprietary features on its own pr
 - Modal account credentials and all secret values stay out of Git.
 - Public website code contains no API token, Modal credential, backend proxy secret, or inference polling.
 
-## Costs
+## Free weights and planned pricing
 
 Current three-route simultaneous base GPU ceiling: $11.0304/hour.
 Future four-route simultaneous base GPU ceiling: $20.1096/hour.
@@ -131,13 +139,22 @@ Current three five-minute tails: $0.9192.
 Future four five-minute tails: $1.6758.
 397B alone: $9.0792/hour and $0.7566 per five-minute idle tail.
 
-These estimates exclude CPU, memory, volumes, network, tax, and future provider price changes.
+Planned reference rates use exactly 20% markup over base GPU list price:
+
+- god: $5.44752/hour
+- code: $5.44752/hour
+- fast: $2.34144/hour
+- 397B: $10.89504/hour
+- current three-route ceiling: $13.23648/hour
+- future four-route ceiling: $24.13152/hour
+
+These are not live customer charges because customer metering, balance tracking, payments, allocation and invoicing are not implemented. Estimates exclude CPU, memory, volumes, network, payment fees, tax and future provider price changes. A 20% markup equals 16.67% gross margin before those costs.
 
 ## Open source and licenses
 
 Repository: https://github.com/eminogrande/mn-uncensored
 
-The MN control plane and website use Apache-2.0, an open-source license. Model repositories retain separate upstream licenses and attribution requirements. Public source does not itself clear every model for commercial resale.
+The MN control plane and website use Apache-2.0, an open-source license. Hugging Face currently displays Apache-2.0 metadata for the first three exact repositories and MIT for the 397B repository. The exact derivative repositories do not each include a standalone license file, and publisher warnings remain relevant. Public weights do not automatically clear commercial resale.
 
 ## Access
 
