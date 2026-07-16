@@ -74,14 +74,16 @@ The owner token is stored in the macOS login Keychain. Create separate tokens
 for friends:
 
 ```sh
+mn token copy owner
 mn token create alice
 mn token create bob
 mn token list
 mn token revoke alice
 ```
 
-Friend tokens are displayed once. The gateway stores only SHA-256 token
-digests, never plaintext tokens.
+`mn token copy owner` places the owner token directly on the clipboard without
+printing it. Friend tokens are displayed once. The gateway stores only SHA-256
+token digests, never plaintext tokens.
 
 ## Standard OpenAI API
 

@@ -219,7 +219,7 @@ def command_token_create(args: argparse.Namespace, settings: Settings) -> None:
         print("Owner token created and stored in the macOS Keychain.")
     else:
         print("Token created. Copy it now; MN does not store its plaintext locally.")
-    print(token)
+        print(token)
 
 
 def command_token_revoke(args: argparse.Namespace, settings: Settings) -> None:
@@ -248,6 +248,23 @@ def command_token_list(_args: argparse.Namespace, settings: Settings) -> None:
         return
     for entry in entries:
         print(f"{entry['name']}\tcreated {entry['created_at']}")
+
+
+def command_token_copy(args: argparse.Namespace, _settings: Settings) -> None:
+    name = validate_token_name(args.name)
+    if name != "owner":
+        fail("Only the locally stored `owner` token can be copied.")
+    token = keychain_password(OWNER_KEYCHAIN_SERVICE)
+    result = subprocess.run(
+        ["pbcopy"],
+        input=token,
+        text=True,
+        check=False,
+        capture_output=True,
+    )
+    if result.returncode != 0:
+        fail("Could not copy the owner token to the clipboard.")
+    print("Owner token copied to the clipboard.")
 
 
 def owner_token() -> str:
@@ -366,7 +383,7 @@ def print_api_details(settings: Settings) -> None:
         return
     print(f"Base URL: {settings.api_base_url}")
     print(f"Model:    {settings.model}")
-    print("API key:  use the token from `mn token create <name>`")
+    print("API key:  run `mn token copy owner` or create a named friend token")
 
 
 def command_api(_args: argparse.Namespace, settings: Settings) -> None:
@@ -442,6 +459,8 @@ def build_parser() -> argparse.ArgumentParser:
     token_create.add_argument("name")
     token_revoke = token_subparsers.add_parser("revoke")
     token_revoke.add_argument("name")
+    token_copy = token_subparsers.add_parser("copy")
+    token_copy.add_argument("name")
     token_subparsers.add_parser("list")
 
     launch_parser = subparsers.add_parser("launch", help="Launch an agent using MN")
@@ -469,6 +488,7 @@ def main() -> None:
         {
             "create": command_token_create,
             "revoke": command_token_revoke,
+            "copy": command_token_copy,
             "list": command_token_list,
         }[args.token_command](args, settings)
     elif args.command == "launch":

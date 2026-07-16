@@ -4,6 +4,8 @@ All notable changes to MN Uncensored are documented here.
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-07-16
+
 ### Added
 
 - Minimal `mn` menu and start, stop, status, API, token, and launch commands.
@@ -11,6 +13,7 @@ All notable changes to MN Uncensored are documented here.
 - Launchers for Pi and OpenCode.
 - Lightweight Modal FastAPI gateway with standard Bearer authentication.
 - Multiple named API tokens with revocation and digest-only remote storage.
+- Clipboard-only retrieval for the Keychain-backed owner token.
 - Explicit gateway state that prevents stopped clients from waking the GPU.
 - OpenAI-compatible `/v1/models` and transparent `/v1/*` proxying.
 - Local gateway and token security tests.

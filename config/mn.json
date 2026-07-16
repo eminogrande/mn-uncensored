@@ -1,7 +1,7 @@
 {
   "app_name": "nuri-ornith-397b",
   "backend_url": "https://eminhenri--nuri-ornith-397b-vllmserver.eu-west.modal.direct",
-  "gateway_url": "",
+  "gateway_url": "https://eminhenri--mn-uncensored-api-api.modal.run",
   "gpu_hourly_usd": 9.08,
   "model": "nuri/ornith-397b-abliterated",
   "server_name": "VllmServer",

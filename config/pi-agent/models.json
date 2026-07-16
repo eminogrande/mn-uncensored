@@ -1,7 +1,7 @@
 {
   "providers": {
     "mn": {
-      "baseUrl": "https://replace-after-gateway-deploy.modal.run/v1",
+      "baseUrl": "https://eminhenri--mn-uncensored-api-api.modal.run/v1",
       "api": "openai-completions",
       "apiKey": "$MN_API_TOKEN",
       "compat": {
