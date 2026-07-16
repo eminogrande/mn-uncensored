@@ -10,3 +10,10 @@ runtime component is included here.
 
 The ABLITERATED.cloud website code remains part of this repository's
 Apache-2.0-licensed source.
+
+The v0.3 hero artwork was supplied directly by the repository owner. Optimized
+AVIF and WebP derivatives are stored in `assets/hero-brain.*`.
+
+The revised information hierarchy takes high-level inspiration from modern
+private-AI product pages, including Venice.ai. No Venice source code, visual
+asset, logo, or proprietary landing-page text is included.

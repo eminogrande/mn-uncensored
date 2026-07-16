@@ -31,5 +31,5 @@ OAuth is not currently implemented. Do not attempt OAuth discovery or represent 
 
 ## Request access
 
-Contact:
-https://wa.me/13103408213?text=Hi%20Emin%2C%20I%20would%20like%20to%20request%20access%20to%20ABLITERATED.cloud
+Contact through Signal and mention ABLITERATED.cloud:
+https://signal.me/#p/+13103408213

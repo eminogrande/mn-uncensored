@@ -19,8 +19,7 @@
       "hugging_face_model": "huihui-ai/Huihui-Qwen3.6-35B-A3B-abliterated",
       "hugging_face_url": "https://huggingface.co/huihui-ai/Huihui-Qwen3.6-35B-A3B-abliterated",
       "license_metadata": "Apache-2.0",
-      "base_gpu_usd_per_hour": 4.5396,
-      "planned_reference_usd_per_hour": 5.44752,
+      "price_usd_per_hour": 5.45,
       "status": "live-route-hard-stopped"
     },
     {
@@ -28,8 +27,7 @@
       "hugging_face_model": "YuYu1015/YuYu1015-Ornith-1.0-35B-abliterated",
       "hugging_face_url": "https://huggingface.co/YuYu1015/YuYu1015-Ornith-1.0-35B-abliterated",
       "license_metadata": "Apache-2.0",
-      "base_gpu_usd_per_hour": 4.5396,
-      "planned_reference_usd_per_hour": 5.44752,
+      "price_usd_per_hour": 5.45,
       "status": "live-route-hard-stopped"
     },
     {
@@ -37,8 +35,7 @@
       "hugging_face_model": "huihui-ai/Huihui-Qwythos-9B-Claude-Mythos-5-1M-abliterated",
       "hugging_face_url": "https://huggingface.co/huihui-ai/Huihui-Qwythos-9B-Claude-Mythos-5-1M-abliterated",
       "license_metadata": "Apache-2.0",
-      "base_gpu_usd_per_hour": 1.9512,
-      "planned_reference_usd_per_hour": 2.34144,
+      "price_usd_per_hour": 2.34,
       "status": "live-route-hard-stopped"
     },
     {
@@ -46,8 +43,7 @@
       "hugging_face_model": "cebeuq/Ornith-1.0-397B-abliterated-W4A16",
       "hugging_face_url": "https://huggingface.co/cebeuq/Ornith-1.0-397B-abliterated-W4A16",
       "license_metadata": "MIT",
-      "base_gpu_usd_per_hour": 9.0792,
-      "planned_reference_usd_per_hour": 10.89504,
+      "price_usd_per_hour": 10.9,
       "status": "next-budgeted-release"
     }
   ],

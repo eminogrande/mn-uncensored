@@ -26,6 +26,28 @@ Open:
 http://127.0.0.1:4173/
 ```
 
+## Hero artwork
+
+The owner-supplied brain-and-broken-chains artwork is stored in optimized
+formats:
+
+- `assets/hero-brain.avif` is the preferred 142 KB hero image;
+- `assets/hero-brain.webp` is the compatibility fallback.
+
+The hero uses a CSS contrast overlay so the headline remains readable without
+altering the source artwork. The public page preloads only the AVIF version.
+
+## Access request
+
+Active private-beta access links use Signal:
+
+```text
+https://signal.me/#p/+13103408213
+```
+
+Signal does not support the previous WhatsApp-style prefilled message on this
+phone link. Visitors are asked in nearby copy to mention ABLITERATED.cloud.
+
 ## GitHub Pages
 
 GitHub Pages publishes the root of the `gh-pages` branch. The signed deployment

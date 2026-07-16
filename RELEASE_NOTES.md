@@ -1,5 +1,36 @@
 # ABLITERATED.cloud website releases
 
+## website-v0.3.0
+
+A calmer, more powerful identity centered on “Intelligence, freed.”
+
+### Changed
+
+- Added the owner-supplied brain-and-broken-chains artwork as the responsive
+  hero background, with optimized AVIF and WebP variants.
+- Replaced the previous hero statement with “Intelligence, freed.” and the
+  original prompt line “Ask anything. Think for yourself.”
+- Simplified the palette, cards, borders, shadows, gradients, buttons, pricing,
+  and closing section for a drier, more minimal interface.
+- Added clearer background about why the service exists: exact checkpoint
+  identity, reduced refusal behavior, operator-controlled lifecycle, public
+  prices, and inspectable source.
+- Changed every active access request from WhatsApp to Signal.
+- Simplified public pricing to the four ABLITERATED.cloud prices without
+  publishing markup or margin mechanics.
+- Updated active Markdown, LLM, authentication, OpenAPI, social metadata, and
+  discovery-facing documents to match.
+
+### Current prices
+
+- Qwen3.6 35B A3B: $5.45/hour
+- Ornith 35B: $5.45/hour
+- Qwythos 9B: $2.34/hour
+- Ornith 397B W4A16: $10.90/hour
+
+Automated billing is not live yet. The 397B route remains prepared for the next
+budgeted runtime release.
+
 ## website-v0.2.0
 
 Clearer model identity, free-weight explanation, SEO copy, and transparent

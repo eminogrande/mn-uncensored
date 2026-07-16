@@ -1,22 +1,23 @@
 ---
-title: ABLITERATED.cloud - Free uncensored and abliterated Hugging Face models
-description: Free open-licensed Hugging Face model weights labeled uncensored, jailbroken and abliterated through a managed OpenAI-compatible cloud API.
+title: ABLITERATED.cloud - Intelligence, freed.
+description: Private access to exact uncensored and abliterated Hugging Face models through one controlled OpenAI-compatible cloud API.
 canonical: https://eminogrande.github.io/mn-uncensored/
 ---
 
 # ABLITERATED.cloud
 
-Free model weights. Private managed access. One OpenAI-compatible API.
+Intelligence, freed.
 
-ABLITERATED.cloud is an open-source control plane and private evaluation service for exact pinned Hugging Face model artifacts described upstream as uncensored, decensored or abliterated. "Jailbroken" is a broader informal search term, not the exact method claimed by these model publishers.
+ABLITERATED.cloud is an open-source control plane and private evaluation service for exact pinned Hugging Face model artifacts described upstream as uncensored, decensored or abliterated. Ask more, think for yourself, and know exactly which checkpoint answers.
 
 The model files are free to download from Hugging Face. Managed cloud inference is not free: H200 and L40S GPUs, startup, storage and operations cost money. Models run with vLLM on scale-to-zero Modal GPUs. Client devices do not download model weights.
 
 ## Request access
 
-Private-beta access is available through WhatsApp:
+Private-beta access is available through Signal. Mention ABLITERATED.cloud in
+your message:
 
-<https://wa.me/13103408213?text=Hi%20Emin%2C%20I%20would%20like%20to%20request%20access%20to%20ABLITERATED.cloud>
+<https://signal.me/#p/+13103408213>
 
 ## Model catalog
 
@@ -28,8 +29,7 @@ Private-beta access is available through WhatsApp:
 - Context: 131,072 tokens
 - Maximum output: 16,384 tokens
 - Hardware: 1 x H200
-- Base GPU estimate: $4.5396/hour
-- Planned private-beta reference rate: $5.44752/hour
+- ABLITERATED.cloud price: $5.45/hour
 - Status: live route, currently hard-stopped
 
 ### mn/code
@@ -40,8 +40,7 @@ Private-beta access is available through WhatsApp:
 - Context: 131,072 tokens
 - Maximum output: 16,384 tokens
 - Hardware: 1 x H200
-- Base GPU estimate: $4.5396/hour
-- Planned private-beta reference rate: $5.44752/hour
+- ABLITERATED.cloud price: $5.45/hour
 - Status: live route, currently hard-stopped
 
 ### mn/fast
@@ -52,8 +51,7 @@ Private-beta access is available through WhatsApp:
 - Context: 131,072 tokens
 - Maximum output: 16,384 tokens
 - Hardware: 1 x L40S
-- Base GPU estimate: $1.9512/hour
-- Planned private-beta reference rate: $2.34144/hour
+- ABLITERATED.cloud price: $2.34/hour
 - Status: live route, currently hard-stopped
 
 ### mn/ornith-397b
@@ -66,8 +64,7 @@ Private-beta access is available through WhatsApp:
 - Upstream context: 262,144 tokens
 - Maximum output: 8,192 tokens
 - Hardware: 2 x H200
-- Base GPU estimate: $9.0792/hour
-- Planned private-beta reference rate: $10.89504/hour
+- ABLITERATED.cloud price: $10.90/hour
 - Status: fourth route in the next budgeted release; not live in v0.3.1
 
 The upstream terms "abliterated", "decensored" and "uncensored" describe publisher claims about reduced refusal behavior. They do not guarantee zero refusals, correctness, safety, legality or unrestricted capability. The two model cards that publish measurements still report non-zero refusal rates.
@@ -99,18 +96,16 @@ Directly supported:
 
 Cursor is a compatibility target, not a promise of complete feature parity.
 
-## Free weights and planned managed pricing
+## Model prices
 
 - The exact model weight files have no purchase price on Hugging Face.
-- Planned reference rate formula: current Modal GPU list price x 1.20.
-- `mn/god`: $4.5396/hour base GPU; $5.44752/hour planned rate.
-- `mn/code`: $4.5396/hour base GPU; $5.44752/hour planned rate.
-- `mn/fast`: $1.9512/hour base GPU; $2.34144/hour planned rate.
-- `mn/ornith-397b`: $9.0792/hour base GPU; $10.89504/hour planned rate.
-- Current three-route planned simultaneous ceiling: $13.23648/hour.
-- Future four-route planned simultaneous ceiling: $24.13152/hour.
+- `mn/god`: $5.45/hour.
+- `mn/code`: $5.45/hour.
+- `mn/fast`: $2.34/hour.
+- `mn/ornith-397b`: $10.90/hour.
 
-These are not live customer charges. Customer metering, payments and invoicing are not implemented yet. Values exclude CPU, memory, storage, network, payment fees, tax and future provider price changes. A 20% markup is a 16.67% gross margin before those costs.
+Automated billing is not live yet. Private-beta access is invitation-based
+while customer metering, payments and invoicing remain roadmap work.
 
 ## Cloud and security boundary
 
