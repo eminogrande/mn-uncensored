@@ -1,5 +1,11 @@
 # ABLITERATED.cloud website releases
 
+## website-v0.4.1
+
+Fixed WebMCP discovery by registering the three public read-only catalog tools
+with `navigator.modelContext` when a supporting browser or scanner exposes it.
+The page remains dependency-free and never calls the inference API.
+
 ## website-v0.4.0
 
 A quieter, larger-type landing page with readable model names, complete
