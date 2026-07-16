@@ -1,0 +1,9 @@
+{
+  "name": "ABLITERATED.cloud API",
+  "description": "Token-protected OpenAI-compatible access to exact pinned Hugging Face models.",
+  "documentation": "https://github.com/eminogrande/mn-uncensored#api-and-client-configuration",
+  "openapi": "https://eminogrande.github.io/mn-uncensored/openapi.json",
+  "authentication": "https://eminogrande.github.io/mn-uncensored/auth.md",
+  "access_request": "https://wa.me/13103408213?text=Hi%20Emin%2C%20I%20would%20like%20to%20request%20access%20to%20ABLITERATED.cloud",
+  "status": "private-beta"
+}

@@ -1,0 +1,5 @@
+Contact: https://github.com/eminogrande/mn-uncensored/security
+Policy: https://github.com/eminogrande/mn-uncensored/blob/main/SECURITY.md
+Canonical: https://eminogrande.github.io/mn-uncensored/.well-known/security.txt
+Preferred-Languages: en, de
+Expires: 2027-07-16T00:00:00Z

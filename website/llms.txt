@@ -1,0 +1,28 @@
+# ABLITERATED.cloud
+
+> Open-source, token-protected access to exact pinned Hugging Face models through one OpenAI-compatible API powered by vLLM and scale-to-zero Modal GPUs.
+
+ABLITERATED.cloud is currently a private evaluation service. Live v0.3.1 exposes three hard-stopped routes. A guarded Ornith 397B fourth route is prepared for the next budgeted release.
+
+## Primary resources
+
+- [Human landing page](https://eminogrande.github.io/mn-uncensored/): Product overview, models, costs, security, and access.
+- [Markdown landing page](https://eminogrande.github.io/mn-uncensored/index.md): Compact agent-friendly product documentation.
+- [Full agent context](https://eminogrande.github.io/mn-uncensored/llms-full.txt): Expanded operational and model details.
+- [OpenAPI catalog](https://eminogrande.github.io/mn-uncensored/openapi.json): Current API contract and model identifiers.
+- [Authentication guide](https://eminogrande.github.io/mn-uncensored/auth.md): Bearer-token and lifecycle requirements.
+- [Agent skill](https://eminogrande.github.io/mn-uncensored/skills/abliterated-cloud/SKILL.md): Safe instructions for agents using the API.
+- [Source repository](https://github.com/eminogrande/mn-uncensored): Open-source implementation, tests, operations, release notes, and incident report.
+- [Exact model record](https://github.com/eminogrande/mn-uncensored/blob/main/docs/MODELS.md): Hugging Face artifacts, revisions, licenses, context, parsers, and hardware.
+
+## Model identifiers
+
+- `mn/god`
+- `mn/code`
+- `mn/fast`
+- `mn/ornith-397b` (next budgeted release; legacy alias `nuri/ornith-397b-abliterated`)
+
+## Access
+
+Request private access through WhatsApp:
+https://wa.me/13103408213?text=Hi%20Emin%2C%20I%20would%20like%20to%20request%20access%20to%20ABLITERATED.cloud

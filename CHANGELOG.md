@@ -57,6 +57,11 @@ All notable changes to MN Uncensored are documented here.
 
 ### Added
 
+- Added the open-source `website/` landing page for ABLITERATED.cloud with a
+  dependency-free responsive design, GitHub Pages workflow, WhatsApp access
+  CTA, exact four-model catalog, cost transparency, OpenAPI description,
+  Markdown alternative, `llms.txt`, Agent Skill, sitemap, robots policy, and
+  structured SEO metadata.
 - Added a tested release-note extractor that fails if the requested version is
   missing or empty.
 - Added `mn/ornith-397b` with the real legacy alias

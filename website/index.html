@@ -1,0 +1,484 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ABLITERATED.cloud — Open models. One private API.</title>
+  <meta name="description" content="Access exact, pinned abliterated Hugging Face models through one token-protected OpenAI-compatible API, powered by vLLM and scale-to-zero cloud GPUs.">
+  <meta name="keywords" content="abliterated models, uncensored AI models, open models API, vLLM hosting, Hugging Face inference, OpenAI-compatible API, private AI API, coding models">
+  <meta name="author" content="ABLITERATED.cloud">
+  <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
+  <meta name="content-signal" content="search=yes,ai-input=yes,ai-train=no">
+  <meta name="theme-color" content="#f3f0e9">
+  <meta name="color-scheme" content="light">
+  <link rel="canonical" href="https://eminogrande.github.io/mn-uncensored/">
+  <link rel="alternate" hreflang="en" href="https://eminogrande.github.io/mn-uncensored/">
+  <link rel="alternate" hreflang="x-default" href="https://eminogrande.github.io/mn-uncensored/">
+  <link rel="alternate" type="text/markdown" href="index.md" title="ABLITERATED.cloud in Markdown">
+  <link rel="alternate" type="text/plain" href="llms.txt" title="ABLITERATED.cloud LLM index">
+  <link rel="alternate" type="application/vnd.oai.openapi+json" href="openapi.json" title="ABLITERATED.cloud OpenAPI">
+  <link rel="api-catalog" type="application/json" href=".well-known/api-catalog.json">
+  <link rel="agent-skill" type="text/markdown" href="skills/abliterated-cloud/SKILL.md">
+  <link rel="help" type="text/markdown" href="auth.md" title="Authentication guide">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="ABLITERATED.cloud">
+  <meta property="og:url" content="https://eminogrande.github.io/mn-uncensored/">
+  <meta property="og:title" content="ABLITERATED.cloud — Open models. One private API.">
+  <meta property="og:description" content="Exact pinned models, vLLM inference, token-protected access, and scale-to-zero GPUs.">
+  <meta property="og:image" content="https://eminogrande.github.io/mn-uncensored/assets/og-card.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="ABLITERATED.cloud — Open models. One private API.">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="ABLITERATED.cloud — Open models. One private API.">
+  <meta name="twitter:description" content="Exact pinned models, vLLM inference, token-protected access, and scale-to-zero GPUs.">
+  <meta name="twitter:image" content="https://eminogrande.github.io/mn-uncensored/assets/og-card.png">
+  <link rel="stylesheet" href="styles.css">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "https://eminogrande.github.io/mn-uncensored/#organization",
+        "name": "ABLITERATED.cloud",
+        "url": "https://eminogrande.github.io/mn-uncensored/",
+        "logo": "https://eminogrande.github.io/mn-uncensored/assets/logo.svg",
+        "sameAs": ["https://github.com/eminogrande/mn-uncensored"]
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://eminogrande.github.io/mn-uncensored/#website",
+        "url": "https://eminogrande.github.io/mn-uncensored/",
+        "name": "ABLITERATED.cloud",
+        "description": "Private access to exact pinned open models through one OpenAI-compatible API.",
+        "publisher": {"@id": "https://eminogrande.github.io/mn-uncensored/#organization"},
+        "inLanguage": "en"
+      },
+      {
+        "@type": "SoftwareApplication",
+        "@id": "https://eminogrande.github.io/mn-uncensored/#software",
+        "name": "ABLITERATED.cloud API",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "Cloud API",
+        "isAccessibleForFree": false,
+        "url": "https://eminogrande.github.io/mn-uncensored/",
+        "downloadUrl": "https://github.com/eminogrande/mn-uncensored",
+        "softwareHelp": "https://github.com/eminogrande/mn-uncensored#readme",
+        "license": "https://www.apache.org/licenses/LICENSE-2.0",
+        "description": "A token-protected OpenAI-compatible gateway for pinned Hugging Face models served with vLLM on scale-to-zero Modal GPUs."
+      },
+      {
+        "@type": "ItemList",
+        "name": "ABLITERATED.cloud model catalog",
+        "numberOfItems": 4,
+        "itemListElement": [
+          {"@type": "ListItem", "position": 1, "name": "mn/god — Huihui Qwen3.6 35B A3B Abliterated"},
+          {"@type": "ListItem", "position": 2, "name": "mn/code — YuYu Ornith 1.0 35B Abliterated"},
+          {"@type": "ListItem", "position": 3, "name": "mn/fast — Huihui Qwythos 9B Claude Mythos 5 Abliterated"},
+          {"@type": "ListItem", "position": 4, "name": "mn/ornith-397b — Ornith 1.0 397B Abliterated W4A16"}
+        ]
+      },
+      {
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "What does abliterated mean?",
+            "acceptedAnswer": {"@type": "Answer", "text": "Abliterated is the upstream checkpoint label for models whose refusal behavior was reduced. It is not a guarantee of zero refusals or unrestricted capability."}
+          },
+          {
+            "@type": "Question",
+            "name": "Do model weights download to my computer?",
+            "acceptedAnswer": {"@type": "Answer", "text": "No. Model weights stay in Hugging Face and persistent cloud volumes. Your computer runs only the lightweight command-line client."}
+          },
+          {
+            "@type": "Question",
+            "name": "Which clients work with the API?",
+            "acceptedAnswer": {"@type": "Answer", "text": "The directly supported flow uses OpenAI Chat Completions with streaming and structured tools. Hermes, Pi, OpenCode, OpenAI SDKs, cURL, and compatible applications can use the gateway."}
+          },
+          {
+            "@type": "Question",
+            "name": "Is ABLITERATED.cloud open source?",
+            "acceptedAnswer": {"@type": "Answer", "text": "Yes. The control plane, website, model catalog, deployment code, tests, and documentation are public on GitHub under Apache-2.0. Model weights retain their own upstream licenses."}
+          }
+        ]
+      }
+    ]
+  }
+  </script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <div class="site">
+    <header class="nav" aria-label="Primary navigation">
+      <div class="nav-inner">
+        <a class="brand" href="#top" aria-label="ABLITERATED.cloud home">
+          <img src="assets/logo.svg" width="34" height="34" alt="">
+          <span class="brand-name">ABLITERATED<span class="brand-dot">.</span><span class="brand-tld">cloud</span></span>
+        </a>
+        <nav class="desktop-links" aria-label="Page sections">
+          <a href="#how">How it works</a>
+          <a href="#models">Models</a>
+          <a href="#pricing">Costs</a>
+          <a href="#faq">FAQ</a>
+        </nav>
+        <div class="nav-actions">
+          <a class="button button-small" href="https://wa.me/13103408213?text=Hi%20Emin%2C%20I%20would%20like%20to%20request%20access%20to%20ABLITERATED.cloud" rel="noopener noreferrer">Request access</a>
+          <button class="menu-button" type="button" aria-expanded="false" aria-controls="mobile-menu" aria-label="Open navigation">
+            <span></span><span></span><span></span>
+          </button>
+        </div>
+      </div>
+      <nav class="mobile-menu" id="mobile-menu" hidden aria-label="Mobile navigation">
+        <a href="#how">How it works</a>
+        <a href="#models">Models</a>
+        <a href="#pricing">Costs</a>
+        <a href="#faq">FAQ</a>
+        <a href="https://github.com/eminogrande/mn-uncensored">Open source</a>
+      </nav>
+    </header>
+
+    <main id="main">
+      <section class="hero" id="top">
+        <div class="eyebrows" aria-label="Key characteristics">
+          <span class="eyebrow"><span class="status-dot"></span>Private beta</span>
+          <span class="eyebrow">Four pinned models</span>
+          <span class="eyebrow">Open source</span>
+        </div>
+        <h1>Abliterated models.<br>One private API.</h1>
+        <p class="hero-copy">Run exact Hugging Face checkpoints through vLLM on scale-to-zero cloud GPUs. Built for coding agents, experimentation, and future metered access—without downloading hundreds of gigabytes to your computer.</p>
+        <div class="hero-actions">
+          <a class="button" href="https://wa.me/13103408213?text=Hi%20Emin%2C%20I%20would%20like%20to%20request%20access%20to%20ABLITERATED.cloud" rel="noopener noreferrer">Request private access</a>
+          <a class="text-link" href="#models">Explore the models <span aria-hidden="true">→</span></a>
+        </div>
+      </section>
+
+      <section class="stage" aria-label="API example">
+        <div class="stage-wash"></div>
+        <div class="api-window">
+          <div class="window-bar">
+            <div class="window-dots" aria-hidden="true"><span></span><span></span><span></span></div>
+            <div class="window-title">api.abliterated.cloud / v1</div>
+            <span class="window-badge">OpenAI compatible</span>
+          </div>
+          <div class="api-body">
+            <div class="request-block">
+              <span class="method">POST</span>
+              <code>/chat/completions</code>
+            </div>
+            <pre aria-label="Example API request"><code><span class="code-muted">{</span>
+  <span class="code-key">"model"</span>: <span class="code-value">"mn/code"</span>,
+  <span class="code-key">"messages"</span>: [
+    { <span class="code-key">"role"</span>: <span class="code-value">"user"</span>, <span class="code-key">"content"</span>: <span class="code-value">"Build it."</span> }
+  ],
+  <span class="code-key">"stream"</span>: <span class="code-bool">true</span>
+<span class="code-muted">}</span></code></pre>
+            <div class="response-row">
+              <span class="response-icon" aria-hidden="true">✓</span>
+              <div>
+                <strong>One endpoint. Your model choice.</strong>
+                <span>Bearer tokens · streaming · structured tool calls</span>
+              </div>
+              <span class="live-chip">ready when armed</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="current-status" aria-labelledby="status-title">
+        <div>
+          <span class="section-label">Current state</span>
+          <h2 id="status-title">Cloud infrastructure, safely at zero.</h2>
+        </div>
+        <p>Live v0.3.1 has three routes deployed and hard-stopped. The guarded 397B fourth route is prepared for the next budgeted release. Preparing source code does not start a GPU.</p>
+      </section>
+
+      <hr class="rule">
+
+      <section class="feature" id="how">
+        <div class="feature-copy">
+          <span class="feature-number">(1)</span>
+          <h2>Request access</h2>
+          <p>ABLITERATED.cloud is a private evaluation service for the owner and invited testers. Access uses revocable Bearer tokens—not an unprotected secret URL.</p>
+          <a class="inline-link" href="https://wa.me/13103408213?text=Hi%20Emin%2C%20I%20would%20like%20to%20request%20access%20to%20ABLITERATED.cloud" rel="noopener noreferrer">Message us on WhatsApp <span aria-hidden="true">→</span></a>
+        </div>
+        <div class="feature-visual visual-access" aria-hidden="true">
+          <div class="access-card">
+            <span class="mini-label">ACCESS TOKEN</span>
+            <strong>sk-mn-••••••••••••</strong>
+            <div class="access-meta"><span>revocable</span><span>token protected</span></div>
+          </div>
+        </div>
+      </section>
+
+      <hr class="rule">
+
+      <section class="feature feature-reverse">
+        <div class="feature-copy">
+          <span class="feature-number">(2)</span>
+          <h2>Choose the exact model</h2>
+          <p>Every route maps to a named Hugging Face artifact and a full 40-character revision. No silent “latest” upgrades, no cryptic provider aliases.</p>
+          <a class="inline-link" href="#models">See the full catalog <span aria-hidden="true">→</span></a>
+        </div>
+        <div class="feature-visual visual-model" aria-hidden="true">
+          <div class="model-selector">
+            <span class="selector-active">mn/code</span>
+            <span>mn/god</span>
+            <span>mn/fast</span>
+            <span>mn/ornith-397b</span>
+          </div>
+        </div>
+      </section>
+
+      <hr class="rule">
+
+      <section class="feature">
+        <div class="feature-copy">
+          <span class="feature-number">(3)</span>
+          <h2>Use the tools you already know</h2>
+          <p>Connect Hermes, Pi, OpenCode, an OpenAI SDK, cURL, or another compatible client to one API base URL. Select the model in the request.</p>
+          <a class="inline-link" href="https://github.com/eminogrande/mn-uncensored#api-and-client-configuration">Read integration docs <span aria-hidden="true">→</span></a>
+        </div>
+        <div class="feature-visual visual-clients" aria-label="Supported clients">
+          <div class="client-grid">
+            <span>Hermes</span><span>Pi</span><span>OpenCode</span><span>OpenAI SDK</span><span>cURL</span><span>Cursor*</span>
+          </div>
+        </div>
+      </section>
+
+      <hr class="rule">
+
+      <section class="models-section" id="models" aria-labelledby="models-title">
+        <div class="section-heading">
+          <span class="section-label">Model catalog</span>
+          <h2 id="models-title">Four models. Fully named.</h2>
+          <p>“Abliterated” is the upstream checkpoint label. It is not a promise of zero refusals.</p>
+        </div>
+        <div class="model-grid">
+          <article class="model-card">
+            <div class="model-card-top">
+              <span class="model-kicker">MN / GOD</span>
+              <span class="route-status status-current">Live route · stopped</span>
+            </div>
+            <h3>Qwen3.6 35B A3B</h3>
+            <p>Huihui Qwen3.6 35B A3B Abliterated. The broad capability route.</p>
+            <dl>
+              <div><dt>API ID</dt><dd><code>mn/god</code></dd></div>
+              <div><dt>Context</dt><dd>131,072</dd></div>
+              <div><dt>GPU</dt><dd>1 × H200</dd></div>
+              <div><dt>Base GPU</dt><dd>$4.5396/h</dd></div>
+            </dl>
+            <a href="https://huggingface.co/huihui-ai/Huihui-Qwen3.6-35B-A3B-abliterated">Exact Hugging Face artifact <span aria-hidden="true">↗</span></a>
+          </article>
+
+          <article class="model-card featured-card">
+            <div class="model-card-top">
+              <span class="model-kicker">MN / CODE</span>
+              <span class="route-status status-current">Live route · stopped</span>
+            </div>
+            <h3>Ornith 35B</h3>
+            <p>YuYu Ornith 1.0 35B Abliterated. The compact coding-agent route.</p>
+            <dl>
+              <div><dt>API ID</dt><dd><code>mn/code</code></dd></div>
+              <div><dt>Context</dt><dd>131,072</dd></div>
+              <div><dt>GPU</dt><dd>1 × H200</dd></div>
+              <div><dt>Base GPU</dt><dd>$4.5396/h</dd></div>
+            </dl>
+            <a href="https://huggingface.co/YuYu1015/YuYu1015-Ornith-1.0-35B-abliterated">Exact Hugging Face artifact <span aria-hidden="true">↗</span></a>
+          </article>
+
+          <article class="model-card">
+            <div class="model-card-top">
+              <span class="model-kicker">MN / FAST</span>
+              <span class="route-status status-current">Live route · stopped</span>
+            </div>
+            <h3>Qwythos 9B</h3>
+            <p>Huihui Qwythos 9B Claude Mythos 5 Abliterated. The lower-cost personal route.</p>
+            <dl>
+              <div><dt>API ID</dt><dd><code>mn/fast</code></dd></div>
+              <div><dt>Context</dt><dd>131,072</dd></div>
+              <div><dt>GPU</dt><dd>1 × L40S</dd></div>
+              <div><dt>Base GPU</dt><dd>$1.9512/h</dd></div>
+            </dl>
+            <a href="https://huggingface.co/huihui-ai/Huihui-Qwythos-9B-Claude-Mythos-5-1M-abliterated">Exact Hugging Face artifact <span aria-hidden="true">↗</span></a>
+          </article>
+
+          <article class="model-card giant-card">
+            <div class="model-card-top">
+              <span class="model-kicker">MN / ORNITH 397B</span>
+              <span class="route-status status-next">Next budgeted release</span>
+            </div>
+            <h3>Ornith 397B W4A16</h3>
+            <p>The favorite: a roughly 196 GB, 397B-parameter multimodal MoE artifact, configured conservatively for two H200s.</p>
+            <dl>
+              <div><dt>API ID</dt><dd><code>mn/ornith-397b</code></dd></div>
+              <div><dt>Legacy alias</dt><dd><code>nuri/ornith-397b-abliterated</code></dd></div>
+              <div><dt>Context</dt><dd>32,768 configured</dd></div>
+              <div><dt>GPU</dt><dd>2 × H200</dd></div>
+              <div><dt>Base GPU</dt><dd>$9.0792/h</dd></div>
+            </dl>
+            <a href="https://huggingface.co/cebeuq/Ornith-1.0-397B-abliterated-W4A16">Exact Hugging Face artifact <span aria-hidden="true">↗</span></a>
+          </article>
+        </div>
+        <p class="catalog-note">All exact revisions, license metadata, parser choices, and compatibility caveats are public in <a href="https://github.com/eminogrande/mn-uncensored/blob/main/docs/MODELS.md">the model record</a>.</p>
+      </section>
+
+      <hr class="rule">
+
+      <section class="trust-section" aria-labelledby="trust-title">
+        <div class="section-heading">
+          <span class="section-label">Built transparently</span>
+          <h2 id="trust-title">Your infrastructure should explain itself.</h2>
+        </div>
+        <div class="trust-grid">
+          <article>
+            <span class="check" aria-hidden="true">✓</span>
+            <div><h3>Exact revisions</h3><p>Every model is pinned to an explicit public commit, not an ambiguous moving tag.</p></div>
+          </article>
+          <article>
+            <span class="check" aria-hidden="true">✓</span>
+            <div><h3>Scale to zero</h3><p>Each backend has a zero-container floor and a five-minute idle window when armed.</p></div>
+          </article>
+          <article>
+            <span class="check" aria-hidden="true">✓</span>
+            <div><h3>Token protected</h3><p>Model calls require revocable Bearer tokens. Private backends use separate proxy credentials.</p></div>
+          </article>
+          <article>
+            <span class="check" aria-hidden="true">✓</span>
+            <div><h3>Open source</h3><p>Control plane, website, tests, operations docs, and deployment workflow are public on GitHub.</p></div>
+          </article>
+        </div>
+      </section>
+
+      <hr class="rule">
+
+      <section class="pricing-section" id="pricing" aria-labelledby="pricing-title">
+        <div class="section-heading">
+          <span class="section-label">Infrastructure costs</span>
+          <h2 id="pricing-title">Pay for running GPUs, not seats.</h2>
+          <p>Private-beta customer pricing is not published yet. These are transparent Modal base GPU estimates, before CPU, memory, storage, network, tax, or future price changes.</p>
+        </div>
+        <div class="pricing-card">
+          <span class="pricing-tag">Scale-to-zero catalog</span>
+          <div class="price-comparison">
+            <div><strong>$11.0304</strong><span>current three-route ceiling / hour</span></div>
+            <em>then</em>
+            <div><strong>$20.1096</strong><span>future four-route ceiling / hour</span></div>
+          </div>
+          <hr>
+          <ul>
+            <li><span>✓</span>Each route has an independent one-container ceiling.</li>
+            <li><span>✓</span>Multiple users can share a running container.</li>
+            <li><span>✓</span>Hard-stopped routes cannot wake from API traffic.</li>
+            <li><span>!</span>Five idle minutes are a tail, not a total session cap.</li>
+          </ul>
+          <a class="button button-full" href="https://wa.me/13103408213?text=Hi%20Emin%2C%20I%20would%20like%20to%20request%20access%20to%20ABLITERATED.cloud" rel="noopener noreferrer">Request private access</a>
+          <p class="price-note">The 397B route requires an explicit two-H200 cost acknowledgement before lifecycle operations or release.</p>
+        </div>
+      </section>
+
+      <hr class="rule">
+
+      <section class="architecture-section" aria-labelledby="architecture-title">
+        <div class="section-heading">
+          <span class="section-label">What runs where</span>
+          <h2 id="architecture-title">Open weights. Private gateway. Cloud GPUs.</h2>
+        </div>
+        <div class="flow" role="img" aria-label="Client connects with Bearer token to MN gateway, which connects to a private vLLM backend on Modal using pinned Hugging Face weights">
+          <div class="flow-node"><span>01</span><strong>Your client</strong><small>Hermes · Pi · SDK</small></div>
+          <span class="flow-arrow" aria-hidden="true">→</span>
+          <div class="flow-node accent-node"><span>02</span><strong>MN gateway</strong><small>Bearer token · routing</small></div>
+          <span class="flow-arrow" aria-hidden="true">→</span>
+          <div class="flow-node"><span>03</span><strong>Modal + vLLM</strong><small>Private scale-to-zero GPU</small></div>
+          <span class="flow-arrow" aria-hidden="true">→</span>
+          <div class="flow-node"><span>04</span><strong>Pinned model</strong><small>Exact Hugging Face revision</small></div>
+        </div>
+        <p class="flow-note">No model weights are downloaded to your Mac. The public website never calls, wakes, or polls the inference API.</p>
+      </section>
+
+      <hr class="rule">
+
+      <section class="faq-section" id="faq" aria-labelledby="faq-title">
+        <span class="section-label">FAQ</span>
+        <h2 id="faq-title">Questions, answered plainly.</h2>
+        <div class="faq-list">
+          <details>
+            <summary>What does “abliterated” mean?<span aria-hidden="true">+</span></summary>
+            <p>It is the upstream checkpoint label for models whose refusal behavior was reduced through abliteration. It does not guarantee zero refusals, correctness, safety, or fitness for every request.</p>
+          </details>
+          <details>
+            <summary>Is the 397B model available?<span aria-hidden="true">+</span></summary>
+            <p>It is a real fourth catalog route with API ID <code>mn/ornith-397b</code> and legacy alias <code>nuri/ornith-397b-abliterated</code>. The currently deployed v0.3.1 gateway still exposes three routes. The next release is budget-gated and validates 397B text, vision, tool calls, shutdown, and scale-to-zero.</p>
+          </details>
+          <details>
+            <summary>Do model weights download to my computer?<span aria-hidden="true">+</span></summary>
+            <p>No. Hugging Face stores the source artifacts, and Modal volumes cache them in the cloud. Your local machine runs only the lightweight CLI and client tools.</p>
+          </details>
+          <details>
+            <summary>Does every user increase the hourly price?<span aria-hidden="true">+</span></summary>
+            <p>Not automatically. Users share a model container, but more requests can keep it active longer. Different routes can also run at the same time, so the workspace needs a real hard budget.</p>
+          </details>
+          <details>
+            <summary>Is this a complete OpenAI API replacement?<span aria-hidden="true">+</span></summary>
+            <p>No. The directly tested contract is OpenAI Chat Completions with model listing, streaming, and structured tool calls. Proprietary client features may still use their original providers.</p>
+          </details>
+          <details>
+            <summary>Is the project open source?<span aria-hidden="true">+</span></summary>
+            <p>Yes. Our code is public under Apache-2.0, an open-source license. Each model artifact keeps its own upstream license and commercial-use caveats.</p>
+          </details>
+          <details>
+            <summary>Is this already a public paid platform?<span aria-hidden="true">+</span></summary>
+            <p>Not yet. It is a private evaluation service. Customer accounts, quotas, metering, billing, reconciliation, and commercial license review are roadmap work.</p>
+          </details>
+        </div>
+      </section>
+
+      <hr class="rule">
+
+      <section class="closing">
+        <div class="closing-wash"></div>
+        <span class="section-label">Private beta</span>
+        <h2>Use the model you chose.<br>Not the one you were assigned.</h2>
+        <p>Tell us what you want to build and which route you want to test.</p>
+        <a class="button" href="https://wa.me/13103408213?text=Hi%20Emin%2C%20I%20would%20like%20to%20request%20access%20to%20ABLITERATED.cloud" rel="noopener noreferrer">Request access on WhatsApp</a>
+      </section>
+    </main>
+
+    <hr class="rule">
+
+    <footer class="footer">
+      <div class="footer-brand">
+        <a class="brand" href="#top">
+          <img src="assets/logo.svg" width="28" height="28" alt="">
+          <span class="brand-name">ABLITERATED<span class="brand-dot">.</span><span class="brand-tld">cloud</span></span>
+        </a>
+        <p>Open models. Private access.<br>© 2026 ABLITERATED.cloud</p>
+      </div>
+      <div>
+        <h2>Product</h2>
+        <a href="#how">How it works</a>
+        <a href="#models">Models</a>
+        <a href="#pricing">Costs</a>
+        <a href="#faq">FAQ</a>
+      </div>
+      <div>
+        <h2>Technical</h2>
+        <a href="https://github.com/eminogrande/mn-uncensored">GitHub</a>
+        <a href="https://github.com/eminogrande/mn-uncensored#api-and-client-configuration">API docs</a>
+        <a href="openapi.json">OpenAPI</a>
+        <a href="llms.txt">llms.txt</a>
+      </div>
+      <div>
+        <h2>Access</h2>
+        <a href="https://wa.me/13103408213?text=Hi%20Emin%2C%20I%20would%20like%20to%20request%20access%20to%20ABLITERATED.cloud" rel="noopener noreferrer">WhatsApp</a>
+        <a href="https://github.com/eminogrande/mn-uncensored/blob/main/SECURITY.md">Security</a>
+        <a href="https://github.com/eminogrande/mn-uncensored/blob/main/docs/INCIDENT-2026-07-16-MODAL-COST.md">Cost safeguards</a>
+      </div>
+    </footer>
+  </div>
+</body>
+</html>

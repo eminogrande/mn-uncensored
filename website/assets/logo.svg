@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title">
+  <title id="title">ABLITERATED.cloud</title>
+  <rect width="96" height="96" rx="28" fill="#171513"/>
+  <circle cx="48" cy="48" r="25" fill="none" stroke="#8b6cff" stroke-width="10"/>
+  <path d="M31 65 65 31" fill="none" stroke="#fffdf8" stroke-linecap="round" stroke-width="8"/>
+  <circle cx="67" cy="67" r="8" fill="#ff7248" stroke="#171513" stroke-width="4"/>
+</svg>

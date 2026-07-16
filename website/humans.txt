@@ -1,0 +1,7 @@
+ABLITERATED.cloud
+
+Design and engineering: Emin Mahrt with Codex
+Source: https://github.com/eminogrande/mn-uncensored
+License: Apache-2.0
+Built as a dependency-free static website.
+No analytics. No advertising. No inference API polling.
