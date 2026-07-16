@@ -49,7 +49,7 @@ def settings() -> Settings:
     return Settings(
         default_model="god",
         gateway_url="https://gateway.example",
-        idle_shutdown_seconds=600,
+        idle_shutdown_seconds=300,
         models={
             key: model_settings(key)
             for key in ("god", "code", "fast")
@@ -223,6 +223,7 @@ def test_auto_redeploys_selected_scale_to_zero_backend(
         "deploy_backend",
         lambda model, tag: deployments.append((model.key, tag)),
     )
+    monkeypatch.setattr(cli, "enforce_scale_to_zero", lambda *_args: None)
 
     cli.command_auto(SimpleNamespace(model="code"), settings())
 
@@ -250,35 +251,88 @@ def test_auto_deploy_failure_stays_fail_closed(
     assert desired_state(state, "code") == "stopped"
 
 
-def test_start_uses_selected_model_app_after_recovery(
+def test_auto_reapplies_scale_to_zero_to_deployed_backend(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    state = FakeState({"god": "auto", "code": "stopped", "fast": "stopped"})
-    events: list[str] = []
+    state = FakeState({"code": "auto"})
+    enforced: list[str] = []
     monkeypatch.setattr(cli, "state_dict", lambda _settings: state)
-    monkeypatch.setattr(cli, "backend_app_is_stopped", lambda _model: True)
+    monkeypatch.setattr(cli, "backend_app_is_stopped", lambda _model: False)
     monkeypatch.setattr(
         cli,
-        "deploy_backend",
-        lambda model, tag: events.append(f"deploy:{model.key}:{tag}"),
+        "enforce_scale_to_zero",
+        lambda model, _settings: enforced.append(model.key),
     )
 
-    def fail_after_lookup(app_name: str, server_name: str) -> object:
-        events.append(f"server:{app_name}:{server_name}")
-        raise RuntimeError("lookup intercepted")
+    cli.command_auto(SimpleNamespace(model="code"), settings())
 
-    monkeypatch.setattr(cli.modal.Server, "from_name", fail_after_lookup)
+    assert enforced == ["code"]
+    assert desired_state(state, "code") == "auto"
 
-    with pytest.raises(RuntimeError, match="lookup intercepted"):
-        cli.command_start(SimpleNamespace(model="code", timeout=1), settings())
 
-    assert events == [
-        "deploy:code:manual-start",
-        "server:mn-code:CodeServer",
-    ]
-    assert desired_state(state, "god") == "auto"
-    assert desired_state(state, "code") == "starting"
-    assert desired_state(state, "fast") == "stopped"
+def test_scale_to_zero_policy_never_keeps_a_warm_container(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, object] = {}
+
+    class FakeServer:
+        def update_autoscaler(self, **kwargs: object) -> None:
+            captured.update(kwargs)
+
+    monkeypatch.setattr(
+        cli.modal.Server,
+        "from_name",
+        lambda *_args: FakeServer(),
+    )
+
+    cli.enforce_scale_to_zero(settings().models["god"], settings())
+
+    assert captured == {
+        "min_containers": 0,
+        "max_containers": 1,
+        "scaledown_window": 300,
+    }
+
+
+def test_auto_policy_failure_is_fail_closed(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    state = FakeState({"code": "auto"})
+    monkeypatch.setattr(cli, "state_dict", lambda _settings: state)
+    monkeypatch.setattr(cli, "backend_app_is_stopped", lambda _model: False)
+    monkeypatch.setattr(
+        cli,
+        "enforce_scale_to_zero",
+        lambda *_args: (_ for _ in ()).throw(RuntimeError("Modal failure")),
+    )
+
+    with pytest.raises(RuntimeError, match="Modal failure"):
+        cli.command_auto(SimpleNamespace(model="code"), settings())
+
+    assert desired_state(state, "code") == "stopped"
+
+
+def test_start_arms_auto_and_wakes_selected_model(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    events: list[tuple[str, str]] = []
+    monkeypatch.setattr(
+        cli,
+        "command_auto",
+        lambda args, _settings: events.append(("auto", args.model)),
+    )
+    monkeypatch.setattr(cli, "owner_token", lambda: "sk-owner")
+    monkeypatch.setattr(
+        cli,
+        "wake_model",
+        lambda _settings, model, token: events.append(
+            (f"wake:{model.key}", token)
+        ),
+    )
+
+    cli.command_start(SimpleNamespace(model="code"), settings())
+
+    assert events == [("auto", "code"), ("wake:code", "sk-owner")]
 
 
 def test_wake_uses_selected_model_query(
@@ -312,58 +366,21 @@ def test_launch_parser_accepts_model_before_tool() -> None:
     assert args.tool_args == ["--yolo"]
 
 
-def test_parallel_stop_wins_over_running_start(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    state = FakeState({"code": "stopped"})
-    selected = settings().models["code"]
-    health_calls = 0
+def test_start_parser_requires_explicit_model() -> None:
+    parser = cli.build_parser()
 
-    class FakeServer:
-        def update_autoscaler(self, **_kwargs: object) -> None:
-            return None
+    with pytest.raises(SystemExit):
+        parser.parse_args(["start"])
 
-    class FakeResponse:
-        status_code = 200
+    args = parser.parse_args(["start", "fast"])
+    assert args.model == "fast"
 
-    class FakeClient:
-        def __init__(self, **_kwargs: object) -> None:
-            pass
 
-        def __enter__(self) -> "FakeClient":
-            return self
+def test_auto_parser_requires_explicit_model() -> None:
+    parser = cli.build_parser()
 
-        def __exit__(self, *_args: object) -> None:
-            return None
+    with pytest.raises(SystemExit):
+        parser.parse_args(["auto"])
 
-        def get(self, *_args: object, **_kwargs: object) -> FakeResponse:
-            nonlocal health_calls
-            health_calls += 1
-            state.put(
-                selected.lifecycle_key,
-                {
-                    "schema": 1,
-                    "desired_state": "stopped",
-                    "updated_at": "parallel-stop",
-                },
-            )
-            return FakeResponse()
-
-    monkeypatch.setattr(cli, "state_dict", lambda _settings: state)
-    monkeypatch.setattr(cli, "backend_app_is_stopped", lambda _model: False)
-    monkeypatch.setattr(
-        cli.modal.Server,
-        "from_name",
-        lambda *_args: FakeServer(),
-    )
-    monkeypatch.setattr(cli, "backend_headers", lambda: {})
-    monkeypatch.setattr(cli.httpx, "Client", FakeClient)
-
-    cli.start_model(
-        SimpleNamespace(timeout=1),
-        settings(),
-        selected,
-    )
-
-    assert health_calls == 1
-    assert desired_state(state, "code") == "stopped"
+    args = parser.parse_args(["auto", "code"])
+    assert args.model == "code"

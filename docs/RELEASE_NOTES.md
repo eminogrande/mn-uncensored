@@ -4,6 +4,28 @@ These are the curated release notes for MN Uncensored. They describe tagged
 runtime releases. Documentation on `main` after a tag may explain the deployed
 runtime without implying that a new Modal deployment occurred.
 
+## Unreleased — Cost-safety correction
+
+### Safety changes
+
+- `mn start MODEL` now safely arms and wakes one explicit model; it can no
+  longer create an indefinite `min_containers=1` warm container.
+- Default idle scale-down is five minutes.
+- `start`, `auto`, and `wake` require an explicit model.
+- Backend and gateway cold-start limits are 30 minutes.
+- Release workflows finish with every model hard-stopped.
+- Automatic-mode policy failures leave the route fail-closed.
+
+### Incident record
+
+- Added the complete 2026-07-16 Modal cost incident report with the raw
+  `$45.9634` pre-credit breakdown and verified container-start timeline.
+- Documented that stable auto scale-down worked; unsafe start semantics,
+  aggressive pre-v0.3.1 polling, repeated deployments, and the separate legacy
+  397B app caused the exposure.
+- Modal Workspace hard budget is now a mandatory prerequisite for more GPU
+  testing.
+
 ## v0.3.1 — Reliable cold-start waiting
 
 Released 2026-07-16.

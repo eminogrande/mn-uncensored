@@ -16,7 +16,7 @@ model = settings.resolve_model(model_key)
 MAX_CONTAINERS = 1
 ROUTING_REGION = "eu-west"
 VLLM_PORT = 8000
-STARTUP_TIMEOUT_SECONDS = 90 * 60
+STARTUP_TIMEOUT_SECONDS = 30 * 60
 LOCAL_MODEL_PATH = (
     "/root/.cache/huggingface/models--"
     f"{model.hf_model.replace('/', '--')}/snapshots/{model.hf_revision}"

@@ -66,12 +66,11 @@ cleanup_models() {
 }
 trap cleanup_models EXIT
 
-.venv/bin/mn auto
 for model in god code fast; do
+  .venv/bin/mn auto "$model"
   PYTHONPATH="$repo_dir/src" .venv/bin/python scripts/smoke-catalog.py "$model"
   .venv/bin/mn stop "$model"
 done
-.venv/bin/mn auto
 
 trap - EXIT
 

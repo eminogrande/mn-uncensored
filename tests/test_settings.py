@@ -20,6 +20,7 @@ def test_catalog_loads_three_unique_models() -> None:
     ]
     assert len({model.lifecycle_key for model in settings.models.values()}) == 3
     assert all(model.context_window == 131072 for model in settings.models.values())
+    assert settings.idle_shutdown_seconds == 300
 
 
 def test_catalog_rejects_duplicate_aliases(tmp_path) -> None:
@@ -41,4 +42,19 @@ def test_catalog_rejects_missing_default(tmp_path) -> None:
     path.write_text(json.dumps(data))
 
     with pytest.raises(ValueError, match="default_model"):
+        load_settings(path)
+
+
+@pytest.mark.parametrize("idle_seconds", [0, 301])
+def test_catalog_rejects_unsafe_idle_shutdown(
+    tmp_path,
+    idle_seconds: int,
+) -> None:
+    source = Path(__file__).parents[1] / "config" / "mn.json"
+    data = json.loads(source.read_text())
+    data["idle_shutdown_seconds"] = idle_seconds
+    path = tmp_path / "mn.json"
+    path.write_text(json.dumps(data))
+
+    with pytest.raises(ValueError, match="between 1 and 300"):
         load_settings(path)

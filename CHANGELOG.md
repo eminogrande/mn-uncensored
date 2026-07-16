@@ -4,8 +4,32 @@ All notable changes to MN Uncensored are documented here.
 
 ## [Unreleased]
 
+### Fixed
+
+- Changed `mn start MODEL` from an indefinite `min_containers=1` warm mode to a
+  fail-safe automatic route plus one explicit wake.
+- Reapply `min_containers=0`, `max_containers=1`, and the tracked idle window
+  whenever automatic mode is armed; failures leave the route hard-stopped.
+- Reduced backend and gateway cold-start timeouts from 90/45 minutes to
+  30 minutes.
+
+### Security
+
+- Reduced the idle shutdown window from ten to five minutes and reject tracked
+  values above 300 seconds.
+- Require an explicit model for `start`, `auto`, and `wake`.
+- Leave every model hard-stopped after release smoke tests instead of restoring
+  all routes to wakeable automatic mode.
+- Added regression tests that forbid a normal warm-container floor.
+
 ### Documentation
 
+- Added a full post-incident report for the 2026-07-16 Modal GPU cost event,
+  including the `$45.9634` pre-credit breakdown, verified timeline, root
+  causes, limitations, containment, and safe operating procedure.
+- Rewrote start/stop guidance around hard-stop by default, one explicit model,
+  five-minute idle scale-down, actual billing inspection, and the mandatory
+  Modal Workspace budget.
 - Expanded the README into a complete architecture and operations guide with
   Mermaid diagrams for routing, cold starts, lifecycle state, token security,
   cloud storage, capacity, and the future resale stack.

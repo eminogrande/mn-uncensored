@@ -17,7 +17,7 @@ from .security import token_key
 
 
 MAX_REQUEST_BYTES = 16 * 1024 * 1024
-AUTO_START_TIMEOUT_SECONDS = 45 * 60
+AUTO_START_TIMEOUT_SECONDS = 30 * 60
 AUTO_START_INITIAL_BACKOFF_SECONDS = 30
 AUTO_START_MAX_BACKOFF_SECONDS = 5 * 60
 FORWARDED_REQUEST_HEADERS = {"accept", "content-type", "user-agent"}
@@ -334,7 +334,7 @@ def create_app(
             return JSONResponse(
                 status_code=status.HTTP_504_GATEWAY_TIMEOUT,
                 content=error_payload(
-                    f"{route['model']} did not become ready within 45 minutes.",
+                    f"{route['model']} did not become ready within 30 minutes.",
                     "api_connection_error",
                     "model_start_timeout",
                 ),
@@ -506,7 +506,7 @@ def create_app(
                 return JSONResponse(
                     status_code=status.HTTP_504_GATEWAY_TIMEOUT,
                     content=error_payload(
-                        f"{route['model']} did not become ready within 45 minutes.",
+                        f"{route['model']} did not become ready within 30 minutes.",
                         "api_connection_error",
                         "model_start_timeout",
                     ),

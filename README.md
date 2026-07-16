@@ -18,6 +18,13 @@ requires a valid `sk-mn-*` Bearer token.
 > **Current boundary:** this is a private evaluation service for the owner and
 > invited testers. It is not yet a complete multi-tenant resale platform.
 
+> **Cost-safety default:** all model routes are currently hard-stopped. Use
+> `mn start MODEL` for one safe session and `mn stop MODEL` immediately after
+> use. A normal start can no longer keep a warm GPU indefinitely. Read the
+> [2026-07-16 cost incident report](docs/INCIDENT-2026-07-16-MODAL-COST.md).
+> The safety changes are on `main` but will not be deployed to Modal until a
+> Workspace hard budget is confirmed. Do not restart a model before that.
+
 ## Contents
 
 - [What runs where](#what-runs-where)
@@ -34,6 +41,7 @@ requires a valid `sk-mn-*` Bearer token.
 - [Cloud storage and local downloads](#cloud-storage-and-local-downloads)
 - [Deploying a separate copy](#deploying-a-separate-copy)
 - [Troubleshooting](#troubleshooting)
+- [Cost incident: what actually happened](#cost-incident-what-actually-happened)
 - [Release process and release history](#release-process-and-release-history)
 - [Path from private API to resale platform](#path-from-private-api-to-resale-platform)
 - [Model and license caveats](#model-and-license-caveats)
@@ -77,15 +85,18 @@ license caveats are documented in [docs/MODELS.md](docs/MODELS.md).
 Checked on 2026-07-16:
 
 - the public gateway health endpoint returned `{"status":"ok"}`;
-- all three model lifecycle records were in `auto`;
+- all three model lifecycle records were hard-stopped;
 - the deployed `god`, `code`, and `fast` applications each reported zero
   running tasks;
-- the gateway remained available without a warm model GPU;
+- no API request can wake a hard-stopped model;
 - release `v0.3.1` had previously passed one streaming completion and one
   forced tool call on every route.
 
 The gateway itself may briefly keep a small CPU container after a health or API
 request. That is separate from the H200/L40S model containers.
+
+The latest deployed runtime remains `v0.3.1`. The five-minute safety release is
+intentionally pending until the Modal Workspace hard budget is set.
 
 ### Why there is no current 397B route
 
@@ -191,7 +202,7 @@ sequenceDiagram
 
         alt Lifecycle is stopped or stopping
             Gateway-->>Client: 503 model_stopped
-        else Lifecycle is auto, starting, or started
+        else Lifecycle is auto or a legacy active state
             Gateway->>Modal: Forward original request
 
             alt Backend is already warm
@@ -201,7 +212,7 @@ sequenceDiagram
             else Empty Modal 503 signals scale-from-zero
                 Modal-->>Gateway: 503 with empty body
                 Modal->>vLLM: Start GPU container
-                loop Health polling for at most 45 minutes
+                loop Health polling for at most 30 minutes
                     Gateway->>Modal: GET /health
                     Note over Gateway: Backoff 30, 60, 120, 240,<br/>then at most 300 seconds
                     Modal-->>Gateway: Not ready or HTTP 200
@@ -215,7 +226,7 @@ sequenceDiagram
         end
     end
 
-    Note over Modal,vLLM: In auto mode the GPU scales to zero<br/>600 seconds after the final backend request
+    Note over Modal,vLLM: In auto mode the GPU scales to zero<br/>300 idle seconds after the final backend request
 ```
 
 ### Lifecycle modes
@@ -224,29 +235,32 @@ sequenceDiagram
 stateDiagram-v2
     [*] --> Stopped
     Stopped --> AutoZero: mn auto model
-    AutoZero --> ColdStarting: authenticated request or mn wake
+    Stopped --> ColdStarting: mn start model
+    AutoZero --> ColdStarting: inference request or mn wake
     ColdStarting --> Serving: health check becomes ready
-    Serving --> AutoZero: 600 seconds without a backend request
-    AutoZero --> Warm: mn start model
-    Serving --> Warm: mn start model
-    Warm --> AutoZero: mn auto model
-    Stopped --> Warm: mn start model
+    Serving --> AutoZero: 300 idle seconds
     AutoZero --> Stopped: mn stop model
     ColdStarting --> Stopped: mn stop model
     Serving --> Stopped: mn stop model
-    Warm --> Stopped: mn stop model
 ```
 
-The three operational modes are:
+The operational modes are:
 
 | Mode | Command | Minimum containers | Behavior |
 | --- | --- | ---: | --- |
-| Automatic | `mn auto code` | 0 | First authenticated inference request starts the model; ten idle minutes later it returns to zero |
-| Warm | `mn start code` | 1 | Keeps the selected model running until changed or stopped |
+| Safe start | `mn start code` | 0 | Arms `mn/code`, wakes it once, and scales to zero after five idle minutes |
+| Automatic | `mn auto code` | 0 | Arms `mn/code` without immediately starting a GPU; the next inference request wakes it |
 | Hard-stopped | `mn stop code` | 0 | Route fails closed; an API request cannot wake it |
 
-`mn stop` without a model hard-stops all three routes. `mn auto` without a
-model restores automatic mode for all three routes.
+`mn stop` without a model hard-stops all three routes. `mn start`, `mn auto`,
+and `mn wake` require an explicit model so an accidental command cannot arm or
+start the whole catalog.
+
+Five idle minutes is not a five-minute maximum charge. Startup, weight loading,
+kernel compilation, queued work, an active generation, an open stream, health
+checks, and new client requests are activity. The idle countdown begins only
+after that activity ends. The Modal Workspace hard budget remains the real
+outer spending limit.
 
 ## Why Modal and vLLM were selected
 
@@ -289,7 +303,7 @@ making a purchasing or resale decision.
 
 | Option | What it actually provides | Exact arbitrary HF pin | Scale to zero | Billing style | Fit for MN |
 | --- | --- | ---: | ---: | --- | --- |
-| **Modal + vLLM** | Programmable GPU hosting plus our own inference server | Yes | Yes, configured here at 10 minutes | Resource-seconds | Selected foundation |
+| **Modal + vLLM** | Programmable GPU hosting plus our own inference server | Yes | Yes, configured here at 5 idle minutes | Resource-seconds | Selected foundation |
 | **Hugging Face Inference Endpoints** | Managed dedicated endpoint with selectable engines and hardware | Yes | Yes | Instance-minutes | Simpler alternative, less custom control |
 | **Featherless** | Large shared catalog through one hosted API | Only when cataloged | Provider-managed | Subscription or tokens | Cheapest light testing for supported models |
 | **OpenRouter** | Router across many existing providers | No arbitrary deployment | Provider-dependent | Tokens plus platform fee | Excellent model evaluation and fallback |
@@ -381,9 +395,9 @@ MN deliberately does not download these 35B models to the Mac. The useful idea
 taken from Ollama is the launch experience:
 
 ```sh
-mn launch hermes
+mn start fast
 mn launch --model fast pi
-mn launch --model code opencode
+mn stop fast
 ```
 
 ### Routstr
@@ -436,12 +450,12 @@ These calculations use the official Modal rates checked on 2026-07-16. They
 exclude CPU, memory, storage beyond included allowance, network, taxes, and
 future price changes.
 
-| Route | GPU | Per second | Per minute | Per hour | Ten-minute idle tail |
+| Route | GPU | Per second | Per minute | Per hour | Five-minute idle tail |
 | --- | --- | ---: | ---: | ---: | ---: |
-| `mn/god` | H200 | $0.001261 | $0.07566 | $4.5396 | $0.7566 |
-| `mn/code` | H200 | $0.001261 | $0.07566 | $4.5396 | $0.7566 |
-| `mn/fast` | L40S | $0.000542 | $0.03252 | $1.9512 | $0.3252 |
-| All three simultaneously | — | $0.003064 | $0.18384 | $11.0304 | $1.8384 |
+| `mn/god` | H200 | $0.001261 | $0.07566 | $4.5396 | $0.3783 |
+| `mn/code` | H200 | $0.001261 | $0.07566 | $4.5396 | $0.3783 |
+| `mn/fast` | L40S | $0.000542 | $0.03252 | $1.9512 | $0.1626 |
+| All three simultaneously | — | $0.003064 | $0.18384 | $11.0304 | $0.9192 |
 
 The rough GPU formula is:
 
@@ -456,15 +470,15 @@ Examples:
 | Example | Approximate base GPU cost |
 | --- | ---: |
 | One H200 model active for 1 minute | $0.07566 |
-| One H200 model active for 10 minutes | $0.7566 |
-| `mn/fast` active for 10 minutes | $0.3252 |
-| All three active for 10 minutes | $1.8384 |
+| One H200 five-minute idle tail | $0.3783 |
+| `mn/fast` five-minute idle tail | $0.1626 |
+| All three five-minute idle tails | $0.9192 |
 | All three active continuously for one hour | $11.0304 |
 | All three active continuously for 730 hours | $8,052.19 |
 
-The ten-minute column is not a fixed request price. It illustrates the final
-idle tail after the last backend request. A real activation also includes
-model startup and generation time.
+The five-minute column is not a fixed request price. It illustrates only the
+final idle tail after the last backend activity. A real activation also
+includes startup, compilation, queued work, and generation time.
 
 Modal currently lists `$30/month` of Starter compute credit. Ignoring all
 other resources, that is approximately:
@@ -486,7 +500,7 @@ two H200 bills because this deployment caps that backend at one container.
 However, additional users can:
 
 - keep the GPU running longer;
-- continually reset the ten-minute idle timer;
+- continually reset the five-minute idle timer;
 - cause requests to queue;
 - increase latency;
 - wake different catalog models at the same time.
@@ -558,15 +572,32 @@ mn
 The menu provides start, auto, stop, status, agent launch, token, and API
 actions.
 
-### Recommended automatic mode
+### Safest default
 
 ```sh
-mn auto
+mn stop
 mn status
 ```
 
-`mn auto` enables wake-on-request for all three models without keeping a GPU
-warm.
+This leaves every route fail-closed. No client can wake a GPU.
+
+### One safe session
+
+Start with the inexpensive route:
+
+```sh
+mn start fast
+```
+
+Use the API or an agent, then stop it explicitly:
+
+```sh
+mn stop fast
+```
+
+`mn start fast` first enforces `min_containers=0`, wakes the route, and leaves
+it with a five-minute idle shutdown. The explicit stop is still recommended;
+it closes the route immediately instead of waiting for the idle timer.
 
 ### Operate individual models
 
@@ -582,8 +613,15 @@ mn stop code
 
 ```sh
 mn status
-mn auto
 mn stop
+```
+
+To arm several models, name them separately:
+
+```sh
+mn auto god
+mn auto code
+mn auto fast
 ```
 
 ### Command reference
@@ -593,15 +631,15 @@ mn stop
 | `mn` | Interactive menu |
 | `mn status [model]` | Show desired lifecycle, GPU ceiling, context, and API URL |
 | `mn api [model]` | Print API base URL and model IDs |
-| `mn auto [model]` | Enable request-triggered start and ten-minute idle shutdown |
-| `mn wake [model]` | Explicitly wait until one automatic route is ready |
-| `mn start [model]` | Keep one model warm |
+| `mn auto MODEL` | Arm one route for request-triggered start and five-minute idle shutdown |
+| `mn wake MODEL` | Explicitly wait until one automatic route is ready |
+| `mn start MODEL` | Safely arm and wake one model; never keep `min_containers=1` |
 | `mn stop [model]` | Hard-stop one model; without a model, stop all |
 | `mn token create NAME` | Create a named API token |
 | `mn token list` | List token names and creation times |
 | `mn token revoke NAME` | Revoke one token immediately |
 | `mn token copy owner` | Copy the Keychain-backed owner token |
-| `mn launch --model MODEL TOOL` | Wake and launch Hermes, Pi, or OpenCode |
+| `mn launch --model MODEL TOOL` | Launch an armed model, waking it if needed |
 
 Valid selectors are `god`, `code`, `fast`, and their public IDs
 `mn/god`, `mn/code`, and `mn/fast`.
@@ -714,14 +752,14 @@ enabling this.
 ### Hermes Agent
 
 ```sh
-mn launch hermes
+mn start code
 mn launch --model code hermes --yolo
-mn launch --model fast hermes
+mn stop code
 ```
 
 The launcher:
 
-1. checks that the selected lifecycle is `auto` or `started`;
+1. checks that the selected lifecycle is armed for automatic use;
 2. reads the owner token from the macOS Keychain;
 3. wakes the model if it is in automatic mode;
 4. configures the Hermes `mn-uncensored` custom provider;
@@ -731,8 +769,9 @@ The launcher:
 ### Pi
 
 ```sh
-mn launch --model code pi
+mn start fast
 mn launch --model fast pi
+mn stop fast
 ```
 
 The launcher injects `MN_API_TOKEN`, selects the tracked Pi configuration in
@@ -741,8 +780,9 @@ The launcher injects `MN_API_TOKEN`, selects the tracked Pi configuration in
 ### OpenCode
 
 ```sh
+mn start code
 mn launch --model code opencode
-mn launch --model fast opencode
+mn stop code
 ```
 
 The launcher builds an in-memory OpenCode configuration using
@@ -1017,8 +1057,8 @@ copy credentials from the existing deployment.
 | `503 model_stopped` | Route is hard-stopped | Run `mn auto MODEL` or `mn start MODEL` |
 | Empty upstream `503` | Modal is starting a zero-scale Server | Gateway waits internally with backoff |
 | `502 backend_unreachable` | Private backend could not be reached | Check deployment and proxy credentials |
-| `504 model_start_timeout` | Model was not ready within 45 minutes | Check Modal logs, capacity, weights, and vLLM startup |
-| Client times out before MN | Client timeout is too short for cold start | Configure a timeout up to 45 minutes |
+| `504 model_start_timeout` | Model was not ready within 30 minutes | Check Modal logs, capacity, weights, and vLLM startup |
+| Client times out before MN | Client timeout is too short for cold start | Configure a timeout up to 30 minutes |
 | Browser reports CORS | Browser blocked cross-origin request | Use a server-side proxy or explicitly design CORS |
 | Responses appear empty | Client ignored model-specific reasoning output | Keep thinking disabled or update the client |
 
@@ -1048,6 +1088,56 @@ A cold start can include:
 The 9B route should generally be cheaper and faster to start than a 35B route,
 but no fixed startup time is guaranteed.
 
+## Cost incident: what actually happened
+
+On 2026-07-16, Modal reported `$45.9634` of raw usage before credits:
+
+| Application | Raw cost before credits |
+| --- | ---: |
+| Legacy `nuri-ornith-397b` | $32.8227 |
+| `mn/god` | $9.4604 |
+| `mn/code` | $3.1430 |
+| `mn/fast` | $0.5121 |
+| Gateway | $0.0252 |
+
+The evidence does **not** show a Modal autoscaler defect:
+
+- the stable final 397B auto session shut down about ten minutes after its last
+  inference request, matching its then-configured idle window;
+- the legacy 397B work created 26 GPU container starts across three app
+  versions;
+- `mn/god` produced 23 server starts during repeated deployments and debugging;
+- before `v0.3.1`, the gateway polled a cold backend every five seconds,
+  accumulating redundant pending start requests;
+- the old `mn start` command explicitly set `min_containers=1`, which makes
+  scale-to-zero impossible regardless of `scaledown_window`.
+
+The exact contribution of every local command cannot be reconstructed from Git
+history alone. What is proven is that the old interface exposed an unsafe
+permanent-warm mode under the ordinary word `start`, polling was too aggressive
+for long cold starts, the legacy app was separate from the later catalog, and
+development repeatedly redeployed and restarted expensive GPUs.
+
+Immediate and permanent corrections:
+
+- every route was hard-stopped and verified at zero tasks;
+- normal `mn start` now means automatic mode plus one wake;
+- no normal CLI path sets `min_containers=1`;
+- the idle window is five minutes and configuration rejects anything above
+  five minutes;
+- backend startup is capped at 30 minutes instead of 90;
+- release workflows finish hard-stopped instead of leaving every route armed;
+- future releases test that the autoscaler policy is exactly
+  `min_containers=0`, `max_containers=1`;
+- a Modal Workspace hard budget is mandatory before more GPU testing.
+
+The code changes are published on `main`, but the Modal runtime remains
+hard-stopped and will not receive the safety deployment until that budget is
+confirmed.
+
+Full evidence, timeline, limits, and commands:
+[docs/INCIDENT-2026-07-16-MODAL-COST.md](docs/INCIDENT-2026-07-16-MODAL-COST.md).
+
 ## Release process and release history
 
 Every runtime deployment must begin from a clean, verified, signed commit:
@@ -1067,7 +1157,7 @@ The release script:
 7. verifies `/v1/models`;
 8. runs streaming and forced tool-call smoke tests against every model;
 9. hard-stops each tested GPU;
-10. restores automatic mode;
+10. leaves every model hard-stopped;
 11. creates a signed annotated tag;
 12. pushes branch and tag;
 13. publishes curated GitHub release notes.

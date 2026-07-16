@@ -1,5 +1,41 @@
 # Operations
 
+## Cost-safety runbook
+
+The default safe state is hard-stopped:
+
+```sh
+mn stop
+mn status
+```
+
+Before any GPU test:
+
+1. set a Modal Workspace hard budget at
+   <https://modal.com/settings/usage>;
+2. select exactly one model;
+3. prefer `fast` for initial testing;
+4. stop it explicitly after the session;
+5. inspect the Modal billing report and running containers.
+
+Safe session:
+
+```sh
+mn start fast
+# use the API or agent
+mn stop fast
+mn status fast
+```
+
+`mn start MODEL` no longer creates a permanent warm container. It enforces
+`min_containers=0`, wakes one explicit route, and leaves it with a five-minute
+idle shutdown.
+
+The five-minute timer is an idle tail, not a maximum charge. Startup,
+compilation, inference, queued requests, retries, and open streams are active
+and billable. See
+[the 2026-07-16 cost incident](INCIDENT-2026-07-16-MODAL-COST.md).
+
 ## Architecture
 
 ```text
@@ -15,7 +51,7 @@ Hermes / Pi / OpenCode / Cursor / friends
 
 The gateway selects a backend only from the tracked catalog. Each backend is a
 separate Modal application with `min_containers=0`, `max_containers=1`, and a
-600-second scale-down window.
+300-second scale-down window.
 
 An authenticated request in `auto` mode triggers only the requested model,
 waits through Modal's empty cold-start 503, and retries the original request
@@ -71,10 +107,10 @@ reuse the shared `flashinfer-kernel-cache`.
 
 ## Normal operation
 
-Enable all three scale-to-zero routes:
+Hard-stop every route:
 
 ```sh
-mn auto
+mn stop
 ```
 
 Operate one model:
@@ -87,6 +123,15 @@ mn auto code
 mn stop code
 ```
 
+`mn start code` is equivalent to safely arming `code` and waking it once. It
+does not set a warm-container floor.
+
+Arm a route without starting a GPU:
+
+```sh
+mn auto code
+```
+
 Operate or inspect the full catalog:
 
 ```sh
@@ -95,38 +140,47 @@ mn api
 mn stop
 ```
 
-Manual `start` changes only the selected Modal Server to:
+Every normal start and automatic route enforces:
 
 ```text
-min_containers=1
+min_containers=0
 max_containers=1
 scaledown_window=300
 ```
 
-`mn auto <model>` performs a recreate rollover when returning from a manual
-warm state, restoring the immutable static `min_containers=0` definition.
+There is no normal permanent-warm command. If one is ever introduced, it must
+be separately named, explicitly confirmed, time-limited, and covered by a hard
+budget.
 
 `mn stop <model>` marks that route fail-closed before its recreate rollover.
 Requests to other catalog models remain unaffected.
 If Modal updates the app but needs longer than its first container-termination
 window, MN retries the fail-closed recreate rollover once.
 
-If a backend app was stopped outside the normal flow, `mn auto` and `mn start`
-may perform a recovery deployment. Recovery requires a clean Git tree and a
-verified signed HEAD commit.
+If a backend app was stopped outside the normal flow, `mn auto MODEL` and
+`mn start MODEL` may perform a recovery deployment. Recovery requires a clean
+Git tree and a verified signed HEAD commit.
 
 ## Agent launchers
 
 ```sh
-mn launch hermes
+mn start fast
+mn launch --model fast hermes
+mn stop fast
+
+mn start code
 mn launch --model code hermes --yolo
-mn launch --model fast pi
 mn launch --model code opencode
+mn stop code
 ```
 
 The selected model ID, 131,072 context, 16,384 output ceiling, endpoint, and
 non-secret provider metadata are configured automatically. The owner token is
 read from the Keychain and passed in the child process environment.
+
+Launchers do not arm a hard-stopped route implicitly. The explicit preceding
+`mn start MODEL` is a cost acknowledgement; the explicit following
+`mn stop MODEL` is the normal end of a session.
 
 Qwen thinking is disabled by default so OpenAI-compatible clients receive
 normal `content` instead of silently dropping a model-specific reasoning field.
@@ -148,12 +202,13 @@ The `catalog` target:
 
 1. verifies Git signing configuration;
 2. runs the full test suite and secret scan;
-3. deploys `god`, `code`, and `fast` as separate Modal apps;
-4. deploys the shared gateway;
-5. creates a signed annotated tag;
-6. pushes the branch and tag;
-7. extracts the matching curated section from `CHANGELOG.md`;
-8. creates the GitHub release with those notes.
+3. extracts the matching curated section from `CHANGELOG.md`;
+4. deploys `god`, `code`, and `fast` as separate Modal apps;
+5. deploys the shared gateway;
+6. arms, tests, and hard-stops each route individually;
+7. creates a signed annotated tag;
+8. pushes the branch and tag;
+9. creates the GitHub release with those notes.
 
 Before deploying `vX.Y.Z`, move the completed changes out of `Unreleased` into
 a non-empty `## [X.Y.Z] - YYYY-MM-DD` section. The release fails instead of
@@ -164,11 +219,11 @@ cause and rerun from the same clean signed commit. If it fails after a partial
 catalog deployment, the old gateway remains authoritative until the gateway
 target succeeds.
 
-Only a full catalog deployment creates a release. The script enables automatic
-mode, validates `/v1/models`, runs a real streaming completion and forced tool
-call against each backend, hard-stops each tested GPU, then restores automatic
-mode. A failed smoke test triggers a best-effort hard stop and no tag or GitHub
-release is created.
+Only a full catalog deployment creates a release. The script arms one route,
+validates `/v1/models`, runs a real streaming completion and forced tool call,
+and hard-stops that route before moving to the next. It finishes with all
+models hard-stopped. A failed smoke test triggers a best-effort hard stop and
+no tag or GitHub release is created.
 
 ## Verification
 
@@ -202,15 +257,29 @@ Agent/tool smoke tests should include:
 - one tool call with arguments;
 - context metadata from `/v1/models`;
 - hard-stop isolation;
-- ten-minute scale-to-zero observation.
+- five-minute scale-to-zero observation.
 
 After testing:
 
 ```sh
-mn auto
+mn stop
 ```
 
-Then verify in Modal that no GPU container remains after the idle window.
+Then verify in Modal that every model app has zero tasks and the container list
+is empty.
+
+Billing audit:
+
+```sh
+.venv/bin/modal billing report \
+  --for today \
+  --resolution h \
+  --tz local \
+  --show-resources
+```
+
+The CLI report is before credits and may lag. Usage & Billing and the invoice
+remain authoritative.
 
 ## Cost gate
 
@@ -223,6 +292,8 @@ mn/fast  1 x L40S  ~$1.95/hour
 all                    ~$11.03/hour
 ```
 
-Cold starts, inference, and each model's ten-minute idle window are billable.
+Cold starts, inference, queued work, and each model's five-minute idle window
+are billable. Backend startup is capped at 30 minutes, but that cap is not a
+substitute for a Workspace budget.
 The one-container limit applies per model, not across the workspace. Configure
-a Modal budget before sharing tokens beyond controlled testing.
+a Modal Workspace hard budget before any further GPU testing.

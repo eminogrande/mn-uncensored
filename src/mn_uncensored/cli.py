@@ -24,7 +24,6 @@ OWNER_KEYCHAIN_SERVICE = "mn-uncensored-owner-token"
 PROXY_KEY_SERVICE = "uncensored-modal-key"
 PROXY_SECRET_SERVICE = "uncensored-modal-secret"
 TOKEN_NAME_PATTERN = re.compile(r"^[a-zA-Z0-9][a-zA-Z0-9._-]{0,63}$")
-START_TIMEOUT_SECONDS = 90 * 60
 
 
 def fail(message: str, exit_code: int = 1) -> NoReturn:
@@ -194,6 +193,18 @@ def reset_backend_to_static(model: ModelSettings) -> None:
     )
 
 
+def enforce_scale_to_zero(
+    model: ModelSettings,
+    settings: Settings,
+) -> None:
+    server = modal.Server.from_name(model.app_name, model.server_name)
+    server.update_autoscaler(
+        min_containers=0,
+        max_containers=1,
+        scaledown_window=settings.idle_shutdown_seconds,
+    )
+
+
 def deploy_backend(model: ModelSettings, tag: str) -> None:
     status_result = subprocess.run(
         ["git", "status", "--porcelain"],
@@ -240,109 +251,19 @@ def deploy_backend(model: ModelSettings, tag: str) -> None:
         )
 
 
-def start_model(
-    args: argparse.Namespace,
-    settings: Settings,
-    model: ModelSettings,
-) -> None:
-    state = state_dict(settings)
-    current = str(
-        model_lifecycle(state, model, settings).get("desired_state", "stopped")
-    )
-    if current == "started":
-        print(f"{model.model} is marked as started; verifying the backend.")
-
-    operation_id = uuid.uuid4().hex
-
-    def start_is_current() -> bool:
-        record = model_lifecycle(state, model, settings)
-        return (
-            record.get("desired_state") == "starting"
-            and record.get("operation_id") == operation_id
-        )
-
-    print(
-        f"Starting {model.model} on {model.gpu_label} "
-        f"(approximately ${model.gpu_hourly_usd:.2f}/active hour)..."
-    )
-    set_desired_state(
-        state,
-        model,
-        settings,
-        "starting",
-        operation_id=operation_id,
-    )
-    if backend_app_is_stopped(model):
-        try:
-            deploy_backend(model, "manual-start")
-        except SystemExit:
-            if start_is_current():
-                set_desired_state(state, model, settings, "stopped")
-            raise
-        if not start_is_current():
-            print(f"Start canceled while deploying {model.model}.")
-            return
-    server = modal.Server.from_name(model.app_name, model.server_name)
-    try:
-        server.update_autoscaler(
-            min_containers=1,
-            max_containers=1,
-            scaledown_window=300,
-        )
-    except Exception:
-        if start_is_current():
-            set_desired_state(state, model, settings, current)
-        raise
-
-    timeout_seconds = args.timeout * 60
-    deadline = time.monotonic() + timeout_seconds
-    started_at = time.monotonic()
-    last_reported_minute = -1
-    headers = backend_headers()
-
-    with httpx.Client(timeout=60, follow_redirects=True) as client:
-        while time.monotonic() < deadline:
-            if not start_is_current():
-                print(
-                    f"Start canceled because {model.model} lifecycle changed."
-                )
-                return
-            elapsed = time.monotonic() - started_at
-            try:
-                response = client.get(f"{model.backend_url}/health", headers=headers)
-            except httpx.HTTPError:
-                response = None
-
-            if response is not None and response.status_code == 200:
-                if not start_is_current():
-                    print(
-                        f"Start canceled because {model.model} lifecycle changed."
-                    )
-                    return
-                set_desired_state(state, model, settings, "started")
-                print(f"{model.model} ready after {elapsed / 60:.1f} minutes.")
-                print_api_details(settings, model)
-                return
-            if response is not None and response.status_code not in {502, 503, 504}:
-                print(
-                    f"Backend health check returned HTTP {response.status_code}; retrying.",
-                    file=sys.stderr,
-                )
-
-            elapsed_minute = int(elapsed // 60)
-            if elapsed_minute != last_reported_minute:
-                print(f"Still starting... {elapsed_minute} minute(s) elapsed")
-                last_reported_minute = elapsed_minute
-            time.sleep(5)
-
-    fail(
-        f"{model.model} is still starting after {args.timeout} minutes. "
-        f"It remains billable; run `mn status {model.key}` or `mn stop {model.key}`."
-    )
-
-
 def command_start(args: argparse.Namespace, settings: Settings) -> None:
-    start_model(args, settings, resolve_model(settings, args.model))
+    model = resolve_model(settings, args.model)
+    print(
+        f"Safe-starting {model.model} on {model.gpu_label} "
+        f"(approximately ${model.gpu_hourly_usd:.2f}/active hour)."
+    )
+    print(
+        f"The GPU will scale to zero after "
+        f"{settings.idle_shutdown_seconds // 60} idle minutes."
+    )
+    command_auto(argparse.Namespace(model=model.key), settings)
+    wake_model(settings, model, owner_token())
+    print_api_details(settings, model)
 
 
 def command_stop(args: argparse.Namespace, settings: Settings) -> None:
@@ -406,6 +327,17 @@ def command_auto(args: argparse.Namespace, settings: Settings) -> None:
                 previous_state,
                 operation_id=operation_id,
             )
+        try:
+            enforce_scale_to_zero(model, settings)
+        except Exception:
+            if operation_is_current():
+                set_desired_state(state, model, settings, "stopped")
+            print(
+                f"Could not enforce scale-to-zero for {model.model}; "
+                "the route remains hard-stopped.",
+                file=sys.stderr,
+            )
+            raise
         if not operation_is_current():
             print(f"Auto canceled because {model.model} lifecycle changed.")
             continue
@@ -765,8 +697,8 @@ def interactive_menu(settings: Settings) -> None:
                 settings,
             ).get("desired_state", "stopped")
             print(f"  {model.key:<4} {model.model:<10} {desired_state}")
-        print("1. Start one model")
-        print("2. Auto mode for all")
+        print("1. Safe-start one model (5-minute idle shutdown)")
+        print("2. Arm automatic mode for one model")
         print("3. Stop all")
         print("4. Status")
         print("5. Launch Hermes")
@@ -782,9 +714,10 @@ def interactive_menu(settings: Settings) -> None:
             return
         if choice == "1":
             model = input("Model [god/code/fast]: ").strip() or settings.default_model
-            command_start(argparse.Namespace(timeout=90, model=model), settings)
+            command_start(argparse.Namespace(model=model), settings)
         elif choice == "2":
-            command_auto(argparse.Namespace(model="all"), settings)
+            model = input("Model [god/code/fast]: ").strip() or settings.default_model
+            command_auto(argparse.Namespace(model=model), settings)
         elif choice == "3":
             command_stop(argparse.Namespace(model="all"), settings)
         elif choice == "4":
@@ -815,14 +748,11 @@ def build_parser() -> argparse.ArgumentParser:
     )
     subparsers = parser.add_subparsers(dest="command")
 
-    start_parser = subparsers.add_parser("start", help="Start one model and keep it warm")
-    start_parser.add_argument("model", nargs="?", default=None)
-    start_parser.add_argument(
-        "--timeout",
-        type=int,
-        default=START_TIMEOUT_SECONDS // 60,
-        help="Minutes to wait for the model (default: 90)",
+    start_parser = subparsers.add_parser(
+        "start",
+        help="Wake one model with automatic idle shutdown",
     )
+    start_parser.add_argument("model")
 
     stop_parser = subparsers.add_parser(
         "stop",
@@ -832,15 +762,15 @@ def build_parser() -> argparse.ArgumentParser:
 
     auto_parser = subparsers.add_parser(
         "auto",
-        help="Wake on request and shut down after idle time",
+        help="Arm one model for wake-on-request without starting it",
     )
-    auto_parser.add_argument("model", nargs="?", default="all")
+    auto_parser.add_argument("model")
 
     status_parser = subparsers.add_parser("status", help="Show catalog status")
     status_parser.add_argument("model", nargs="?", default="all")
 
-    wake_parser = subparsers.add_parser("wake", help="Wake one model")
-    wake_parser.add_argument("model", nargs="?", default=None)
+    wake_parser = subparsers.add_parser("wake", help="Wake one armed model")
+    wake_parser.add_argument("model")
 
     api_parser = subparsers.add_parser(
         "api",

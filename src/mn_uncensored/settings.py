@@ -163,12 +163,18 @@ def load_settings(path: Path | None = None) -> Settings:
         "MN_GATEWAY_URL",
         str(_required(data, "gateway_url", "catalog")),
     ).rstrip("/")
+    idle_shutdown_seconds = int(
+        _required(data, "idle_shutdown_seconds", "catalog")
+    )
+    if not 1 <= idle_shutdown_seconds <= 300:
+        raise ValueError(
+            "`idle_shutdown_seconds` must be between 1 and 300 seconds."
+        )
+
     return Settings(
         default_model=default_model,
         gateway_url=gateway_url,
-        idle_shutdown_seconds=int(
-            _required(data, "idle_shutdown_seconds", "catalog")
-        ),
+        idle_shutdown_seconds=idle_shutdown_seconds,
         models=models,
         state_dict=str(_required(data, "state_dict", "catalog")),
     )

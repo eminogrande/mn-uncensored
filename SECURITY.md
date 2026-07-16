@@ -88,10 +88,19 @@ other Modal charges:
 - `mn/fast`: one L40S, approximately `$1.95/hour`
 
 Scale-to-zero limits idle cost but is not a spending cap. Cold starts and the
-idle shutdown window are billable. Before sharing tokens broadly, configure a
-Modal workspace budget and add per-token model permissions, quotas, rate
+idle shutdown window are billable. The five-minute countdown begins only after
+startup, queued work, inference, streams, retries, and health activity end.
+
+No normal CLI path may set `min_containers=1`. `mn start MODEL` must enforce
+scale-to-zero, and release workflows must finish with every route hard-stopped.
+
+Before any further GPU testing, configure a Modal Workspace hard budget. Before
+sharing tokens broadly, also add per-token model permissions, quotas, rate
 limits, and usage accounting. A token holder must be treated as capable of
-waking every model that token is authorized to use.
+waking every armed model that token is authorized to use.
+
+The cost incident and corrective actions are documented in
+[docs/INCIDENT-2026-07-16-MODAL-COST.md](docs/INCIDENT-2026-07-16-MODAL-COST.md).
 
 ## Model supply chain
 
