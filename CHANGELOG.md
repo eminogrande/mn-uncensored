@@ -21,9 +21,9 @@ All notable changes to MN Uncensored are documented here.
   modes remain available.
 - vLLM opens the pinned local Hugging Face snapshot directly in offline mode.
 - Entering auto mode from a stopped state no longer creates a Pending server.
-- Hard stop preserves the ten-minute timer for the next automatic start.
-- The singleton Server leaves target concurrency unset, following Modal's
-  recommended configuration.
+- Hard stop resets the immutable deployment with a recreate rollover.
+- Auto mode normally changes only control state; recovery deploys require a
+  clean, verified signed HEAD.
 - Gateway streaming decodes compressed upstream chunks before forwarding.
 
 ### Security

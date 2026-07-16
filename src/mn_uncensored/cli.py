@@ -10,7 +10,6 @@ import subprocess
 import sys
 import time
 from datetime import UTC, datetime
-from pathlib import Path
 from typing import NoReturn
 
 import httpx
@@ -91,47 +90,95 @@ def modal_cli_path() -> str:
     return executable
 
 
-def backend_container_ids(settings: Settings) -> list[str]:
+def deployment_environment() -> dict[str, str]:
+    environment = os.environ.copy()
+    path = PROJECT_ROOT / "deployment.env"
+    if not path.exists():
+        return environment
+    for raw_line in path.read_text().splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        environment[key.strip()] = value.strip()
+    return environment
+
+
+def backend_app_is_stopped(settings: Settings) -> bool:
     result = subprocess.run(
-        [modal_cli_path(), "container", "list", "--json"],
+        [modal_cli_path(), "app", "list", "--json"],
         check=False,
         capture_output=True,
         text=True,
     )
     if result.returncode != 0:
-        fail("Could not list Modal containers; gateway remains fail-closed.")
+        return False
     try:
-        containers = json.loads(result.stdout)
+        apps = json.loads(result.stdout)
     except json.JSONDecodeError:
-        fail("Modal returned an invalid container list; gateway remains fail-closed.")
-    return [
-        container["container_id"]
-        for container in containers
-        if container.get("app_name") == settings.app_name
-        and isinstance(container.get("container_id"), str)
-    ]
+        return False
+    for app in apps:
+        if app.get("description") == settings.app_name:
+            return app.get("state") == "stopped"
+    return True
 
 
-def terminate_backend_containers(settings: Settings) -> None:
-    for container_id in backend_container_ids(settings):
-        result = subprocess.run(
-            [modal_cli_path(), "container", "stop", container_id, "--yes"],
-            check=False,
-            capture_output=True,
-            text=True,
-        )
-        if result.returncode != 0:
-            fail(
-                f"Could not terminate Modal container `{container_id}`; "
-                "gateway remains fail-closed."
-            )
+def reset_backend_to_static(settings: Settings) -> None:
+    result = subprocess.run(
+        [
+            modal_cli_path(),
+            "app",
+            "rollover",
+            settings.app_name,
+            "--strategy",
+            "recreate",
+        ],
+        check=False,
+    )
+    if result.returncode != 0:
+        fail("Could not reset the Modal backend app; gateway remains fail-closed.")
 
-    deadline = time.monotonic() + 30
-    while time.monotonic() < deadline:
-        if not backend_container_ids(settings):
-            return
-        time.sleep(2)
-    fail("Backend containers are still visible after 30 seconds; retry `mn stop`.")
+
+def deploy_backend(settings: Settings, tag: str) -> None:
+    status_result = subprocess.run(
+        ["git", "status", "--porcelain"],
+        cwd=PROJECT_ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if status_result.returncode != 0 or status_result.stdout.strip():
+        fail("Backend recovery deploy requires a clean Git working tree.")
+    signature_result = subprocess.run(
+        ["git", "log", "-1", "--format=%G?"],
+        cwd=PROJECT_ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if signature_result.returncode != 0 or signature_result.stdout.strip() != "G":
+        fail("Backend recovery deploy requires a verified signed HEAD commit.")
+    commit_result = subprocess.run(
+        ["git", "rev-parse", "--short", "HEAD"],
+        cwd=PROJECT_ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    deployment_tag = f"{tag}-{commit_result.stdout.strip()}"
+    result = subprocess.run(
+        [
+            modal_cli_path(),
+            "deploy",
+            str(PROJECT_ROOT / "modal_vllm.py"),
+            "--tag",
+            deployment_tag,
+        ],
+        check=False,
+        env=deployment_environment(),
+    )
+    if result.returncode != 0:
+        fail("Could not deploy the scale-to-zero backend; state remains stopped.")
 
 
 def command_start(args: argparse.Namespace, settings: Settings) -> None:
@@ -145,6 +192,10 @@ def command_start(args: argparse.Namespace, settings: Settings) -> None:
         f"(approximately ${settings.gpu_hourly_usd:.2f}/active hour)..."
     )
     set_desired_state(state, "starting")
+    if backend_app_is_stopped(settings):
+        set_desired_state(state, "stopped")
+        deploy_backend(settings, "manual-start")
+        set_desired_state(state, "starting")
     server = modal.Server.from_name(settings.app_name, settings.server_name)
     try:
         server.update_autoscaler(
@@ -195,36 +246,27 @@ def command_start(args: argparse.Namespace, settings: Settings) -> None:
 
 def command_stop(_args: argparse.Namespace, settings: Settings) -> None:
     state = state_dict(settings)
+    if backend_app_is_stopped(settings):
+        set_desired_state(state, "stopped")
+        print("MN Uncensored is already hard-stopped.")
+        return
     set_desired_state(state, "stopping")
-    server = modal.Server.from_name(settings.app_name, settings.server_name)
-    try:
-        server.update_autoscaler(
-            min_containers=0,
-            max_containers=1,
-            scaledown_window=settings.idle_shutdown_seconds,
-        )
-    except Exception:
-        print(
-            "Gateway remains fail-closed in `stopping`; retry `mn stop`.",
-            file=sys.stderr,
-        )
-        raise
-    terminate_backend_containers(settings)
+    reset_backend_to_static(settings)
     set_desired_state(state, "stopped")
     print("Stopped accepting API requests.")
-    print("The H200 pair is scaling down now; no client can wake it through the gateway.")
+    print("The backend was reset to its static scale-to-zero deployment.")
 
 
 def command_auto(_args: argparse.Namespace, settings: Settings) -> None:
     state = state_dict(settings)
     previous_state = state.get("desired_state", "stopped")
-    if previous_state in {"started", "starting"}:
-        server = modal.Server.from_name(settings.app_name, settings.server_name)
-        server.update_autoscaler(
-            min_containers=0,
-            max_containers=1,
-            scaledown_window=settings.idle_shutdown_seconds,
-        )
+    if backend_app_is_stopped(settings):
+        set_desired_state(state, "stopping")
+        set_desired_state(state, "stopped")
+        deploy_backend(settings, "auto-lifecycle")
+    elif previous_state in {"started", "starting", "stopping"}:
+        set_desired_state(state, "stopping")
+        reset_backend_to_static(settings)
     set_desired_state(state, "auto")
     print("Auto mode enabled.")
     print(

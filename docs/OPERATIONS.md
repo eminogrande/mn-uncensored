@@ -74,7 +74,7 @@ Enable automatic operation:
 mn auto
 ```
 
-This sets:
+The deployed static definition uses:
 
 ```text
 min_containers=0
@@ -113,22 +113,19 @@ Hard stop:
 mn stop
 ```
 
-The gateway blocks traffic first, then the command sets:
+The gateway becomes fail-closed first, then `mn stop` performs a Modal
+`rollover --strategy recreate`. This replaces containers from the same immutable
+deployment version and restores its static `min_containers=0` configuration
+without uploading local source.
 
-```text
-min_containers=0
-max_containers=1
-scaledown_window=600
-```
+`mn auto` normally changes only the control state. Modal then performs native
+zero-to-one scaling on the next authenticated request and shuts down after 600
+idle seconds.
 
-The 600-second setting is retained for the next auto start. Hard stop is
-immediate because the command separately terminates any running or pending
-container belonging to the model app.
-
-The singleton Server intentionally leaves `target_concurrency` unset, as Modal
-recommends. Zero-to-one request starts still work, while `max_containers=1`
-remains the hard cost ceiling. `mn auto` keeps `min_containers=0` and returns to
-wake-on-request behavior.
+If the backend app was permanently stopped outside the normal flow, recovery
+requires a source deploy. The CLI refuses that recovery unless the Git tree is
+clean and HEAD has a verified signature, and records the short commit in the
+Modal deployment tag. Source changes still require a new signed GitHub release.
 
 Check state:
 
