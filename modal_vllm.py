@@ -39,7 +39,6 @@ HF_SECRET_NAME = os.getenv("HF_SECRET_NAME", "").strip()
 
 MAX_CONTAINERS = int(os.getenv("MAX_CONTAINERS", "1"))
 SCALEDOWN_WINDOW_SECONDS = int(os.getenv("SCALEDOWN_WINDOW_SECONDS", "600"))
-TARGET_CONCURRENCY = int(os.getenv("TARGET_CONCURRENCY", "1"))
 ROUTING_REGION = os.getenv("ROUTING_REGION", "eu-west")
 
 VLLM_PORT = 8000
@@ -90,7 +89,6 @@ app = modal.App("nuri-ornith-397b")
     max_containers=MAX_CONTAINERS,
     scaledown_window=SCALEDOWN_WINDOW_SECONDS,
     startup_timeout=STARTUP_TIMEOUT_SECONDS,
-    target_concurrency=TARGET_CONCURRENCY,
     port=VLLM_PORT,
     routing_region=ROUTING_REGION,
     unauthenticated=False,

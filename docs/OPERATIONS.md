@@ -79,7 +79,6 @@ This sets:
 ```text
 min_containers=0
 max_containers=1
-target_concurrency=1
 scaledown_window=600
 ```
 
@@ -105,7 +104,6 @@ The command dynamically sets:
 ```text
 min_containers=1
 max_containers=1
-target_concurrency=1
 scaledown_window=300
 ```
 
@@ -120,13 +118,17 @@ The gateway blocks traffic first, then the command sets:
 ```text
 min_containers=0
 max_containers=1
-scaledown_window=2
+scaledown_window=600
 ```
 
-It also terminates any running or pending container belonging to the model app
-and waits up to 30 seconds for the container list to clear.
+The 600-second setting is retained for the next auto start. Hard stop is
+immediate because the command separately terminates any running or pending
+container belonging to the model app.
 
-Return to automatic behavior with `mn auto`.
+The singleton Server intentionally leaves `target_concurrency` unset, as Modal
+recommends. Zero-to-one request starts still work, while `max_containers=1`
+remains the hard cost ceiling. `mn auto` keeps `min_containers=0` and returns to
+wake-on-request behavior.
 
 Check state:
 

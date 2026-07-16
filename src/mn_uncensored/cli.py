@@ -148,7 +148,6 @@ def command_start(args: argparse.Namespace, settings: Settings) -> None:
     server = modal.Server.from_name(settings.app_name, settings.server_name)
     try:
         server.update_autoscaler(
-            target_concurrency=1,
             min_containers=1,
             max_containers=1,
             scaledown_window=300,
@@ -200,10 +199,9 @@ def command_stop(_args: argparse.Namespace, settings: Settings) -> None:
     server = modal.Server.from_name(settings.app_name, settings.server_name)
     try:
         server.update_autoscaler(
-            target_concurrency=1,
             min_containers=0,
             max_containers=1,
-            scaledown_window=2,
+            scaledown_window=settings.idle_shutdown_seconds,
         )
     except Exception:
         print(
@@ -223,7 +221,6 @@ def command_auto(_args: argparse.Namespace, settings: Settings) -> None:
     if previous_state in {"started", "starting"}:
         server = modal.Server.from_name(settings.app_name, settings.server_name)
         server.update_autoscaler(
-            target_concurrency=1,
             min_containers=0,
             max_containers=1,
             scaledown_window=settings.idle_shutdown_seconds,
