@@ -4,6 +4,13 @@ All notable changes to MN Uncensored are documented here.
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-07-16
+
+### Fixed
+
+- Replaced five-second cold-start polling with exponential backoff so long
+  Modal starts do not accumulate redundant pending GPU invocations.
+
 ## [0.3.0] - 2026-07-16
 
 ### Added

@@ -1,6 +1,6 @@
 [project]
 name = "mn-uncensored"
-version = "0.3.0"
+version = "0.3.1"
 description = "Minimal three-model OpenAI-compatible catalog for MN Uncensored"
 license = "Apache-2.0"
 requires-python = ">=3.11"

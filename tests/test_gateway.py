@@ -433,7 +433,13 @@ def test_code_cold_start_polls_and_retries_only_code(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     ColdStartClient.reset()
+    sleeps: list[int] = []
+
+    async def fake_sleep(seconds: int) -> None:
+        sleeps.append(seconds)
+
     monkeypatch.setattr(gateway.httpx, "AsyncClient", ColdStartClient)
+    monkeypatch.setattr(gateway.asyncio, "sleep", fake_sleep)
     values = state_values(god="stopped", code="auto", fast="auto")
     with client_for(values) as client:
         response = client.post(
@@ -446,6 +452,7 @@ def test_code_cold_start_polls_and_retries_only_code(
     assert response.json() == {"ok": True}
     assert ColdStartClient.send_count == 2
     assert ColdStartClient.health_urls == ["https://code.backend.example/health"]
+    assert sleeps == [30]
     assert ColdStartClient.urls == [
         "https://code.backend.example/v1/chat/completions",
         "https://code.backend.example/v1/chat/completions",
@@ -454,6 +461,50 @@ def test_code_cold_start_polls_and_retries_only_code(
         json.loads(body)["model"] == "mn/code"
         for body in ColdStartClient.bodies
     )
+
+
+class BackoffColdStartClient(ColdStartClient):
+    health_count = 0
+
+    @classmethod
+    def reset(cls) -> None:
+        super().reset()
+        cls.health_count = 0
+
+    async def get(self, url: str, **_kwargs: object) -> FakeUpstreamResponse:
+        self.__class__.health_urls.append(url)
+        self.__class__.health_count += 1
+        return FakeUpstreamResponse(
+            200 if self.health_count == 3 else 503,
+        )
+
+
+def test_cold_start_health_checks_use_exponential_backoff(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    BackoffColdStartClient.reset()
+    sleeps: list[int] = []
+
+    async def fake_sleep(seconds: int) -> None:
+        sleeps.append(seconds)
+
+    monkeypatch.setattr(gateway.httpx, "AsyncClient", BackoffColdStartClient)
+    monkeypatch.setattr(gateway.asyncio, "sleep", fake_sleep)
+    values = state_values(god="auto", code="auto", fast="auto")
+    with client_for(values) as client:
+        response = client.post(
+            "/v1/chat/completions",
+            headers=auth_headers(),
+            json={"model": "mn/fast", "messages": []},
+        )
+
+    assert response.status_code == 200
+    assert sleeps == [30, 60, 120]
+    assert BackoffColdStartClient.health_urls == [
+        "https://fast.backend.example/health",
+        "https://fast.backend.example/health",
+        "https://fast.backend.example/health",
+    ]
 
 
 def test_wake_targets_only_requested_model(

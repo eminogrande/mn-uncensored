@@ -22,6 +22,10 @@ waits through Modal's empty cold-start 503, and retries the original request
 once the selected backend is healthy. Application-level 503 responses with a
 body are returned without retrying.
 
+After the initial Modal trigger, health checks use exponential backoff: 30,
+60, 120, and 240 seconds, capped at five minutes. This avoids creating a large
+queue of redundant GPU starts during long cold starts.
+
 ## Initial setup
 
 ```sh
