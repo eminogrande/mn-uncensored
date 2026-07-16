@@ -51,7 +51,14 @@ def build_vllm_command(
     if model.quantization:
         command.extend(["--quantization", model.quantization])
     if model.reasoning_parser:
-        command.extend(["--reasoning-parser", model.reasoning_parser])
+        command.extend(
+            [
+                "--reasoning-parser",
+                model.reasoning_parser,
+                "--default-chat-template-kwargs",
+                '{"enable_thinking": false}',
+            ]
+        )
     if model.tool_call_parser:
         command.extend(
             [

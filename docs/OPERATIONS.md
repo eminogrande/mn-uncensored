@@ -120,6 +120,14 @@ The selected model ID, 131,072 context, 16,384 output ceiling, endpoint, and
 non-secret provider metadata are configured automatically. The owner token is
 read from the Keychain and passed in the child process environment.
 
+Qwen thinking is disabled by default so OpenAI-compatible clients receive
+normal `content` instead of silently dropping a model-specific reasoning field.
+Clients can opt in per request with:
+
+```json
+{"chat_template_kwargs": {"enable_thinking": true}}
+```
+
 ## Deployments and releases
 
 Every deployment must start from a clean, signed commit:

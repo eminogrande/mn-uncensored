@@ -22,6 +22,10 @@ def test_vllm_commands_are_model_specific() -> None:
         )
         assert argument_value(command, "--tool-call-parser") == model.tool_call_parser
         assert argument_value(command, "--reasoning-parser") == "qwen3"
+        assert (
+            argument_value(command, "--default-chat-template-kwargs")
+            == '{"enable_thinking": false}'
+        )
         assert "--language-model-only" in command
         assert "--enable-prefix-caching" not in command
         assert key in {"god", "code", "fast"}

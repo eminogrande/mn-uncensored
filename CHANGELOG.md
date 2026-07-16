@@ -29,6 +29,8 @@ All notable changes to MN Uncensored are documented here.
   gateway under one signed release.
 - Persisted and shared FlashInfer CUDA kernels across scale-to-zero cold
   starts.
+- Disabled Qwen thinking by default for clients that consume only the standard
+  OpenAI `content` field; requests can explicitly opt back in.
 
 ### Security
 
