@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630">
+  <defs>
+    <radialGradient id="a" cx="50%" cy="100%" r="70%">
+      <stop offset="0" stop-color="#cfc2ff"/>
+      <stop offset=".52" stop-color="#eee8ff"/>
+      <stop offset="1" stop-color="#f3f0e9"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="630" fill="#f3f0e9"/>
+  <rect y="360" width="1200" height="270" fill="url(#a)"/>
+  <g transform="translate(90 85)">
+    <rect width="78" height="78" rx="23" fill="#171513"/>
+    <circle cx="39" cy="39" r="20" fill="none" stroke="#8b6cff" stroke-width="8"/>
+    <path d="M26 52 52 26" fill="none" stroke="#fffdf8" stroke-linecap="round" stroke-width="7"/>
+    <circle cx="54" cy="54" r="7" fill="#ff7248" stroke="#171513" stroke-width="3"/>
+  </g>
+  <text x="188" y="136" fill="#171513" font-family="Arial, Helvetica, sans-serif" font-size="31" font-weight="800">ABLITERATED<tspan fill="#ff7248">.</tspan><tspan fill="#8b8580" font-weight="600">cloud</tspan></text>
+  <text x="90" y="278" fill="#171513" font-family="Arial, Helvetica, sans-serif" font-size="74" font-weight="800" letter-spacing="-3">Open models.</text>
+  <text x="90" y="360" fill="#171513" font-family="Arial, Helvetica, sans-serif" font-size="74" font-weight="800" letter-spacing="-3">One private API.</text>
+  <text x="94" y="433" fill="#716d68" font-family="Arial, Helvetica, sans-serif" font-size="27">Pinned Hugging Face revisions · vLLM · scale-to-zero GPUs</text>
+  <g transform="translate(90 495)">
+    <rect width="180" height="46" rx="23" fill="#171513"/>
+    <text x="90" y="30" fill="#fffdf8" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="700">mn/god</text>
+    <rect x="196" width="180" height="46" rx="23" fill="#171513"/>
+    <text x="286" y="30" fill="#fffdf8" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="700">mn/code</text>
+    <rect x="392" width="180" height="46" rx="23" fill="#171513"/>
+    <text x="482" y="30" fill="#fffdf8" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="700">mn/fast</text>
+    <rect x="588" width="280" height="46" rx="23" fill="#7c5cff"/>
+    <text x="728" y="30" fill="#fff" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="700">mn/ornith-397b</text>
+  </g>
+</svg>

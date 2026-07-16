@@ -1,0 +1,267 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "ABLITERATED.cloud API",
+    "version": "0.3.1",
+    "description": "Private, token-protected OpenAI-compatible Chat Completions access to exact pinned Hugging Face models. Live v0.3.1 currently exposes mn/god, mn/code, and mn/fast. mn/ornith-397b is prepared for the next budgeted release.",
+    "license": {
+      "name": "Apache-2.0",
+      "identifier": "Apache-2.0"
+    }
+  },
+  "externalDocs": {
+    "description": "Source and complete operations documentation",
+    "url": "https://github.com/eminogrande/mn-uncensored"
+  },
+  "servers": [
+    {
+      "url": "https://eminhenri--mn-uncensored-api-api.modal.run",
+      "description": "Current private-beta gateway"
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "paths": {
+    "/v1/models": {
+      "get": {
+        "operationId": "listModels",
+        "summary": "List accessible model routes",
+        "responses": {
+          "200": {
+            "description": "OpenAI-compatible model list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelList"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/v1/chat/completions": {
+      "post": {
+        "operationId": "createChatCompletion",
+        "summary": "Create or stream a chat completion",
+        "description": "Routes an OpenAI-compatible Chat Completions request to one explicitly selected MN model. A hard-stopped model fails closed.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChatCompletionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Completion response or text/event-stream when stream=true"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "503": {
+            "description": "The selected route is stopped or unavailable"
+          },
+          "504": {
+            "description": "The selected model did not become ready before the cold-start deadline"
+          }
+        }
+      }
+    },
+    "/wake": {
+      "post": {
+        "operationId": "wakeModel",
+        "summary": "Wake one already armed model",
+        "description": "Waits for an automatic or started route to become ready. It cannot wake a hard-stopped route.",
+        "parameters": [
+          {
+            "name": "model",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ModelId"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Model ready"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "503": {
+            "description": "Route is hard-stopped or failed to start"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "sk-mn-*",
+        "description": "Revocable MN token supplied privately by the operator"
+      }
+    },
+    "schemas": {
+      "ModelId": {
+        "type": "string",
+        "enum": [
+          "mn/god",
+          "mn/code",
+          "mn/fast",
+          "mn/ornith-397b"
+        ]
+      },
+      "Message": {
+        "type": "object",
+        "required": [
+          "role",
+          "content"
+        ],
+        "properties": {
+          "role": {
+            "type": "string",
+            "enum": [
+              "system",
+              "user",
+              "assistant",
+              "tool"
+            ]
+          },
+          "content": {}
+        },
+        "additionalProperties": true
+      },
+      "ChatCompletionRequest": {
+        "type": "object",
+        "required": [
+          "model",
+          "messages"
+        ],
+        "properties": {
+          "model": {
+            "$ref": "#/components/schemas/ModelId"
+          },
+          "messages": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "$ref": "#/components/schemas/Message"
+            }
+          },
+          "max_tokens": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "stream": {
+            "type": "boolean",
+            "default": false
+          },
+          "tools": {
+            "type": "array"
+          },
+          "tool_choice": {}
+        },
+        "additionalProperties": true
+      },
+      "Model": {
+        "type": "object",
+        "required": [
+          "id",
+          "object"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/ModelId"
+          },
+          "object": {
+            "type": "string",
+            "const": "model"
+          },
+          "context_length": {
+            "type": "integer"
+          },
+          "max_output_tokens": {
+            "type": "integer"
+          }
+        }
+      },
+      "ModelList": {
+        "type": "object",
+        "required": [
+          "object",
+          "data"
+        ],
+        "properties": {
+          "object": {
+            "type": "string",
+            "const": "list"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Model"
+            }
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "object",
+            "properties": {
+              "message": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string"
+              },
+              "code": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "responses": {
+      "BadRequest": {
+        "description": "Invalid model or request",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "Unauthorized": {
+        "description": "Missing, invalid, or revoked Bearer token",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      }
+    }
+  }
+}
