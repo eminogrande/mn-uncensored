@@ -27,7 +27,7 @@ cd "$repo_dir"
 [[ "$(git config tag.gpgsign)" == "true" ]]
 [[ -n "$(git config user.signingkey)" ]]
 [[ -n "$(git config gpg.ssh.allowedSignersFile)" ]]
-[[ "$(git log -1 --format=%G?)" == "G" ]] || {
+[[ "$(git log -1 '--format=%G?')" == "G" ]] || {
   print -u2 "HEAD must have a verified signature."
   exit 1
 }
