@@ -1,5 +1,30 @@
 # ABLITERATED.cloud website releases
 
+## website-v0.5.0
+
+A brighter, narrower landing page with the clarity of a developer product,
+the complete four-model catalog, and a lightweight animated brain.
+
+### Changed
+
+- Rebuilt the hero as one focused column followed by a wide point-cloud brain.
+- Tightened the page to a 1040 px content grid, flatter borders, shorter
+  sections, compact mono metadata, and large readable sans-serif headings.
+- Added a visible **Star on GitHub** action while keeping Signal as the primary
+  private-beta access path.
+- Preserved every exact Hugging Face repository, model status, context,
+  hardware, license, API ID, price, caveat, FAQ and integration detail.
+
+### Performance and accessibility
+
+- Implemented the brain with local Canvas code and no Three.js, CDN, webfont,
+  analytics or other runtime dependency.
+- Pause animation when it leaves the viewport or the tab is hidden, render at
+  no more than roughly 30 frames per second, cap device pixel ratio at 2, and
+  show a static frame for reduced-motion users.
+- Retained the optimized owner-supplied brain artwork as the no-JavaScript and
+  social-card fallback without preloading it on normal visits.
+
 ## website-v0.4.1
 
 Fixed WebMCP discovery by registering the three public read-only catalog tools

@@ -54,6 +54,14 @@ All notable changes to MN Uncensored are documented here.
 
 ### Changed
 
+- Refined the bright landing page around a narrower, calmer product layout
+  inspired by Routstr's visual restraint while retaining an independently
+  implemented design and the complete ABLITERATED.cloud content.
+- Replaced the static hero artwork with a dependency-free point-cloud brain
+  that pauses offscreen, respects reduced-motion preferences, caps pixel
+  density, and falls back to the owner-supplied artwork without JavaScript.
+- Added a prominent GitHub star action and consolidated the hero into one
+  readable message, two direct actions, and one factual service-status line.
 - Future GitHub releases now use the matching curated `CHANGELOG.md` section
   instead of publishing only automatically generated commit links.
 - Website releases now publish an append-only signed `gh-pages` commit and
@@ -81,6 +89,8 @@ All notable changes to MN Uncensored are documented here.
 
 ### Added
 
+- Added regression coverage for the animated brain's accessibility and
+  lifecycle safeguards, the GitHub CTA, local-only runtime, and preload budget.
 - Added the open-source `website/` landing page for ABLITERATED.cloud with a
   dependency-free responsive design, signed branch-based GitHub Pages
   deployment, WhatsApp access CTA, exact four-model catalog, cost

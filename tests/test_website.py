@@ -283,6 +283,24 @@ def test_webmcp_registers_public_read_only_tools() -> None:
     assert "window.__webmcp_tools" in javascript
 
 
+def test_homepage_has_github_cta_and_accessible_brain_visual() -> None:
+    html, _ = parse_index()
+    javascript = (WEBSITE / "app.js").read_text()
+
+    assert "Star on GitHub" in html
+    assert 'href="https://github.com/eminogrande/mn-uncensored"' in html
+    assert 'id="brain-canvas"' in html
+    assert "abstract point-cloud brain" in html
+    assert 'rel="preload" as="image"' not in html
+    assert "ResizeObserver" in javascript
+    assert "IntersectionObserver" in javascript
+    assert "visibilitychange" in javascript
+    assert "prefers-reduced-motion" in javascript
+    assert "three.js" not in javascript.lower()
+    assert "three.min" not in javascript.lower()
+    assert "import(" not in javascript
+
+
 def test_homepage_performance_budget() -> None:
     critical = [
         WEBSITE / "index.html",
