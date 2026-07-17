@@ -9,7 +9,7 @@
   --green: #217153;
   --amber: #b06b22;
   --max: 1040px;
-  --mono: "SFMono-Regular", "Roboto Mono", Consolas, "Liberation Mono", monospace;
+  --mono: "Geist Mono", "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", monospace;
 }
 
 * { box-sizing: border-box; }
@@ -20,7 +20,7 @@ body {
   margin: 0;
   background: var(--background);
   color: var(--ink);
-  font-family: "Avenir Next", Avenir, "Segoe UI", Helvetica, Arial, sans-serif;
+  font-family: var(--mono);
   font-size: 18px;
   line-height: 1.62;
   text-rendering: optimizeLegibility;
@@ -65,7 +65,7 @@ summary:focus-visible {
 
 .nav-inner {
   width: min(calc(100% - 48px), var(--max));
-  min-height: 66px;
+  min-height: 72px;
   display: flex;
   align-items: center;
   gap: 25px;
@@ -76,7 +76,7 @@ summary:focus-visible {
   display: inline-flex;
   align-items: center;
   gap: 9px;
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 800;
   letter-spacing: -0.025em;
   white-space: nowrap;
@@ -93,7 +93,7 @@ summary:focus-visible {
 .footer nav a {
   color: var(--muted);
   font-family: var(--mono);
-  font-size: 12px;
+  font-size: 17px;
   font-weight: 650;
 }
 
@@ -103,7 +103,7 @@ summary:focus-visible {
 .text-link:hover { color: var(--accent-dark); }
 
 .github-button {
-  min-height: 36px;
+  min-height: 42px;
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -112,7 +112,7 @@ summary:focus-visible {
   border-radius: 4px;
   background: rgba(255, 255, 255, 0.5);
   font-family: var(--mono);
-  font-size: 11px;
+  font-size: 17px;
   font-weight: 700;
   white-space: nowrap;
 }
@@ -126,7 +126,7 @@ summary:focus-visible {
 .github-button:hover { border-color: var(--ink); background: #fff; }
 
 .button {
-  min-height: 48px;
+  min-height: 52px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -137,7 +137,7 @@ summary:focus-visible {
   background: var(--ink);
   color: #fff;
   font-family: var(--mono);
-  font-size: 13px;
+  font-size: 17px;
   font-weight: 750;
   line-height: 1;
 }
@@ -173,7 +173,7 @@ summary:focus-visible {
 
 .mobile-menu {
   position: fixed;
-  inset: 66px 0 auto;
+  inset: 72px 0 auto;
   z-index: 99;
   padding: 12px 24px 24px;
   border-bottom: 1px solid var(--line);
@@ -185,7 +185,7 @@ summary:focus-visible {
   padding: 13px 0;
   border-bottom: 1px solid var(--line);
   font-family: var(--mono);
-  font-size: 14px;
+  font-size: 17px;
   font-weight: 700;
 }
 
@@ -209,7 +209,7 @@ summary:focus-visible {
   background: rgba(255, 255, 255, 0.5);
   color: var(--muted);
   font-family: var(--mono);
-  font-size: 11px;
+  font-size: 17px;
   font-weight: 700;
 }
 
@@ -244,7 +244,7 @@ summary:focus-visible {
 }
 
 .hero-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 11px; }
-.hero-note { margin: 22px 0 0; color: var(--muted); font-family: var(--mono); font-size: 11px; }
+.hero-note { margin: 22px 0 0; color: var(--muted); font-family: var(--mono); font-size: 17px; }
 
 .brain-stage {
   position: relative;
@@ -290,7 +290,10 @@ summary:focus-visible {
   gap: 9px;
   color: var(--muted);
   font-family: var(--mono);
-  font-size: 10px;
+  max-width: calc(100% - 48px);
+  font-size: 17px;
+  line-height: 1.35;
+  text-align: right;
   letter-spacing: 0.02em;
   text-transform: uppercase;
 }
@@ -308,7 +311,7 @@ summary:focus-visible {
   margin: 0 0 17px;
   color: var(--accent-dark);
   font-family: var(--mono);
-  font-size: 11px;
+  font-size: 17px;
   font-weight: 800;
   letter-spacing: 0.08em;
 }
@@ -363,24 +366,24 @@ summary:focus-visible {
   margin-bottom: 25px;
   color: var(--muted);
   font-family: var(--mono);
-  font-size: 11px;
+  font-size: 17px;
 }
 
 .step-grid h3,
 .principle-grid h3 { margin: 0 0 10px; font-size: 23px; letter-spacing: -0.025em; line-height: 1.15; }
-.step-grid p, .principle-grid p { margin: 0; color: var(--muted); font-size: 16px; }
+.step-grid p, .principle-grid p { margin: 0; color: var(--muted); font-size: 17px; }
 
 .model-list { border-top: 1px solid var(--ink); }
 
 .model-row {
   display: grid;
-  grid-template-columns: minmax(0, 1.55fr) minmax(300px, 0.8fr);
-  gap: 56px;
+  grid-template-columns: minmax(0, 1.55fr) minmax(340px, 0.8fr);
+  gap: 48px;
   padding: 52px 0;
   border-bottom: 1px solid var(--line);
 }
 
-.model-status { margin: 0 0 16px; color: var(--green); font-family: var(--mono); font-size: 11px; font-weight: 800; text-transform: uppercase; }
+.model-status { margin: 0 0 16px; color: var(--green); font-family: var(--mono); font-size: 17px; font-weight: 800; text-transform: uppercase; }
 .model-status.planned { color: var(--amber); }
 
 .model-main h3 {
@@ -395,12 +398,12 @@ summary:focus-visible {
   max-width: 100%;
   margin: 0 0 25px;
   font-family: var(--mono);
-  font-size: 12px;
+  font-size: 17px;
   line-height: 1.5;
   overflow-wrap: anywhere;
 }
 
-.repository span { display: block; margin-bottom: 4px; color: var(--muted); font-size: 10px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }
+.repository span { display: block; margin-bottom: 4px; color: var(--muted); font-size: 17px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }
 .repository a { color: var(--accent-dark); }
 .model-main > p:not(.model-status, .repository) { max-width: 670px; margin: 0 0 22px; color: var(--muted); font-size: 18px; line-height: 1.58; }
 
@@ -408,7 +411,7 @@ summary:focus-visible {
 .hf-link {
   color: var(--accent-dark);
   font-family: var(--mono);
-  font-size: 12px;
+  font-size: 17px;
   font-weight: 800;
   text-decoration: underline;
   text-decoration-thickness: 1px;
@@ -417,17 +420,17 @@ summary:focus-visible {
 
 .model-facts { align-self: start; margin: 0; border-top: 1px solid var(--line); }
 .model-facts div { display: grid; grid-template-columns: 1fr 1.2fr; gap: 16px; padding: 11px 0; border-bottom: 1px solid var(--line); }
-.model-facts dt { color: var(--muted); font-family: var(--mono); font-size: 10px; font-weight: 650; }
-.model-facts dd { min-width: 0; margin: 0; font-family: var(--mono); font-size: 11px; font-weight: 700; text-align: right; overflow-wrap: anywhere; }
+.model-facts dt { color: var(--muted); font-family: var(--mono); font-size: 17px; font-weight: 650; }
+.model-facts dd { min-width: 0; margin: 0; font-family: var(--mono); font-size: 17px; font-weight: 700; text-align: right; overflow-wrap: anywhere; }
 .model-facts .technical { color: var(--muted); }
 
 .catalog-note,
-.status-note { max-width: 900px; margin: 36px 0 0; color: var(--muted); font-size: 15px; }
+.status-note { max-width: 900px; margin: 36px 0 0; color: var(--muted); font-size: 17px; }
 .catalog-note a, .status-note a { color: var(--accent-dark); text-decoration: underline; text-underline-offset: 3px; }
 
 .api-section { display: grid; grid-template-columns: minmax(0, 0.95fr) minmax(400px, 1.05fr); align-items: center; gap: 66px; }
 .api-copy p:not(.kicker) { max-width: 620px; margin: 22px 0; color: var(--muted); font-size: 18px; }
-.api-section pre { margin: 0; overflow: auto; padding: 28px; border: 1px solid #27292e; border-radius: 4px; background: #17191d; color: #f5f5f2; font-size: 13px; line-height: 1.75; }
+.api-section pre { margin: 0; overflow: auto; padding: 28px; border: 1px solid #27292e; border-radius: 4px; background: #17191d; color: #f5f5f2; font-size: 17px; line-height: 1.75; }
 
 .principle-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .faq-list { max-width: 860px; border-top: 1px solid var(--ink); }
@@ -451,7 +454,7 @@ summary:focus-visible {
   border-top: 1px solid var(--line);
 }
 
-.footer p { margin: 16px 0 0; color: var(--muted); font-size: 13px; }
+.footer p { margin: 16px 0 0; color: var(--muted); font-size: 17px; }
 .footer nav { display: flex; flex-wrap: wrap; align-content: flex-start; justify-content: flex-end; gap: 14px 23px; max-width: 550px; }
 
 @media (max-width: 900px) {
@@ -468,13 +471,13 @@ summary:focus-visible {
   body { font-size: 17px; }
   .nav-inner, .hero, .section, .footer { width: min(calc(100% - 36px), var(--max)); }
   .nav-inner { min-height: 62px; gap: 12px; }
-  .brand { font-size: 14px; }
+  .brand { font-size: 17px; }
   .brand img { width: 27px; height: 27px; }
   .github-button { display: none; }
   .menu-button { display: flex; margin-left: auto; }
   .mobile-menu { inset: 62px 0 auto; }
   .hero { padding-top: 60px; }
-  .announcement { margin-bottom: 24px; font-size: 10px; }
+  .announcement { margin-bottom: 24px; font-size: 17px; }
   .hero h1 { font-size: clamp(55px, 17vw, 70px); }
   .hero-lead { font-size: 20px; }
   .hero-actions { align-items: stretch; flex-direction: column; }
@@ -491,8 +494,8 @@ summary:focus-visible {
   .model-row { padding: 44px 0; }
   .model-main h3 { font-size: 32px; }
   .model-main > p:not(.model-status, .repository) { font-size: 17px; }
-  .model-facts dt, .model-facts dd { font-size: 10px; }
-  .api-section pre { padding: 21px; font-size: 12px; }
+  .model-facts dt, .model-facts dd { font-size: 17px; }
+  .api-section pre { padding: 21px; font-size: 17px; }
   .faq-list summary { font-size: 18px; }
   .footer { flex-direction: column; padding-bottom: 48px; }
   .footer nav { justify-content: flex-start; }

@@ -15,6 +15,13 @@ edge layer for the final `abliterated.cloud` deployment.
 - no analytics, advertising, external fonts, cookies, secrets, inference API
   calls, health polling, or Modal wake requests.
 
+## Typography
+
+The page uses one mono type system throughout. Its local stack begins with
+Geist Mono, matching the type direction that inspired the layout, and falls
+back to the operating system's native monospace fonts without downloading a
+webfont. No fixed interface text is smaller than 17 px.
+
 ## Local preview
 
 Use the real edge behavior locally:
