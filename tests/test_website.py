@@ -290,7 +290,7 @@ def test_homepage_has_github_cta_and_accessible_brain_visual() -> None:
     assert "Star on GitHub" in html
     assert 'href="https://github.com/eminogrande/mn-uncensored"' in html
     assert 'id="brain-canvas"' in html
-    assert "abstract point-cloud brain" in html
+    assert "interactive point-cloud brain" in html
     assert 'rel="preload" as="image"' not in html
     assert "ResizeObserver" in javascript
     assert "IntersectionObserver" in javascript
@@ -299,6 +299,24 @@ def test_homepage_has_github_cta_and_accessible_brain_visual() -> None:
     assert "three.js" not in javascript.lower()
     assert "three.min" not in javascript.lower()
     assert "import(" not in javascript
+
+
+def test_brain_visual_is_shaped_and_pointer_interactive() -> None:
+    html, _ = parse_index()
+    css = (WEBSITE / "styles.css").read_text()
+    javascript = (WEBSITE / "app.js").read_text()
+
+    assert "Intelligence, freed:" in html
+    assert "uncensored, private" in html
+    assert "abliterated AI." in html
+    assert "outlineControls" in javascript
+    assert "insideOutline" in javascript
+    assert 'addEventListener("pointermove"' in javascript
+    assert 'addEventListener("pointerleave"' in javascript
+    assert "const neon" in javascript
+    assert "shadowBlur" in javascript
+    assert "cursor: crosshair" in css
+    assert "pointer-events: auto" in css
 
 
 def test_homepage_uses_one_mono_type_system_with_17px_minimum() -> None:

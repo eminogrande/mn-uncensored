@@ -1,5 +1,26 @@
 # ABLITERATED.cloud website releases
 
+## website-v0.6.0
+
+A recognizable interactive brain and a more explicit hero statement.
+
+### Changed
+
+- Replace the loose point-cloud volume with a closed, smoothed lateral brain
+  silhouette, including the cerebrum, lower rear form and small brain stem.
+- Fill the silhouette with 420 deterministic connected nodes and retain a
+  stronger contour so the shape stays legible at desktop and mobile sizes.
+- Light up local neural regions in cyan, magenta, lime, orange and violet as
+  the pointer moves over their points and connecting lines.
+- Change the headline to “Intelligence, freed: uncensored, private abliterated
+  AI.” using responsive line lengths.
+
+### Performance and accessibility
+
+- Keep the interaction inside the existing dependency-free Canvas runtime.
+- Preserve offscreen and hidden-tab pausing, roughly 30 FPS throttling, capped
+  device pixel ratio and static reduced-motion rendering with pointer feedback.
+
 ## website-v0.5.1
 
 A typography refinement using one mono family and a strict 17 px minimum.

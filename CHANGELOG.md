@@ -54,6 +54,14 @@ All notable changes to MN Uncensored are documented here.
 
 ### Changed
 
+- Replaced the loose hero point cloud with a closed lateral brain silhouette,
+  denser internal neural network and subtle depth motion so the visual reads
+  immediately as a brain rather than a globe.
+- Added pointer-reactive local brain regions whose connected points and lines
+  glow in cyan, magenta, lime, orange or violet, with a static interactive
+  response preserved for reduced-motion users.
+- Expanded the hero statement to “Intelligence, freed: uncensored, private
+  abliterated AI.” with responsive line sizing.
 - Unified the landing page around one Geist Mono-compatible local font stack
   and raised every fixed UI font size to a minimum of 17 px, including
   navigation, buttons, labels, repository identities, model facts and code.
