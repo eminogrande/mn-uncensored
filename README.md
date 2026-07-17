@@ -46,9 +46,12 @@ npm run verify:agent-ready:local
 ## Hero visual
 
 The live hero uses a small, dependency-free Canvas point cloud. It generates a
-deterministic abstract brain locally, pauses outside the viewport and when the
-tab is hidden, caps rendering density, and becomes static when the visitor
-prefers reduced motion. It does not load Three.js or contact a third party.
+deterministic lateral brain silhouette locally, fills it with a connected
+neural network, and activates local neon-colored regions as the pointer moves
+over it. It pauses outside the viewport and when the tab is hidden, caps
+rendering density, and becomes motionless while retaining pointer feedback
+when the visitor prefers reduced motion. It does not load Three.js or contact
+a third party.
 
 The owner-supplied brain-and-broken-chains artwork remains stored in optimized
 formats for social sharing and the no-JavaScript fallback:

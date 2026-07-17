@@ -195,7 +195,7 @@ summary:focus-visible {
   padding: 86px 0 0;
 }
 
-.hero-copy { max-width: 820px; }
+.hero-copy { max-width: 960px; }
 
 .announcement {
   width: fit-content;
@@ -225,13 +225,21 @@ summary:focus-visible {
 
 .hero h1 {
   margin: 0 0 27px;
-  font-size: clamp(60px, 8.1vw, 84px);
+  font-size: clamp(52px, 6.8vw, 72px);
   font-weight: 820;
-  letter-spacing: -0.06em;
-  line-height: 0.94;
+  letter-spacing: -0.055em;
+  line-height: 1;
+  text-wrap: balance;
 }
 
-.hero h1 span { color: var(--accent); }
+.hero h1 .hero-subline {
+  display: inline-block;
+  margin-top: 12px;
+  color: var(--accent);
+  font-size: 0.7em;
+  letter-spacing: -0.045em;
+  line-height: 1.12;
+}
 
 .hero-lead {
   max-width: 760px;
@@ -252,7 +260,9 @@ summary:focus-visible {
   margin: 30px -5vw 0;
   overflow: hidden;
   isolation: isolate;
-  pointer-events: none;
+  cursor: crosshair;
+  pointer-events: auto;
+  touch-action: pan-y;
 }
 
 .brain-stage::before,
@@ -478,7 +488,8 @@ summary:focus-visible {
   .mobile-menu { inset: 62px 0 auto; }
   .hero { padding-top: 60px; }
   .announcement { margin-bottom: 24px; font-size: 17px; }
-  .hero h1 { font-size: clamp(55px, 17vw, 70px); }
+  .hero h1 { font-size: clamp(42px, 12.5vw, 54px); }
+  .hero h1 .hero-subline { font-size: 0.72em; }
   .hero-lead { font-size: 20px; }
   .hero-actions { align-items: stretch; flex-direction: column; }
   .button { width: 100%; }
