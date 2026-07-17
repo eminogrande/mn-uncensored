@@ -1,5 +1,18 @@
 # ABLITERATED.cloud website releases
 
+## website-v0.5.1
+
+A typography refinement using one mono family and a strict 17 px minimum.
+
+### Changed
+
+- Use a single Geist Mono-compatible local font stack across body copy,
+  headings, navigation, buttons, model metadata, FAQ and code.
+- Increase every fixed font size below 17 px to 17 px, including status lines,
+  repository labels, facts, hero annotation and footer links.
+- Adjust header height, controls, model-fact width and mobile brain annotation
+  to keep the larger interface type readable without reintroducing clutter.
+
 ## website-v0.5.0
 
 A brighter, narrower landing page with the clarity of a developer product,

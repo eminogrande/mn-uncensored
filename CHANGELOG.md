@@ -54,6 +54,9 @@ All notable changes to MN Uncensored are documented here.
 
 ### Changed
 
+- Unified the landing page around one Geist Mono-compatible local font stack
+  and raised every fixed UI font size to a minimum of 17 px, including
+  navigation, buttons, labels, repository identities, model facts and code.
 - Refined the bright landing page around a narrower, calmer product layout
   inspired by Routstr's visual restraint while retaining an independently
   implemented design and the complete ABLITERATED.cloud content.

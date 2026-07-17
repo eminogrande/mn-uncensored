@@ -301,6 +301,21 @@ def test_homepage_has_github_cta_and_accessible_brain_visual() -> None:
     assert "import(" not in javascript
 
 
+def test_homepage_uses_one_mono_type_system_with_17px_minimum() -> None:
+    css = (WEBSITE / "styles.css").read_text()
+    fixed_font_sizes = [
+        int(value)
+        for value in re.findall(r"font-size:\s*(\d+)px", css)
+    ]
+
+    assert fixed_font_sizes
+    assert min(fixed_font_sizes) >= 17
+    assert 'font-family: var(--mono);' in css
+    assert '"Geist Mono"' in css
+    assert "Avenir" not in css
+    assert "Segoe UI" not in css
+
+
 def test_homepage_performance_budget() -> None:
     critical = [
         WEBSITE / "index.html",
