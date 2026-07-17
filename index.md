@@ -24,52 +24,51 @@ your message:
 ### Qwen3.6 35B A3B — Abliterated
 
 - Hugging Face repository: `huihui-ai/Huihui-Qwen3.6-35B-A3B-abliterated`
-- API model ID: `mn/god`
+- API model ID: `huihui-ai/Huihui-Qwen3.6-35B-A3B-abliterated`
+- Compatibility alias: `mn/god`
 - Revision: `8f0ee727aff5e771ea72466d64d13ecd851d2cc7`
 - Hugging Face metadata: Apache-2.0, uncensored, abliterated, image-text-to-text, 36B parameters, BF16
 - Context: 131,072 tokens
 - Maximum output: 16,384 tokens
 - Hardware: 1 x H200
 - ABLITERATED.cloud price: $5.45/hour
-- Status: live route, currently hard-stopped
 
 ### Ornith 1.0 35B — Abliterated
 
 - Hugging Face repository: `YuYu1015/YuYu1015-Ornith-1.0-35B-abliterated`
-- API model ID: `mn/code`
+- API model ID: `YuYu1015/YuYu1015-Ornith-1.0-35B-abliterated`
+- Compatibility alias: `mn/code`
 - Revision: `86065d1a9008773086a177637d54ec6dc2a56cbf`
 - Hugging Face metadata: Apache-2.0, 35B Qwen3.5 MoE, reasoning/thinking, English and Chinese, abliterated and uncensored
 - Context: 131,072 tokens
 - Maximum output: 16,384 tokens
 - Hardware: 1 x H200
 - ABLITERATED.cloud price: $5.45/hour
-- Status: live route, currently hard-stopped
 
 ### Qwythos 9B Claude Mythos 5 — Abliterated
 
 - Hugging Face repository: `huihui-ai/Huihui-Qwythos-9B-Claude-Mythos-5-1M-abliterated`
-- API model ID: `mn/fast`
+- API model ID: `huihui-ai/Huihui-Qwythos-9B-Claude-Mythos-5-1M-abliterated`
+- Compatibility alias: `mn/fast`
 - Revision: `efcc73cac15ff8fc5d46b8d41b53c22d571cf97d`
 - Hugging Face metadata: Apache-2.0, 10B parameters, BF16, long-context, function-calling, tool-use, uncensored and abliterated
 - Context: 131,072 tokens
 - Maximum output: 16,384 tokens
 - Hardware: 1 x L40S
 - ABLITERATED.cloud price: $2.34/hour
-- Status: live route, currently hard-stopped
 
 ### Ornith 1.0 397B W4A16 — Abliterated
 
 - Hugging Face repository: `cebeuq/Ornith-1.0-397B-abliterated-W4A16`
-- API model ID: `mn/ornith-397b`
+- API model ID: `cebeuq/Ornith-1.0-397B-abliterated-W4A16`
+- Compatibility aliases: `mn/ornith-397b`, `nuri/ornith-397b-abliterated`
 - Revision: `e5651d291be1c65ff1360eee47ab533ab13b3d97`
-- Legacy alias: `nuri/ornith-397b-abliterated`
 - Hugging Face metadata: MIT, 397B total / about 17B active, multimodal Qwen3.5 MoE, W4A16, about 196 GB, uncensored and abliterated
 - Context: 32,768 tokens configured
 - Upstream context: 262,144 tokens
 - Maximum output: 8,192 tokens
 - Hardware: 2 x H200
 - ABLITERATED.cloud price: $10.90/hour
-- Status: fourth route in the next budgeted release; not live in v0.3.1
 
 The upstream terms "abliterated", "decensored" and "uncensored" describe publisher claims about reduced refusal behavior. They do not guarantee zero refusals, correctness, safety, legality or unrestricted capability. The two model cards that publish measurements still report non-zero refusal rates.
 
@@ -103,10 +102,10 @@ Cursor is a compatibility target, not a promise of complete feature parity.
 ## Model prices
 
 - The exact model weight files have no purchase price on Hugging Face.
-- Qwen3.6 35B A3B (`mn/god`): $5.45/hour.
-- Ornith 1.0 35B (`mn/code`): $5.45/hour.
-- Qwythos 9B Claude Mythos 5 (`mn/fast`): $2.34/hour.
-- Ornith 1.0 397B W4A16 (`mn/ornith-397b`): $10.90/hour.
+- Qwen3.6 35B A3B (`huihui-ai/Huihui-Qwen3.6-35B-A3B-abliterated`): $5.45/hour.
+- Ornith 1.0 35B (`YuYu1015/YuYu1015-Ornith-1.0-35B-abliterated`): $5.45/hour.
+- Qwythos 9B Claude Mythos 5 (`huihui-ai/Huihui-Qwythos-9B-Claude-Mythos-5-1M-abliterated`): $2.34/hour.
+- Ornith 1.0 397B W4A16 (`cebeuq/Ornith-1.0-397B-abliterated-W4A16`): $10.90/hour.
 
 Automated billing is not live yet. Private-beta access is invitation-based
 while customer metering, payments and invoicing remain roadmap work.
@@ -128,14 +127,14 @@ The control plane, website, configuration, tests, deployment workflow, and docum
 
 Our code uses the Apache-2.0 open-source license. Hugging Face currently displays Apache-2.0 metadata for the first three model repositories and MIT for the 397B repository. Each model still retains upstream attribution, warnings and commercial-use caveats; public weights are not automatic resale clearance.
 
-## Current status and roadmap
+## Development roadmap
 
-Live v0.3.1 exposes three routes and all GPU containers are currently stopped. The 397B fourth route is prepared for the next release, which requires a confirmed Modal Workspace hard budget and an explicit two-H200 acknowledgement.
+The four exact model profiles are documented in the public catalog. Expensive hardware profiles require an operator-approved budget and explicit cost acknowledgement before deployment.
 
 Roadmap:
 
 1. Confirm the Modal Workspace hard budget.
-2. Validate and release all four routes.
+2. Validate all four model profiles before production use.
 3. Add per-token model permissions, quotas, and rate limits.
 4. Add usage metering and customer billing.
 5. Complete commercial model-license and provider-term review.

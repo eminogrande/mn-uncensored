@@ -7,7 +7,6 @@
   --accent: #2458d3;
   --accent-dark: #173b91;
   --green: #217153;
-  --amber: #b06b22;
   --max: 1040px;
   --mono: "Geist Mono", "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", monospace;
 }
@@ -25,6 +24,7 @@ body {
   line-height: 1.62;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
 }
 
 body.menu-open { overflow: hidden; }
@@ -190,12 +190,19 @@ summary:focus-visible {
 }
 
 .hero {
+  position: relative;
+  isolation: isolate;
   width: min(calc(100% - 48px), var(--max));
+  min-height: 760px;
   margin: 0 auto;
-  padding: 86px 0 0;
+  padding: 86px 0 96px;
 }
 
-.hero-copy { max-width: 960px; }
+.hero-copy {
+  position: relative;
+  z-index: 3;
+  max-width: 960px;
+}
 
 .announcement {
   width: fit-content;
@@ -213,8 +220,7 @@ summary:focus-visible {
   font-weight: 700;
 }
 
-.announcement span,
-.brain-label span {
+.announcement span {
   width: 7px;
   height: 7px;
   display: inline-block;
@@ -255,18 +261,17 @@ summary:focus-visible {
 .hero-note { margin: 22px 0 0; color: var(--muted); font-family: var(--mono); font-size: 17px; }
 
 .brain-stage {
-  position: relative;
-  height: 470px;
-  margin: 30px -5vw 0;
+  position: absolute;
+  inset: 105px -18vw 20px 8%;
+  z-index: 0;
+  margin: 0;
   overflow: hidden;
   isolation: isolate;
-  cursor: crosshair;
-  pointer-events: auto;
-  touch-action: pan-y;
+  opacity: 0.82;
+  pointer-events: none;
 }
 
-.brain-stage::before,
-.brain-stage::after {
+.brain-stage::before {
   content: "";
   position: absolute;
   z-index: 2;
@@ -276,37 +281,11 @@ summary:focus-visible {
 .brain-stage::before {
   inset: 0;
   background:
-    linear-gradient(90deg, var(--background) 0, transparent 14%, transparent 86%, var(--background) 100%),
-    linear-gradient(180deg, var(--background) 0, transparent 12%, transparent 80%, var(--background) 100%);
+    linear-gradient(90deg, var(--background) 0, rgba(247, 247, 244, 0.93) 24%, rgba(247, 247, 244, 0.25) 48%, transparent 72%),
+    linear-gradient(180deg, var(--background) 0, transparent 12%, transparent 82%, var(--background) 100%);
 }
 
-.brain-stage::after {
-  right: 5vw;
-  bottom: 32px;
-  left: 5vw;
-  height: 1px;
-  background: var(--line);
-}
-
-#brain-canvas { width: 100%; height: 100%; display: block; }
-
-.brain-label {
-  position: absolute;
-  right: 5vw;
-  bottom: 43px;
-  z-index: 3;
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  color: var(--muted);
-  font-family: var(--mono);
-  max-width: calc(100% - 48px);
-  font-size: 17px;
-  line-height: 1.35;
-  text-align: right;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-}
+#brain-canvas { width: 100%; height: 100%; display: block; mix-blend-mode: multiply; }
 
 .brain-stage noscript img { width: 100%; height: 100%; object-fit: cover; opacity: 0.82; }
 
@@ -393,9 +372,6 @@ summary:focus-visible {
   border-bottom: 1px solid var(--line);
 }
 
-.model-status { margin: 0 0 16px; color: var(--green); font-family: var(--mono); font-size: 17px; font-weight: 800; text-transform: uppercase; }
-.model-status.planned { color: var(--amber); }
-
 .model-main h3 {
   margin: 0 0 13px;
   font-size: clamp(30px, 4vw, 42px);
@@ -415,7 +391,7 @@ summary:focus-visible {
 
 .repository span { display: block; margin-bottom: 4px; color: var(--muted); font-size: 17px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }
 .repository a { color: var(--accent-dark); }
-.model-main > p:not(.model-status, .repository) { max-width: 670px; margin: 0 0 22px; color: var(--muted); font-size: 18px; line-height: 1.58; }
+.model-main > p:not(.repository) { max-width: 670px; margin: 0 0 22px; color: var(--muted); font-size: 18px; line-height: 1.58; }
 
 .text-link,
 .hf-link {
@@ -486,7 +462,7 @@ summary:focus-visible {
   .github-button { display: none; }
   .menu-button { display: flex; margin-left: auto; }
   .mobile-menu { inset: 62px 0 auto; }
-  .hero { padding-top: 60px; }
+  .hero { min-height: 760px; padding-top: 60px; }
   .announcement { margin-bottom: 24px; font-size: 17px; }
   .hero h1 { font-size: clamp(42px, 12.5vw, 54px); }
   .hero h1 .hero-subline { font-size: 0.72em; }
@@ -494,9 +470,7 @@ summary:focus-visible {
   .hero-actions { align-items: stretch; flex-direction: column; }
   .button { width: 100%; }
   .hero-note { line-height: 1.6; }
-  .brain-stage { height: 330px; margin: 25px -18px 0; }
-  .brain-stage::after { right: 18px; left: 18px; }
-  .brain-label { right: 18px; bottom: 42px; }
+  .brain-stage { inset: 250px -48% 12px -30%; opacity: 0.58; }
   .section { padding: 68px 0; }
   .section-heading h2, .api-copy h2, .closing h2 { font-size: clamp(38px, 12vw, 50px); }
   .section-heading > p:last-child, .intro-copy p, .api-copy p:not(.kicker) { font-size: 18px; }
@@ -504,7 +478,7 @@ summary:focus-visible {
   .step-grid article, .step-grid article:not(:first-child), .principle-grid article, .principle-grid article:not(:first-child) { margin: 0; padding: 27px 0; border-top: 1px solid var(--line); border-right: 0; }
   .model-row { padding: 44px 0; }
   .model-main h3 { font-size: 32px; }
-  .model-main > p:not(.model-status, .repository) { font-size: 17px; }
+  .model-main > p:not(.repository) { font-size: 17px; }
   .model-facts dt, .model-facts dd { font-size: 17px; }
   .api-section pre { padding: 21px; font-size: 17px; }
   .faq-list summary { font-size: 18px; }

@@ -16,8 +16,8 @@ Use this skill when a user wants to call an ABLITERATED.cloud model through an O
 - Never invent or expose an API token.
 - Obtain the token only from the user's existing secret store or environment.
 - Never write a token into source code, logs, configuration committed to Git, or a public issue.
-- Do not call a hard-stopped route and assume it will wake.
-- Do not start, arm, wake, or launch `mn/ornith-397b` without explicit operator cost acknowledgement.
+- Do not assume an unavailable model will wake automatically.
+- Do not start, arm, wake, or launch `cebeuq/Ornith-1.0-397B-abliterated-W4A16` without explicit operator cost acknowledgement.
 - Do not claim that "abliterated" guarantees zero refusals or correctness.
 
 ## Connection
@@ -32,12 +32,12 @@ Authorization: Bearer sk-mn-...
 
 ## Models
 
-- `huihui-ai/Huihui-Qwen3.6-35B-A3B-abliterated` — API model ID `mn/god`; deployed and currently stopped.
-- `YuYu1015/YuYu1015-Ornith-1.0-35B-abliterated` — API model ID `mn/code`; deployed and currently stopped.
-- `huihui-ai/Huihui-Qwythos-9B-Claude-Mythos-5-1M-abliterated` — API model ID `mn/fast`; deployed and currently stopped.
-- `cebeuq/Ornith-1.0-397B-abliterated-W4A16` — planned API model ID `mn/ornith-397b`; not deployed.
+- `huihui-ai/Huihui-Qwen3.6-35B-A3B-abliterated` — Qwen3.6 35B A3B — Abliterated.
+- `YuYu1015/YuYu1015-Ornith-1.0-35B-abliterated` — Ornith 1.0 35B — Abliterated.
+- `huihui-ai/Huihui-Qwythos-9B-Claude-Mythos-5-1M-abliterated` — Qwythos 9B Claude Mythos 5 — Abliterated.
+- `cebeuq/Ornith-1.0-397B-abliterated-W4A16` — Ornith 1.0 397B W4A16 — Abliterated.
 
-The API model IDs are routing identifiers, not alternative model names. The legacy ID `nuri/ornith-397b-abliterated` will map to the 397B route after its budgeted release.
+The exact Hugging Face repository ID is also the primary API model ID. Compatibility aliases for existing clients are `mn/god`, `mn/code`, `mn/fast`, `mn/ornith-397b`, and `nuri/ornith-397b-abliterated`.
 
 ## Supported contract
 

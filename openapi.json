@@ -3,7 +3,7 @@
   "info": {
     "title": "ABLITERATED.cloud API",
     "version": "0.3.1",
-    "description": "Token-protected OpenAI-compatible Chat Completions access to four exact pinned Hugging Face models. The Qwen3.6 35B, Ornith 35B, and Qwythos 9B routes are deployed and hard-stopped. Ornith 397B W4A16 is prepared but not deployed.",
+    "description": "Token-protected OpenAI-compatible Chat Completions access to four exact pinned Hugging Face models. Each primary API model ID is the exact Hugging Face repository ID.",
     "license": {
       "name": "Apache-2.0",
       "identifier": "Apache-2.0"
@@ -15,42 +15,51 @@
   },
   "x-model-catalog": [
     {
-      "api_id": "mn/god",
+      "api_id": "huihui-ai/Huihui-Qwen3.6-35B-A3B-abliterated",
       "hugging_face_model": "huihui-ai/Huihui-Qwen3.6-35B-A3B-abliterated",
       "hugging_face_url": "https://huggingface.co/huihui-ai/Huihui-Qwen3.6-35B-A3B-abliterated",
       "license_metadata": "Apache-2.0",
       "price_usd_per_hour": 5.45,
-      "status": "live-route-hard-stopped"
+      "compatibility_aliases": [
+        "mn/god"
+      ]
     },
     {
-      "api_id": "mn/code",
+      "api_id": "YuYu1015/YuYu1015-Ornith-1.0-35B-abliterated",
       "hugging_face_model": "YuYu1015/YuYu1015-Ornith-1.0-35B-abliterated",
       "hugging_face_url": "https://huggingface.co/YuYu1015/YuYu1015-Ornith-1.0-35B-abliterated",
       "license_metadata": "Apache-2.0",
       "price_usd_per_hour": 5.45,
-      "status": "live-route-hard-stopped"
+      "compatibility_aliases": [
+        "mn/code"
+      ]
     },
     {
-      "api_id": "mn/fast",
+      "api_id": "huihui-ai/Huihui-Qwythos-9B-Claude-Mythos-5-1M-abliterated",
       "hugging_face_model": "huihui-ai/Huihui-Qwythos-9B-Claude-Mythos-5-1M-abliterated",
       "hugging_face_url": "https://huggingface.co/huihui-ai/Huihui-Qwythos-9B-Claude-Mythos-5-1M-abliterated",
       "license_metadata": "Apache-2.0",
       "price_usd_per_hour": 2.34,
-      "status": "live-route-hard-stopped"
+      "compatibility_aliases": [
+        "mn/fast"
+      ]
     },
     {
-      "api_id": "mn/ornith-397b",
+      "api_id": "cebeuq/Ornith-1.0-397B-abliterated-W4A16",
       "hugging_face_model": "cebeuq/Ornith-1.0-397B-abliterated-W4A16",
       "hugging_face_url": "https://huggingface.co/cebeuq/Ornith-1.0-397B-abliterated-W4A16",
       "license_metadata": "MIT",
       "price_usd_per_hour": 10.9,
-      "status": "next-budgeted-release"
+      "compatibility_aliases": [
+        "mn/ornith-397b",
+        "nuri/ornith-397b-abliterated"
+      ]
     }
   ],
   "servers": [
     {
-      "url": "https://eminhenri--mn-uncensored-api-api.modal.run",
-      "description": "Current private-beta gateway"
+      "url": "https://eminhenri--abliterated-cloud-api-api.modal.run",
+      "description": "ABLITERATED.cloud private API gateway"
     }
   ],
   "security": [
@@ -84,7 +93,7 @@
       "post": {
         "operationId": "createChatCompletion",
         "summary": "Create or stream a chat completion",
-        "description": "Routes an OpenAI-compatible Chat Completions request to one explicitly selected model. The request uses the documented API model ID; the catalog maps that ID to an exact pinned Hugging Face repository. A hard-stopped model fails closed.",
+        "description": "Routes an OpenAI-compatible Chat Completions request to one explicitly selected model. The request uses the exact Hugging Face repository ID documented in the catalog. Compatibility aliases are accepted for existing clients.",
         "requestBody": {
           "required": true,
           "content": {
@@ -106,7 +115,7 @@
             "$ref": "#/components/responses/Unauthorized"
           },
           "503": {
-            "description": "The selected route is stopped or unavailable"
+            "description": "The selected model is unavailable"
           },
           "504": {
             "description": "The selected model did not become ready before the cold-start deadline"
@@ -118,7 +127,7 @@
       "post": {
         "operationId": "wakeModel",
         "summary": "Wake one already armed model",
-        "description": "Waits for an automatic or started route to become ready. It cannot wake a hard-stopped route.",
+        "description": "Waits for an operator-enabled model to become ready.",
         "parameters": [
           {
             "name": "model",
@@ -137,7 +146,7 @@
             "$ref": "#/components/responses/Unauthorized"
           },
           "503": {
-            "description": "Route is hard-stopped or failed to start"
+            "description": "The selected model is unavailable or failed to start"
           }
         }
       }
@@ -156,10 +165,10 @@
       "ModelId": {
         "type": "string",
         "enum": [
-          "mn/god",
-          "mn/code",
-          "mn/fast",
-          "mn/ornith-397b"
+          "huihui-ai/Huihui-Qwen3.6-35B-A3B-abliterated",
+          "YuYu1015/YuYu1015-Ornith-1.0-35B-abliterated",
+          "huihui-ai/Huihui-Qwythos-9B-Claude-Mythos-5-1M-abliterated",
+          "cebeuq/Ornith-1.0-397B-abliterated-W4A16"
         ]
       },
       "Message": {
