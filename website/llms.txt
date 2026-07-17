@@ -2,7 +2,7 @@
 
 > Publicly downloadable Hugging Face model weights labeled uncensored and abliterated, available through one token-protected OpenAI-compatible API powered by vLLM and scale-to-zero Modal GPUs.
 
-ABLITERATED.cloud is currently a private evaluation service. Live v0.3.1 exposes three hard-stopped routes. A guarded Ornith 397B fourth route is prepared for the next budgeted release.
+ABLITERATED.cloud is a private evaluation service for four exact model profiles. Expensive hardware profiles require explicit operator approval and a confirmed cloud budget before deployment.
 
 ## Primary resources
 
@@ -17,10 +17,12 @@ ABLITERATED.cloud is currently a private evaluation service. Live v0.3.1 exposes
 
 ## Exact models and API identifiers
 
-- Qwen3.6 35B A3B — `huihui-ai/Huihui-Qwen3.6-35B-A3B-abliterated` — API model ID `mn/god` — $5.45/hour
-- Ornith 1.0 35B — `YuYu1015/YuYu1015-Ornith-1.0-35B-abliterated` — API model ID `mn/code` — $5.45/hour
-- Qwythos 9B Claude Mythos 5 — `huihui-ai/Huihui-Qwythos-9B-Claude-Mythos-5-1M-abliterated` — API model ID `mn/fast` — $2.34/hour
-- Ornith 1.0 397B W4A16 — `cebeuq/Ornith-1.0-397B-abliterated-W4A16` — API model ID `mn/ornith-397b` — $10.90/hour; not deployed
+- Qwen3.6 35B A3B — API model ID `huihui-ai/Huihui-Qwen3.6-35B-A3B-abliterated` — $5.45/hour
+- Ornith 1.0 35B — API model ID `YuYu1015/YuYu1015-Ornith-1.0-35B-abliterated` — $5.45/hour
+- Qwythos 9B Claude Mythos 5 — API model ID `huihui-ai/Huihui-Qwythos-9B-Claude-Mythos-5-1M-abliterated` — $2.34/hour
+- Ornith 1.0 397B W4A16 — API model ID `cebeuq/Ornith-1.0-397B-abliterated-W4A16` — $10.90/hour
+
+Compatibility aliases remain available for existing clients: `mn/god`, `mn/code`, `mn/fast`, `mn/ornith-397b`, and `nuri/ornith-397b-abliterated`.
 
 Model weight downloads are free. Managed GPU inference is paid. Automated
 billing is not currently live.

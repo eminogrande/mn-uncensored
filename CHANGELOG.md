@@ -4,6 +4,25 @@ All notable changes to MN Uncensored are documented here.
 
 ## [Unreleased]
 
+### Model identity migration
+
+- Replaced the public shorthand identities with exact Hugging Face repository
+  IDs throughout the prepared API, clients, website, and current operations
+  documentation. The short selectors are now `qwen36`, `ornith35`,
+  `qwythos9`, and `ornith397`.
+- Renamed the prepared Modal applications to
+  `huihui-qwen3-6-35b-a3b-abliterated`,
+  `yuyu1015-ornith-1-0-35b-abliterated`,
+  `huihui-qwythos-9b-claude-mythos-5-1m-abliterated`,
+  `cebeuq-ornith-1-0-397b-abliterated-w4a16`, and
+  `abliterated-cloud-api`. This prepares definitions only; it does not deploy
+  or start them.
+- Retained `mn/god`, `mn/code`, `mn/fast`, `mn/ornith-397b`, and
+  `nuri/ornith-397b-abliterated` solely as backwards-compatible aliases.
+- Kept Ornith 397B visible in the catalog but changed it to
+  `deployment_enabled=false`; release preflight must reject it until a future
+  signed, budget-approved change explicitly enables the two-H200 profile.
+
 ### Fixed
 
 - Changed `mn start MODEL` from an indefinite `min_containers=1` warm mode to a
@@ -31,9 +50,8 @@ All notable changes to MN Uncensored are documented here.
   `e5651d291be1c65ff1360eee47ab533ab13b3d97`, with MIT metadata,
   conservative 32,768 context, 8,192 output, and a two-H200
   `$9.0792/hour` estimate.
-- Prepared the retained 397B profile as `deployment_enabled=true` for the next
-  budgeted four-route release while keeping live `v0.3.1` unchanged and
-  hard-stopped.
+- Prepared the retained 397B profile and then disabled deployment by default;
+  it remains documented without authorizing a two-H200 release.
 - Documented the potential four-model ceiling of `$20.1096/hour` and
   `$1.6758` for five-minute idle tails, while preserving `$11.0304/hour` as
   the current three-route deployment ceiling.
@@ -60,8 +78,8 @@ All notable changes to MN Uncensored are documented here.
 - Added pointer-reactive local brain regions whose connected points and lines
   glow in cyan, magenta, lime, orange or violet, with a static interactive
   response preserved for reduced-motion users.
-- Expanded the hero statement to “Intelligence, freed: uncensored, private
-  abliterated AI.” with responsive line sizing.
+- Set the hero statement to “Intelligence, freed. Uncensored, abliterated AI.”
+  with responsive line sizing and no forced break inside the second line.
 - Unified the landing page around one Geist Mono-compatible local font stack
   and raised every fixed UI font size to a minimum of 17 px, including
   navigation, buttons, labels, repository identities, model facts and code.
@@ -72,7 +90,7 @@ All notable changes to MN Uncensored are documented here.
   that pauses offscreen, respects reduced-motion preferences, caps pixel
   density, and falls back to the owner-supplied artwork without JavaScript.
 - Added a prominent GitHub star action and consolidated the hero into one
-  readable message, two direct actions, and one factual service-status line.
+  readable message, two direct actions, and one factual private-beta note.
 - Future GitHub releases now use the matching curated `CHANGELOG.md` section
   instead of publishing only automatically generated commit links.
 - Website releases now publish an append-only signed `gh-pages` commit and
@@ -96,7 +114,7 @@ All notable changes to MN Uncensored are documented here.
   `https://signal.me/#p/+13103408213`; historical release notes remain intact.
 - Rebuilt the public landing page with larger typography, more whitespace,
   fewer decorative interface components, readable factual model headings,
-  exact linked Hugging Face repositories, and secondary API model IDs.
+  and exact linked Hugging Face repositories as primary API model IDs.
 
 ### Added
 
@@ -110,8 +128,9 @@ All notable changes to MN Uncensored are documented here.
   SEO metadata.
 - Added a tested release-note extractor that fails if the requested version is
   missing or empty.
-- Added `mn/ornith-397b` with the real legacy alias
-  `nuri/ornith-397b-abliterated` as the fourth route for the next release.
+- Added the exact `cebeuq/Ornith-1.0-397B-abliterated-W4A16` identity with the
+  compatibility aliases `mn/ornith-397b` and
+  `nuri/ornith-397b-abliterated` as a disabled fourth source profile.
 - Added `--allow-expensive` acknowledgement for 397B start, auto, wake, and
   launch operations.
 - Added a release-wide `MN_RELEASE_ORNITH397=I_ACCEPT_2XH200` gate that must be

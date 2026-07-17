@@ -130,8 +130,10 @@ def _model_settings(key: str, data: dict[str, Any]) -> ModelSettings:
         tool_call_parser=str(data.get("tool_call_parser", "")),
         trust_remote_code=bool(data.get("trust_remote_code", True)),
     )
-    if not model.model.startswith("mn/"):
-        raise ValueError(f"{context} public model ID must start with `mn/`.")
+    if model.model != model.hf_model:
+        raise ValueError(
+            f"{context} public model ID must equal its exact Hugging Face model ID."
+        )
     if model.gpu_count < 1 or model.gpu_count > 8:
         raise ValueError(f"{context} gpu_count must be between 1 and 8.")
     if not 0.5 <= model.gpu_memory_utilization <= 0.95:

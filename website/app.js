@@ -33,6 +33,7 @@ window.addEventListener("resize", () => {
   const stage = canvas?.closest(".brain-stage");
   const context = canvas?.getContext("2d");
   if (!canvas || !stage || !context) return;
+  const interactionSurface = stage.closest(".hero") || stage;
 
   let seed = 397;
   const random = () => {
@@ -102,7 +103,7 @@ window.addEventListener("resize", () => {
       x,
       y,
       z,
-      size: options.size ?? 0.65 + random() * 1.3,
+      size: options.size ?? 0.45 + random() * 0.9,
       accent: options.accent ?? random() > 0.94,
       contour: Boolean(options.contour),
       zone: zoneFor(x, y),
@@ -114,14 +115,14 @@ window.addEventListener("resize", () => {
     x,
     y,
     (random() - 0.5) * 0.08,
-    { contour: true, size: 1.05 + random() * 0.55 },
+    { contour: true, size: 0.85 + random() * 0.45 },
   ));
   contourIndexes.forEach((pointIndex, index) => {
     edges.push([pointIndex, contourIndexes[(index + 1) % contourIndexes.length], true]);
   });
 
   let attempts = 0;
-  while (points.length < 420 && attempts < 30000) {
+  while (points.length < 820 && attempts < 50000) {
     attempts += 1;
     const x = random() * 2.2 - 1.1;
     const y = random() * 1.84 - 0.84;
@@ -142,12 +143,12 @@ window.addEventListener("resize", () => {
       const dy = points[i].y - points[j].y;
       const dz = points[i].z - points[j].z;
       const distance = Math.hypot(dx, dy, dz);
-      if (distance < 0.23) candidates.push([distance, j]);
+      if (distance < 0.165) candidates.push([distance, j]);
     }
     candidates.sort((a, b) => a[0] - b[0]);
     for (const [, j] of candidates) {
       if (degree[i] >= 4) break;
-      if (degree[j] >= 3) continue;
+      if (degree[j] >= 4) continue;
       edges.push([i, j]);
       degree[i] += 1;
       degree[j] += 1;
@@ -299,8 +300,8 @@ window.addEventListener("resize", () => {
     if (motionQuery.matches) paint(performance.now(), true);
   }
 
-  stage.addEventListener("pointermove", updatePointer, { passive: true });
-  stage.addEventListener("pointerleave", clearPointer, { passive: true });
+  interactionSurface.addEventListener("pointermove", updatePointer, { passive: true });
+  interactionSurface.addEventListener("pointerleave", clearPointer, { passive: true });
 
   if ("ResizeObserver" in window) {
     const resizeObserver = new ResizeObserver(resize);
@@ -331,29 +332,25 @@ window.addEventListener("resize", () => {
     {
       name: "Qwen3.6 35B A3B — Abliterated",
       repository: "huihui-ai/Huihui-Qwen3.6-35B-A3B-abliterated",
-      apiModelId: "mn/god",
-      status: "deployed-currently-stopped",
+      apiModelId: "huihui-ai/Huihui-Qwen3.6-35B-A3B-abliterated",
       priceUsdPerHour: 5.45,
     },
     {
       name: "Ornith 1.0 35B — Abliterated",
       repository: "YuYu1015/YuYu1015-Ornith-1.0-35B-abliterated",
-      apiModelId: "mn/code",
-      status: "deployed-currently-stopped",
+      apiModelId: "YuYu1015/YuYu1015-Ornith-1.0-35B-abliterated",
       priceUsdPerHour: 5.45,
     },
     {
       name: "Qwythos 9B Claude Mythos 5 — Abliterated",
       repository: "huihui-ai/Huihui-Qwythos-9B-Claude-Mythos-5-1M-abliterated",
-      apiModelId: "mn/fast",
-      status: "deployed-currently-stopped",
+      apiModelId: "huihui-ai/Huihui-Qwythos-9B-Claude-Mythos-5-1M-abliterated",
       priceUsdPerHour: 2.34,
     },
     {
       name: "Ornith 1.0 397B W4A16 — Abliterated",
       repository: "cebeuq/Ornith-1.0-397B-abliterated-W4A16",
-      apiModelId: "mn/ornith-397b",
-      status: "planned-not-deployed",
+      apiModelId: "cebeuq/Ornith-1.0-397B-abliterated-W4A16",
       priceUsdPerHour: 10.9,
     },
   ];

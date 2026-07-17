@@ -654,7 +654,7 @@ def launch_opencode(
     model: ModelSettings,
     token: str,
 ) -> NoReturn:
-    provider_model = f"mn/{model.key}"
+    provider_model = f"mn/{model.model}"
     config = {
         "$schema": "https://opencode.ai/config.json",
         "model": provider_model,
@@ -667,7 +667,7 @@ def launch_opencode(
                     "baseURL": settings.api_base_url,
                 },
                 "models": {
-                    model.key: {
+                    model.model: {
                         "name": model.display_name,
                         "limit": {
                             "context": model.context_window,
@@ -712,7 +712,7 @@ def print_api_details(settings: Settings, selected: ModelSettings | None = None)
     for model in models:
         availability = "" if model.deployment_enabled else " [deployment disabled]"
         print(
-            f"Model:    {model.model:<10} {model.display_name} "
+            f"Model:    {model.model} — {model.display_name} "
             f"({model.context_window:,} context){availability}"
         )
     print("API key:  run `mn token copy owner` or create a named friend token")
@@ -749,7 +749,8 @@ def interactive_menu(settings: Settings) -> None:
                 model,
                 settings,
             ).get("desired_state", "stopped")
-            print(f"  {model.key:<4} {model.model:<10} {desired_state}")
+            print(f"  {model.key:<10} {model.display_name} [{desired_state}]")
+            print(f"  {'':<10} {model.model}")
         print("1. Safe-start one model (5-minute idle shutdown)")
         print("2. Arm automatic mode for one model")
         print("3. Stop all")
@@ -887,7 +888,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--model",
         default=None,
         help=(
-            "Catalog model: god, code, fast, or ornith397 "
+            "Catalog model: qwen36, ornith35, qwythos9, or ornith397 "
             "(place before the tool name)"
         ),
     )

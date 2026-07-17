@@ -74,30 +74,30 @@ history or a release artifact.
 
 ## Cost and availability boundary
 
-Each deployed model has an independent Modal backend and independent
+Each enabled model definition has an independent Modal backend and
 scale-to-zero lifecycle. The one-container ceiling is per backend, not a global
-workspace ceiling. Authenticated requests can therefore wake `mn/god`,
-`mn/code`, and `mn/fast` at the same time when those routes are armed.
+workspace ceiling. If deployed and armed, authenticated requests could wake
+the three enabled profiles at the same time.
 
-At the deployed catalog's documented base estimates, running all three
-simultaneously is approximately `$11.0304/hour` of GPU time before other Modal
-charges:
+At the prepared catalog's documented base estimates, running all three
+simultaneously would be approximately `$11.0304/hour` of GPU time before other
+Modal charges:
 
-- `mn/god`: one H200, `$4.5396/hour`
-- `mn/code`: one H200, `$4.5396/hour`
-- `mn/fast`: one L40S, `$1.9512/hour`
+- `huihui-ai/Huihui-Qwen3.6-35B-A3B-abliterated`: one H200, `$4.5396/hour`
+- `YuYu1015/YuYu1015-Ornith-1.0-35B-abliterated`: one H200, `$4.5396/hour`
+- `huihui-ai/Huihui-Qwythos-9B-Claude-Mythos-5-1M-abliterated`: one L40S, `$1.9512/hour`
 
 The current code sets the request `routing_region`, not a constrained
 `compute_region`; the routing setting does not itself add Modal's
 compute-region price multiplier. A future compute-region constraint would need
 its multiplier added explicitly.
 
-The source catalog additionally retains `mn/ornith-397b`, estimated at two
-H200s or `$9.0792/hour`. It has `deployment_enabled=true` for the next
-budgeted release, but live `v0.3.1` still has only three routes and no running
-GPU. The four-model base GPU ceiling is `$20.1096/hour`, with about `$1.6758`
-of five-minute idle tails across all four. Those are next-release risk figures,
-not current usage.
+The source catalog additionally retains
+`cebeuq/Ornith-1.0-397B-abliterated-W4A16`, estimated at two H200s or
+`$9.0792/hour`. It has `deployment_enabled=false`. A hypothetical four-model
+base GPU ceiling is `$20.1096/hour`, with about `$1.6758` of five-minute idle
+tails across all four. Those are risk figures, not current usage or evidence
+of deployment.
 
 Scale-to-zero limits idle cost but is not a spending cap. Cold starts and the
 idle shutdown window are billable. The five-minute countdown begins only after
@@ -111,8 +111,9 @@ sharing tokens broadly, also add per-token model permissions, quotas, rate
 limits, and usage accounting. A token holder must be treated as capable of
 waking every armed model that token is authorized to use.
 
-The four-model release must refuse to begin unless the operator confirms the
-Workspace hard budget and sets
+The four-model release must refuse to begin while the 397B source policy is
+disabled. A future signed budget-approved change must also require the operator
+to confirm the Workspace hard budget and set
 `MN_RELEASE_ORNITH397=I_ACCEPT_2XH200`. It must display the two-H200 cost,
 deploy and smoke-test all four routes, then hard-stop all of them. Individual
 397B start, auto, wake, and launch operations require `--allow-expensive`
@@ -129,6 +130,8 @@ branches such as `main` are not acceptable release inputs, especially when
 `trust_remote_code` is enabled.
 
 Catalog presence and `deployment_enabled=true` do not themselves start a GPU.
+The 397B record is stricter: `deployment_enabled=false` excludes it from the
+deployable set.
 The release acknowledgement and CLI expensive-model acknowledgement are
 separate controls: one authorizes a validated four-route release; the other
 authorizes an individual two-H200 lifecycle operation.

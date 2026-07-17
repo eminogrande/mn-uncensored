@@ -237,7 +237,7 @@ def create_app(
                     "context_length": route["context_window"],
                     "max_model_len": route["context_window"],
                     "max_output_tokens": route["max_output_tokens"],
-                    "owned_by": "mn",
+                    "owned_by": route["model"].split("/", 1)[0],
                 }
                 for route in routes.values()
             ],

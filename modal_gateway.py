@@ -7,7 +7,7 @@ import modal
 from mn_uncensored.settings import load_settings
 
 
-APP_NAME = "mn-uncensored-api"
+APP_NAME = "abliterated-cloud-api"
 settings = load_settings()
 catalog = {
     key: {

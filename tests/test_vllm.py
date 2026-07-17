@@ -8,14 +8,23 @@ def argument_value(command: list[str], name: str) -> str:
     return command[command.index(name) + 1]
 
 
+def argument_values(command: list[str], name: str, next_name: str) -> list[str]:
+    return command[command.index(name) + 1:command.index(next_name)]
+
+
 def test_vllm_commands_are_model_specific() -> None:
     settings = load_settings()
 
     for key, model in settings.models.items():
         command = build_vllm_command(model, model.hf_model)
         assert command[:3] == ["vllm", "serve", model.hf_model]
-        assert argument_value(command, "--served-model-name") == model.model
+        assert argument_values(command, "--served-model-name", "--host") == [
+            model.model,
+            *model.aliases,
+        ]
         assert argument_value(command, "--revision") == model.hf_revision
+        assert argument_value(command, "--code-revision") == model.hf_revision
+        assert argument_value(command, "--tokenizer-revision") == model.hf_revision
         assert argument_value(command, "--max-model-len") == (
             "32768" if key == "ornith397" else "131072"
         )
@@ -34,7 +43,7 @@ def test_vllm_commands_are_model_specific() -> None:
             == '{"enable_thinking": false}'
         )
         assert "--enable-prefix-caching" not in command
-        assert key in {"god", "code", "fast", "ornith397"}
+        assert key in {"qwen36", "ornith35", "qwythos9", "ornith397"}
 
 
 def test_catalog_uses_model_chat_template_tool_parser() -> None:

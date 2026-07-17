@@ -156,6 +156,8 @@ def test_real_model_names_and_planned_prices_are_explicit() -> None:
         assert model in plain_html
         assert price in html
 
+    assert html.count("<dt>API model ID</dt>") == 4
+
     assert "Free means the model weight files have no purchase price." in html
     assert "Published prices · access by invitation" in html
     assert "Customer accounts, quotas, metering, billing and invoicing" in html
@@ -209,6 +211,14 @@ def test_agent_and_discovery_files_are_present_and_valid() -> None:
     assert {
         entry["price_usd_per_hour"] for entry in model_catalog
     } == {5.45, 2.34, 10.9}
+    assert all(
+        entry["api_id"] == entry["hugging_face_model"]
+        for entry in model_catalog
+    )
+    assert all("status" not in entry for entry in model_catalog)
+    assert openapi["components"]["schemas"]["ModelId"]["enum"] == [
+        entry["hugging_face_model"] for entry in model_catalog
+    ]
     api_catalog_json = json.loads(
         (WEBSITE / ".well-known/api-catalog.json").read_text()
     )
@@ -306,17 +316,28 @@ def test_brain_visual_is_shaped_and_pointer_interactive() -> None:
     css = (WEBSITE / "styles.css").read_text()
     javascript = (WEBSITE / "app.js").read_text()
 
-    assert "Intelligence, freed:" in html
-    assert "uncensored, private" in html
-    assert "abliterated AI." in html
+    assert "Intelligence, freed." in html
+    assert "Uncensored, abliterated AI." in html
+    assert "Abliterated open models in the cloud." in html
+    assert "One simple API." in html
+    assert "MOVE TO ILLUMINATE" not in html
+    assert "brain-label" not in html
+    assert "PLANNED ENDPOINT" not in html
+    assert "ENDPOINT DEPLOYED" not in html
+    assert "CURRENTLY STOPPED" not in html
+    assert "NOT DEPLOYED" not in html
+    assert "model-status" not in html
     assert "outlineControls" in javascript
     assert "insideOutline" in javascript
+    assert "points.length < 820" in javascript
+    assert 'stage.closest(".hero")' in javascript
     assert 'addEventListener("pointermove"' in javascript
     assert 'addEventListener("pointerleave"' in javascript
     assert "const neon" in javascript
     assert "shadowBlur" in javascript
-    assert "cursor: crosshair" in css
-    assert "pointer-events: auto" in css
+    assert ".brain-stage {" in css
+    assert "position: absolute" in css
+    assert "pointer-events: none" in css
 
 
 def test_homepage_uses_one_mono_type_system_with_17px_minimum() -> None:

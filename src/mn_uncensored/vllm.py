@@ -27,6 +27,7 @@ def build_vllm_command(
         model_source,
         "--served-model-name",
         model.model,
+        *model.aliases,
         "--host",
         "0.0.0.0",
         "--port",
@@ -55,7 +56,16 @@ def build_vllm_command(
     if model.language_model_only:
         command.append("--language-model-only")
     if not model.local_snapshot:
-        command.extend(["--revision", model.hf_revision])
+        command.extend(
+            [
+                "--revision",
+                model.hf_revision,
+                "--code-revision",
+                model.hf_revision,
+                "--tokenizer-revision",
+                model.hf_revision,
+            ]
+        )
     if model.fast_boot:
         command.append("--enforce-eager")
     if model.prefix_caching:

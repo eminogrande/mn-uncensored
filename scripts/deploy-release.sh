@@ -15,7 +15,7 @@ if [[ ! "$version" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
   exit 2
 fi
 if [[ "${MN_RELEASE_ORNITH397:-}" != "I_ACCEPT_2XH200" ]]; then
-  print -u2 "This release includes mn/ornith-397b on 2 x H200."
+  print -u2 "This release includes cebeuq/Ornith-1.0-397B-abliterated-W4A16 on 2 x H200."
   print -u2 "Confirm the Modal hard budget, then set:"
   print -u2 "MN_RELEASE_ORNITH397=I_ACCEPT_2XH200"
   exit 2
@@ -45,9 +45,22 @@ git rev-parse "$version" >/dev/null 2>&1 && {
 
 .venv/bin/python -m pytest -q
 ./scripts/check-secrets.sh
+[[ "$(PYTHONPATH="$repo_dir/src" .venv/bin/python -c 'from mn_uncensored.settings import load_settings; print(load_settings().models["ornith397"].deployment_enabled)')" == "True" ]] || {
+  print -u2 "ornith397 must be explicitly enabled in the signed budget-approved release."
+  exit 2
+}
 release_notes="$(
   .venv/bin/python scripts/extract-release-notes.py "$version"
 )"
+
+cleanup_models() {
+  .venv/bin/mn stop || true
+}
+trap cleanup_models EXIT
+
+# Fail closed before any app deployment. This updates every lifecycle record
+# to stopped and terminates any pending or running backend containers.
+.venv/bin/mn stop
 
 deploy_backend() {
   local model="$1"
@@ -62,18 +75,13 @@ deploy_gateway() {
     .venv/bin/modal deploy modal_gateway.py --tag "$version-gateway"
 }
 
-deploy_backend god
-deploy_backend code
-deploy_backend fast
+deploy_backend qwen36
+deploy_backend ornith35
+deploy_backend qwythos9
 deploy_backend ornith397
 deploy_gateway
 
-cleanup_models() {
-  .venv/bin/mn stop || true
-}
-trap cleanup_models EXIT
-
-for model in god code fast ornith397; do
+for model in qwen36 ornith35 qwythos9 ornith397; do
   if [[ "$model" == "ornith397" ]]; then
     .venv/bin/mn auto "$model" --allow-expensive
   else

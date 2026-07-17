@@ -1,5 +1,32 @@
 # ABLITERATED.cloud website releases
 
+## website-v0.7.0
+
+Exact model identities everywhere, a denser background brain, and cleaner
+public product copy.
+
+### Changed
+
+- Make the four exact Hugging Face `owner/repository` values the primary API
+  model IDs across the page, OpenAPI, agent documents and integrations.
+- Keep the previous `mn/*` names only as compatibility aliases.
+- Replace role labels such as `god`, `code` and `fast` with real model-family
+  names and recognizable repository-derived Modal app slugs.
+- Change the hero to “Intelligence, freed. Uncensored, abliterated AI.” and
+  introduce the product as “Abliterated open models in the cloud. One simple
+  API.”
+- Move the brain behind the hero copy, increase it to 820 deterministic nodes,
+  and remove its instructional label.
+- Remove internal endpoint lifecycle labels from the public landing page and
+  machine-readable catalog.
+
+### Runtime safety
+
+- Prepare the renamed runtime definitions without deploying them or starting a
+  GPU.
+- Keep the two-H200 Ornith 397B profile deployment-disabled until a signed,
+  budget-approved runtime release explicitly enables it.
+
 ## website-v0.6.0
 
 A recognizable interactive brain and a more explicit hero statement.

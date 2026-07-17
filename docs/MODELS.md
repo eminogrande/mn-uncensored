@@ -3,12 +3,13 @@
 This document records the exact model artifacts configured for MN Uncensored.
 It is an operational attribution and release record, not legal advice.
 
-The source catalog contains four pinned MN model records. Three are deployed
-through the current gateway and use a 131,072-token context window with a
-16,384-token output ceiling. The fourth, `mn/ornith-397b`, is prepared with a
-conservative 32,768-token context and 8,192-token output ceiling for the next
-budgeted release. Live `v0.3.1` still has only the first three routes and no
-running GPU.
+The source catalog contains four pinned model records. The first three
+profiles are enabled in source and use a 131,072-token context window with a
+16,384-token output ceiling. The fourth,
+`cebeuq/Ornith-1.0-397B-abliterated-W4A16`, is retained with a conservative
+32,768-token context and 8,192-token output ceiling, but is explicitly blocked
+with `deployment_enabled=false`. These are prepared definitions; this source
+change does not deploy an app or start a GPU.
 
 Those are MN endpoint settings, not claims about the maximum capability of the
 upstream checkpoints. Only behavior measured against the exact pinned artifact
@@ -16,26 +17,29 @@ and current runtime may be reported as an MN benchmark.
 
 ## Source catalog and deployment status
 
-| MN model | Exact Hugging Face artifact | Pinned revision | Metadata license | MN endpoint limits | Hardware estimate | Status |
-| --- | --- | --- | --- | --- | --- | --- |
-| `mn/god` | [`huihui-ai/Huihui-Qwen3.6-35B-A3B-abliterated`](https://huggingface.co/huihui-ai/Huihui-Qwen3.6-35B-A3B-abliterated) | `8f0ee727aff5e771ea72466d64d13ecd851d2cc7` | Apache-2.0 | 131,072 context / 16,384 output | 1 x H200, $4.5396/hour | Deployed route, currently hard-stopped |
-| `mn/code` | [`YuYu1015/YuYu1015-Ornith-1.0-35B-abliterated`](https://huggingface.co/YuYu1015/YuYu1015-Ornith-1.0-35B-abliterated) | `86065d1a9008773086a177637d54ec6dc2a56cbf` | Apache-2.0 | 131,072 context / 16,384 output | 1 x H200, $4.5396/hour | Deployed route, currently hard-stopped |
-| `mn/fast` | [`huihui-ai/Huihui-Qwythos-9B-Claude-Mythos-5-1M-abliterated`](https://huggingface.co/huihui-ai/Huihui-Qwythos-9B-Claude-Mythos-5-1M-abliterated) | `efcc73cac15ff8fc5d46b8d41b53c22d571cf97d` | Apache-2.0 | 131,072 context / 16,384 output | 1 x L40S, $1.9512/hour | Deployed route, currently hard-stopped |
-| `mn/ornith-397b` | [`cebeuq/Ornith-1.0-397B-abliterated-W4A16`](https://huggingface.co/cebeuq/Ornith-1.0-397B-abliterated-W4A16) | `e5651d291be1c65ff1360eee47ab533ab13b3d97` | MIT | 32,768 context / 8,192 output | 2 x H200, $9.0792/hour | `deployment_enabled=true`; fourth route in next budgeted release, not live in v0.3.1 |
+| CLI key | Exact API and Hugging Face ID | Prepared Modal app | Pinned revision | Metadata license | Endpoint limits | Hardware estimate | Source policy |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `qwen36` | [`huihui-ai/Huihui-Qwen3.6-35B-A3B-abliterated`](https://huggingface.co/huihui-ai/Huihui-Qwen3.6-35B-A3B-abliterated) | `huihui-qwen3-6-35b-a3b-abliterated` | `8f0ee727aff5e771ea72466d64d13ecd851d2cc7` | Apache-2.0 | 131,072 context / 16,384 output | 1 x H200, $4.5396/hour | Prepared; enabled |
+| `ornith35` | [`YuYu1015/YuYu1015-Ornith-1.0-35B-abliterated`](https://huggingface.co/YuYu1015/YuYu1015-Ornith-1.0-35B-abliterated) | `yuyu1015-ornith-1-0-35b-abliterated` | `86065d1a9008773086a177637d54ec6dc2a56cbf` | Apache-2.0 | 131,072 context / 16,384 output | 1 x H200, $4.5396/hour | Prepared; enabled |
+| `qwythos9` | [`huihui-ai/Huihui-Qwythos-9B-Claude-Mythos-5-1M-abliterated`](https://huggingface.co/huihui-ai/Huihui-Qwythos-9B-Claude-Mythos-5-1M-abliterated) | `huihui-qwythos-9b-claude-mythos-5-1m-abliterated` | `efcc73cac15ff8fc5d46b8d41b53c22d571cf97d` | Apache-2.0 | 131,072 context / 16,384 output | 1 x L40S, $1.9512/hour | Prepared; enabled |
+| `ornith397` | [`cebeuq/Ornith-1.0-397B-abliterated-W4A16`](https://huggingface.co/cebeuq/Ornith-1.0-397B-abliterated-W4A16) | `cebeuq-ornith-1-0-397b-abliterated-w4a16` | `e5651d291be1c65ff1360eee47ab533ab13b3d97` | MIT | 32,768 context / 8,192 output | 2 x H200, $9.0792/hour | Prepared; `deployment_enabled=false` |
+
+The exact repository IDs above are the primary OpenAI-compatible API IDs.
+Legacy aliases exist only for client compatibility: `mn/god`, `mn/code`,
+`mn/fast`, `mn/ornith-397b`, and `nuri/ornith-397b-abliterated`.
 
 The hourly amounts are catalog estimates based on base Modal GPU prices. They
 exclude CPU gateway usage, storage, network charges, and taxes. The current
 `routing_region` setting routes requests and does not itself add a
 compute-region multiplier; such a multiplier would need to be included if
-`compute_region` were constrained later. The three live routes have a combined
-base GPU ceiling of `$11.0304/hour`. The next budgeted release adds
-`mn/ornith-397b`; the four-model ceiling is `$20.1096/hour`, and five idle
-minutes across all four cost about `$1.6758` before other charges.
+`compute_region` were constrained later. The three enabled source profiles
+have a combined base GPU ceiling of `$11.0304/hour`. If the disabled 397B profile
+were separately reviewed and enabled, the four-model ceiling would be
+`$20.1096/hour`, and five idle minutes across all four would cost about
+`$1.6758` before other charges. These are hypothetical risk ceilings, not
+current usage or proof that any application is deployed.
 
-The four-model figure is the next-release risk ceiling, not current usage:
-live `v0.3.1` has only three hard-stopped routes.
-
-## `mn/god`: documented compatibility fallback
+## `huihui-ai/Huihui-Qwen3.6-35B-A3B-abliterated`: documented compatibility fallback
 
 The originally selected checkpoint is:
 
@@ -45,13 +49,13 @@ The originally selected checkpoint is:
 - base model [`Qwen/Qwen3.6-35B-A3B`](https://huggingface.co/Qwen/Qwen3.6-35B-A3B)
 
 That pin declares the architecture `Qwen3_5MoeForCausalLM`, which is not
-registered by the selected vLLM 0.21 runtime. MN therefore currently deploys
-the Huihui checkpoint listed in the runtime table. Its pin declares the
-compatible `Qwen3_5MoeForConditionalGeneration` architecture.
+registered by the selected vLLM 0.21 runtime. The prepared MN profile therefore
+selects the Huihui checkpoint listed in the runtime table. Its pin declares
+the compatible `Qwen3_5MoeForConditionalGeneration` architecture.
 
 This is a technical fallback, not an equivalence claim:
 
-- `mn/god` must be identified as the Huihui runtime artifact in deployment and
+- `huihui-ai/Huihui-Qwen3.6-35B-A3B-abliterated` must be identified as the Huihui runtime artifact in deployment and
   release records.
 - Results, behavior, safety characteristics, or benchmarks from the WWT
   checkpoint must not be attributed to the Huihui checkpoint.
@@ -68,7 +72,7 @@ direct public-facing commercial deployment. These statements must remain
 visible in any commercial-clearance review even though the repository metadata
 labels the weights Apache-2.0.
 
-## `mn/code`: Ornith attribution chain
+## `YuYu1015/YuYu1015-Ornith-1.0-35B-abliterated`: Ornith attribution chain
 
 The runtime artifact is the exact YuYu pin shown in the catalog. Its Hugging
 Face metadata declares Apache-2.0 and identifies
@@ -87,15 +91,15 @@ retain:
   artifacts.
 
 Benchmarks reported by DeepReinforce for the aligned Ornith base are not
-benchmarks of the YuYu abliterated derivative or of the deployed MN service.
+benchmarks of the YuYu abliterated derivative or of an MN endpoint.
 
-## `mn/ornith-397b`: retained large-model record
+## `cebeuq/Ornith-1.0-397B-abliterated-W4A16`: retained large-model record
 
 The retained large-model artifact is:
 
 - [`cebeuq/Ornith-1.0-397B-abliterated-W4A16`](https://huggingface.co/cebeuq/Ornith-1.0-397B-abliterated-W4A16)
 - revision `e5651d291be1c65ff1360eee47ab533ab13b3d97`
-- public MN ID `mn/ornith-397b`
+- public MN ID `cebeuq/Ornith-1.0-397B-abliterated-W4A16`
 - reserved legacy alias `nuri/ornith-397b-abliterated`
 - MIT license metadata
 - base model
@@ -122,16 +126,17 @@ historical and must not be restored without exact-runtime tests. Pi may
 advertise reasoning support, but clients must still handle the model's
 reasoning output correctly.
 
-This model is prepared with `deployment_enabled=true` for the next budgeted
-release. That release deploys a static scale-to-zero backend and adds it to the
-gateway and agent catalogs, but leaves it hard-stopped. CLI start, auto, wake,
-and launch operations require explicit `--allow-expensive` acknowledgement
-before state mutation. Its estimated two-H200 rate is `$9.0792/hour`,
+This model is prepared with `deployment_enabled=false`. The deployment script
+must refuse to deploy the catalog while that policy remains false. A future,
+separately reviewed and signed budget-approved change may enable it. Even then,
+CLI start, auto, wake, and launch operations require explicit
+`--allow-expensive` acknowledgement before state mutation. Its estimated
+two-H200 rate is `$9.0792/hour`,
 `$0.15132/minute`, or `$0.7566` for a five-minute idle tail.
 
-The release workflow refuses to begin unless
-`MN_RELEASE_ORNITH397=I_ACCEPT_2XH200` is set. With that acknowledgement and a
-confirmed Workspace hard budget, it deploys all four backends and runs ordinary
+The release workflow refuses to begin unless both the tracked policy is
+explicitly enabled and `MN_RELEASE_ORNITH397=I_ACCEPT_2XH200` is set. A future
+approved release must also confirm the Workspace hard budget and run ordinary
 text, streaming, forced structured tool calling, at least one text-plus-image
 397B smoke test, scale-to-zero observation, and hard-stop verification.
 
@@ -139,7 +144,7 @@ The earlier `nuri-ornith-397b` prototype used the same pinned artifact, but
 that historical app is stopped. Keeping a source record does not reactivate or
 redeploy that app.
 
-## `mn/fast`: Qwythos attribution and context caveat
+## `huihui-ai/Huihui-Qwythos-9B-Claude-Mythos-5-1M-abliterated`: Qwythos attribution and context caveat
 
 The runtime artifact is the exact Huihui Qwythos pin shown in the catalog. Its
 metadata declares Apache-2.0 and identifies
@@ -156,7 +161,7 @@ traces. Apache-2.0 weight metadata does not by itself establish rights to every
 training-data source or clear the model for resale. Obtain legal and
 contractual review before public commercial use.
 
-The `1M` name is not the current MN deployment limit. The catalog serves
+The `1M` name is not the prepared MN endpoint limit. The catalog configures
 131,072 tokens. Do not advertise a one-million-token MN context until the exact
 pinned artifact, vLLM configuration, hardware, latency, and memory behavior
 have been tested at that size.

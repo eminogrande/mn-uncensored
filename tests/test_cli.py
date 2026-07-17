@@ -1,21 +1,22 @@
 from __future__ import annotations
 
+import json
 from types import SimpleNamespace
 
 import pytest
 
 from mn_uncensored import cli
-from mn_uncensored.settings import ModelSettings, Settings
+from mn_uncensored.settings import ModelSettings, Settings, load_settings
 
 
 def model_settings(key: str) -> ModelSettings:
     names = {
-        "god": ("God", "mn/god", "mn-god", "GodServer"),
-        "code": ("Code", "mn/code", "mn-code", "CodeServer"),
-        "fast": ("Fast", "mn/fast", "mn-fast", "FastServer"),
+        "qwen36": ("Qwen3.6", "test/qwen36", "qwen36-app", "Qwen36Server"),
+        "ornith35": ("Ornith 35B", "test/ornith35", "ornith35-app", "Ornith35Server"),
+        "qwythos9": ("Qwythos 9B", "test/qwythos9", "qwythos9-app", "Qwythos9Server"),
         "ornith397": (
             "Ornith 397B",
-            "mn/ornith-397b",
+            "test/ornith397",
             "mn-ornith-397b",
             "Ornith397Server",
         ),
@@ -24,9 +25,9 @@ def model_settings(key: str) -> ModelSettings:
     is_large = key == "ornith397"
     return ModelSettings(
         aliases=(
-            ("nuri/ornith-397b-abliterated",)
+            ("mn/ornith-397b", "nuri/ornith-397b-abliterated")
             if is_large
-            else (f"{key}-alias",)
+            else (f"mn/{key}", f"{key}-alias")
         ),
         app_name=app_name,
         backend_url=f"https://{key}.example",
@@ -61,12 +62,12 @@ def model_settings(key: str) -> ModelSettings:
 
 def settings() -> Settings:
     return Settings(
-        default_model="god",
+        default_model="qwen36",
         gateway_url="https://gateway.example",
         idle_shutdown_seconds=300,
         models={
             key: model_settings(key)
-            for key in ("god", "code", "fast", "ornith397")
+            for key in ("qwen36", "ornith35", "qwythos9", "ornith397")
         },
         state_dict="test-state",
     )
@@ -98,7 +99,7 @@ def desired_state(state: FakeState, key: str) -> str:
 def test_hermes_launcher_uses_selected_model(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    selected = settings().models["code"]
+    selected = settings().models["ornith35"]
     captured: dict[str, object] = {}
     config_calls: list[list[str]] = []
 
@@ -125,7 +126,7 @@ def test_hermes_launcher_uses_selected_model(
         "--provider",
         "custom:mn-uncensored",
         "--model",
-        "mn/code",
+        "test/ornith35",
         "--tui",
         "--yolo",
     ]
@@ -139,7 +140,7 @@ def test_hermes_launcher_uses_selected_model(
         call[-1]
         for call in config_calls
         if call[-2] == "providers.mn-uncensored.default_model"
-    ] == ["mn/code"]
+    ] == ["test/ornith35"]
     assert config_calls[0][-2:] == [
         "providers.mn-uncensored.api",
         "https://gateway.example/v1",
@@ -159,11 +160,46 @@ def test_command_launch_passes_selected_model_to_hermes(
     )
 
     cli.command_launch(
-        SimpleNamespace(model="code", tool="hermes", tool_args=[]),
+        SimpleNamespace(model="ornith35", tool="hermes", tool_args=[]),
         settings(),
     )
 
-    assert selected == ["code"]
+    assert selected == ["ornith35"]
+
+
+def test_opencode_uses_exact_hugging_face_model_id(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    catalog = load_settings()
+    selected = catalog.models["ornith35"]
+    captured: dict[str, object] = {}
+
+    def fake_exec_tool(command: list[str], environment: dict[str, str]) -> None:
+        captured.update(command=command, environment=environment)
+        raise RuntimeError("exec intercepted")
+
+    monkeypatch.setattr(cli, "exec_tool", fake_exec_tool)
+
+    with pytest.raises(RuntimeError, match="exec intercepted"):
+        cli.launch_opencode(["--continue"], catalog, selected, "sk-mn-owner")
+
+    model_id = "YuYu1015/YuYu1015-Ornith-1.0-35B-abliterated"
+    provider_model = f"mn/{model_id}"
+    assert captured["command"] == [
+        "opencode",
+        "-m",
+        provider_model,
+        "--continue",
+    ]
+    environment = captured["environment"]
+    assert isinstance(environment, dict)
+    assert environment["MN_API_TOKEN"] == "sk-mn-owner"
+    config = json.loads(environment["OPENCODE_CONFIG_CONTENT"])
+    assert config["model"] == provider_model
+    assert list(config["provider"]["mn"]["models"]) == [model_id]
+    assert config["provider"]["mn"]["models"][model_id]["name"] == (
+        "Ornith 1.0 35B — Abliterated"
+    )
 
 
 def test_expensive_model_cannot_be_started_without_acknowledgement() -> None:
@@ -195,9 +231,9 @@ def test_stop_only_resets_selected_model(
 ) -> None:
     state = FakeState(
         {
-            "god": "auto",
-            "code": "started",
-            "fast": "stopped",
+            "qwen36": "auto",
+            "ornith35": "started",
+            "qwythos9": "stopped",
             "ornith397": "auto",
         }
     )
@@ -216,13 +252,13 @@ def test_stop_only_resets_selected_model(
         lambda model: reset_models.append(model.key),
     )
 
-    cli.command_stop(SimpleNamespace(model="code"), settings())
+    cli.command_stop(SimpleNamespace(model="ornith35"), settings())
 
-    assert checked_models == ["code"]
-    assert reset_models == ["code"]
-    assert desired_state(state, "god") == "auto"
-    assert desired_state(state, "code") == "stopped"
-    assert desired_state(state, "fast") == "stopped"
+    assert checked_models == ["ornith35"]
+    assert reset_models == ["ornith35"]
+    assert desired_state(state, "qwen36") == "auto"
+    assert desired_state(state, "ornith35") == "stopped"
+    assert desired_state(state, "qwythos9") == "stopped"
     assert desired_state(state, "ornith397") == "auto"
 
 
@@ -238,7 +274,7 @@ def test_static_reset_retries_transient_modal_rollover(
     )
     monkeypatch.setattr(cli.time, "sleep", sleeps.append)
 
-    cli.reset_backend_to_static(settings().models["code"])
+    cli.reset_backend_to_static(settings().models["ornith35"])
 
     assert sleeps == [3]
 
@@ -254,7 +290,7 @@ def test_static_reset_fails_after_retry(
     monkeypatch.setattr(cli.time, "sleep", lambda _seconds: None)
 
     with pytest.raises(SystemExit):
-        cli.reset_backend_to_static(settings().models["code"])
+        cli.reset_backend_to_static(settings().models["ornith35"])
 
 
 def test_auto_redeploys_selected_scale_to_zero_backend(
@@ -262,9 +298,9 @@ def test_auto_redeploys_selected_scale_to_zero_backend(
 ) -> None:
     state = FakeState(
         {
-            "god": "stopped",
-            "code": "stopped",
-            "fast": "stopped",
+            "qwen36": "stopped",
+            "ornith35": "stopped",
+            "qwythos9": "stopped",
             "ornith397": "stopped",
         }
     )
@@ -278,19 +314,19 @@ def test_auto_redeploys_selected_scale_to_zero_backend(
     )
     monkeypatch.setattr(cli, "enforce_scale_to_zero", lambda *_args: None)
 
-    cli.command_auto(SimpleNamespace(model="code"), settings())
+    cli.command_auto(SimpleNamespace(model="ornith35"), settings())
 
-    assert deployments == [("code", "auto-lifecycle")]
-    assert desired_state(state, "god") == "stopped"
-    assert desired_state(state, "code") == "auto"
-    assert desired_state(state, "fast") == "stopped"
+    assert deployments == [("ornith35", "auto-lifecycle")]
+    assert desired_state(state, "qwen36") == "stopped"
+    assert desired_state(state, "ornith35") == "auto"
+    assert desired_state(state, "qwythos9") == "stopped"
     assert desired_state(state, "ornith397") == "stopped"
 
 
 def test_auto_deploy_failure_stays_fail_closed(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    state = FakeState({"code": "stopped"})
+    state = FakeState({"ornith35": "stopped"})
     monkeypatch.setattr(cli, "state_dict", lambda _settings: state)
     monkeypatch.setattr(cli, "backend_app_is_stopped", lambda _model: True)
     monkeypatch.setattr(
@@ -300,15 +336,15 @@ def test_auto_deploy_failure_stays_fail_closed(
     )
 
     with pytest.raises(SystemExit):
-        cli.command_auto(SimpleNamespace(model="code"), settings())
+        cli.command_auto(SimpleNamespace(model="ornith35"), settings())
 
-    assert desired_state(state, "code") == "stopped"
+    assert desired_state(state, "ornith35") == "stopped"
 
 
 def test_auto_reapplies_scale_to_zero_to_deployed_backend(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    state = FakeState({"code": "auto"})
+    state = FakeState({"ornith35": "auto"})
     enforced: list[str] = []
     monkeypatch.setattr(cli, "state_dict", lambda _settings: state)
     monkeypatch.setattr(cli, "backend_app_is_stopped", lambda _model: False)
@@ -318,10 +354,10 @@ def test_auto_reapplies_scale_to_zero_to_deployed_backend(
         lambda model, _settings: enforced.append(model.key),
     )
 
-    cli.command_auto(SimpleNamespace(model="code"), settings())
+    cli.command_auto(SimpleNamespace(model="ornith35"), settings())
 
-    assert enforced == ["code"]
-    assert desired_state(state, "code") == "auto"
+    assert enforced == ["ornith35"]
+    assert desired_state(state, "ornith35") == "auto"
 
 
 def test_scale_to_zero_policy_never_keeps_a_warm_container(
@@ -339,7 +375,7 @@ def test_scale_to_zero_policy_never_keeps_a_warm_container(
         lambda *_args: FakeServer(),
     )
 
-    cli.enforce_scale_to_zero(settings().models["god"], settings())
+    cli.enforce_scale_to_zero(settings().models["qwen36"], settings())
 
     assert captured == {
         "min_containers": 0,
@@ -351,7 +387,7 @@ def test_scale_to_zero_policy_never_keeps_a_warm_container(
 def test_auto_policy_failure_is_fail_closed(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    state = FakeState({"code": "auto"})
+    state = FakeState({"ornith35": "auto"})
     monkeypatch.setattr(cli, "state_dict", lambda _settings: state)
     monkeypatch.setattr(cli, "backend_app_is_stopped", lambda _model: False)
     monkeypatch.setattr(
@@ -361,9 +397,9 @@ def test_auto_policy_failure_is_fail_closed(
     )
 
     with pytest.raises(RuntimeError, match="Modal failure"):
-        cli.command_auto(SimpleNamespace(model="code"), settings())
+        cli.command_auto(SimpleNamespace(model="ornith35"), settings())
 
-    assert desired_state(state, "code") == "stopped"
+    assert desired_state(state, "ornith35") == "stopped"
 
 
 def test_start_arms_auto_and_wakes_selected_model(
@@ -384,9 +420,9 @@ def test_start_arms_auto_and_wakes_selected_model(
         ),
     )
 
-    cli.command_start(SimpleNamespace(model="code"), settings())
+    cli.command_start(SimpleNamespace(model="ornith35"), settings())
 
-    assert events == [("auto", "code"), ("wake:code", "sk-owner")]
+    assert events == [("auto", "ornith35"), ("wake:ornith35", "sk-owner")]
 
 
 def test_expensive_start_passes_acknowledgement_to_auto(
@@ -427,10 +463,10 @@ def test_wake_uses_selected_model_query(
 
     monkeypatch.setattr(cli.httpx, "post", fake_post)
 
-    cli.wake_model(settings(), settings().models["fast"], "sk-owner")
+    cli.wake_model(settings(), settings().models["qwythos9"], "sk-owner")
 
     assert captured["url"] == "https://gateway.example/wake"
-    assert captured["params"] == {"model": "mn/fast"}
+    assert captured["params"] == {"model": "test/qwythos9"}
     assert captured["headers"] == {"Authorization": "Bearer sk-owner"}
     assert captured["timeout"] == 45 * 60
     assert captured["follow_redirects"] is True
@@ -438,11 +474,11 @@ def test_wake_uses_selected_model_query(
 
 def test_launch_parser_accepts_model_before_tool() -> None:
     args = cli.build_parser().parse_args(
-        ["launch", "--model", "code", "hermes", "--yolo"]
+        ["launch", "--model", "ornith35", "hermes", "--yolo"]
     )
 
     assert args.command == "launch"
-    assert args.model == "code"
+    assert args.model == "ornith35"
     assert args.tool == "hermes"
     assert args.tool_args == ["--yolo"]
 
@@ -453,8 +489,8 @@ def test_start_parser_requires_explicit_model() -> None:
     with pytest.raises(SystemExit):
         parser.parse_args(["start"])
 
-    args = parser.parse_args(["start", "fast"])
-    assert args.model == "fast"
+    args = parser.parse_args(["start", "qwythos9"])
+    assert args.model == "qwythos9"
 
     expensive = parser.parse_args(
         ["start", "ornith397", "--allow-expensive"]
@@ -469,5 +505,5 @@ def test_auto_parser_requires_explicit_model() -> None:
     with pytest.raises(SystemExit):
         parser.parse_args(["auto"])
 
-    args = parser.parse_args(["auto", "code"])
-    assert args.model == "code"
+    args = parser.parse_args(["auto", "ornith35"])
+    assert args.model == "ornith35"

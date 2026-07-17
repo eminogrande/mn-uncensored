@@ -9,7 +9,7 @@ edge layer for the final `abliterated.cloud` deployment.
 - high PageSpeed performance without a build framework;
 - complete semantic content in the initial HTML response;
 - responsive and accessible design;
-- exact model, status, price, and licensing transparency;
+- exact model, API ID, price, and licensing transparency;
 - agent-readable Markdown, `llms.txt`, OpenAPI, authentication, skill, robots,
   sitemap, and security resources;
 - no analytics, advertising, external fonts, cookies, secrets, inference API

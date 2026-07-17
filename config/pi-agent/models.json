@@ -1,7 +1,7 @@
 {
   "providers": {
     "mn": {
-      "baseUrl": "https://eminhenri--mn-uncensored-api-api.modal.run/v1",
+      "baseUrl": "https://eminhenri--abliterated-cloud-api-api.modal.run/v1",
       "api": "openai-completions",
       "apiKey": "$MN_API_TOKEN",
       "compat": {
@@ -10,8 +10,8 @@
       },
       "models": [
         {
-          "id": "mn/god",
-          "name": "MN God — Qwen3.6 35B A3B Abliterated",
+          "id": "huihui-ai/Huihui-Qwen3.6-35B-A3B-abliterated",
+          "name": "Qwen3.6 35B A3B — Abliterated",
           "reasoning": true,
           "input": [
             "text"
@@ -26,8 +26,8 @@
           }
         },
         {
-          "id": "mn/code",
-          "name": "MN Code — Ornith 35B Abliterated",
+          "id": "YuYu1015/YuYu1015-Ornith-1.0-35B-abliterated",
+          "name": "Ornith 1.0 35B — Abliterated",
           "reasoning": true,
           "input": [
             "text"
@@ -42,8 +42,8 @@
           }
         },
         {
-          "id": "mn/fast",
-          "name": "MN Fast — Qwythos 9B Abliterated",
+          "id": "huihui-ai/Huihui-Qwythos-9B-Claude-Mythos-5-1M-abliterated",
+          "name": "Qwythos 9B Claude Mythos 5 — Abliterated",
           "reasoning": true,
           "input": [
             "text"
@@ -58,8 +58,8 @@
           }
         },
         {
-          "id": "mn/ornith-397b",
-          "name": "MN Ornith 397B — Ornith 1.0 397B Abliterated W4A16",
+          "id": "cebeuq/Ornith-1.0-397B-abliterated-W4A16",
+          "name": "Ornith 1.0 397B W4A16 — Abliterated",
           "reasoning": true,
           "input": [
             "text",

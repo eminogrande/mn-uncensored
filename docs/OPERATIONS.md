@@ -14,22 +14,26 @@ Before any GPU test:
 1. set a Modal Workspace hard budget at
    <https://modal.com/settings/usage>;
 2. select exactly one model;
-3. prefer `fast` for initial testing;
+3. prefer `qwythos9` for initial testing;
 4. stop it explicitly after the session;
 5. inspect the Modal billing report and running containers.
 
-`mn/ornith-397b` is the expensive fourth route for the next budgeted release.
-It uses two H200s. CLI start, auto, wake, and launch operations require
-`--allow-expensive`; the interactive menu requires typing `ornith397`.
-Live `v0.3.1` still has only three routes and no running GPU.
+`cebeuq/Ornith-1.0-397B-abliterated-W4A16` is the expensive retained fourth
+profile. It uses two H200s and is intentionally blocked with
+`deployment_enabled=false`. CLI start, auto, wake, and launch operations would
+also require `--allow-expensive`; the source record alone does not deploy or
+start it.
+
+The commands below document the intended operating interface after a reviewed
+deployment. Preparing or reading this runbook does not create a Modal app.
 
 Safe session:
 
 ```sh
-mn start fast
+mn start qwythos9
 # use the API or agent
-mn stop fast
-mn status fast
+mn stop qwythos9
+mn status qwythos9
 ```
 
 `mn start MODEL` no longer creates a permanent warm container. It enforces
@@ -48,21 +52,23 @@ Hermes / Pi / OpenCode / Cursor / friends
                   |
         Bearer sk-mn-* token
                   |
-      MN CPU gateway (Modal Function)
-          /          |          \
-     mn/god       mn/code      mn/fast
-     H200           H200         L40S
+      abliterated-cloud-api (prepared gateway)
+          /                 |                 \
+ huihui-qwen3-6-35b-a3b-abliterated | yuyu1015-ornith-1-0-35b-abliterated | huihui-qwythos-9b-claude-mythos-5-1m-abliterated
+          H200              |          H200             |          L40S
 ```
 
-The current live `v0.3.1` gateway selects one of three deployed backends. The
-next budgeted release adds the fourth. Each backend is a separate Modal app with
+Each enabled backend definition is a separate Modal app with
 `min_containers=0`, `max_containers=1`, and a 300-second scale-down window.
+The names above are the prepared names; applying them to the Modal dashboard
+requires a separate deployment and is intentionally outside this source-only
+change.
 
-The source catalog also retains `mn/ornith-397b`, pinned to
+The source catalog also retains `cebeuq/Ornith-1.0-397B-abliterated-W4A16`, pinned to
 [`cebeuq/Ornith-1.0-397B-abliterated-W4A16`](https://huggingface.co/cebeuq/Ornith-1.0-397B-abliterated-W4A16)
-at revision `e5651d291be1c65ff1360eee47ab533ab13b3d97`. It has no current
-live `v0.3.1` gateway route; `deployment_enabled=true` prepares it for the next
-budgeted release.
+at revision `e5651d291be1c65ff1360eee47ab533ab13b3d97`. Its prepared Modal app
+name is `cebeuq-ornith-1-0-397b-abliterated-w4a16`, but
+`deployment_enabled=false` prevents it from entering the deployable model set.
 
 An authenticated request in `auto` mode triggers only the requested model,
 waits through Modal's empty cold-start 503, and retries the original request
@@ -97,10 +103,10 @@ to the tracked catalog.
 ## Catalog configuration
 
 `config/mn.json` is the tracked source catalog and contains all four pinned
-profiles, including the budget-gated `mn/ornith-397b` record. A catalog model
+profiles, including the budget-gated `cebeuq/Ornith-1.0-397B-abliterated-W4A16` record. A catalog model
 contains:
 
-- public MN ID and display name;
+- short CLI key, exact API/Hugging Face ID, aliases, and display name;
 - explicit `deployment_enabled` policy;
 - exact Hugging Face repository and 40-character revision;
 - independent Modal app and backend URL;
@@ -109,17 +115,17 @@ contains:
 - vLLM reasoning and tool parsers;
 - lifecycle and cache behavior.
 
-`Settings.deployed_models` supplies all four prepared profiles to the next
-gateway and release workflow. The release has a separate two-H200 acceptance
-gate before it deploys anything. The selected non-secret profile key is also
+`Settings.deployed_models` supplies only the three enabled profiles to gateway
+and release workflows. The disabled 397B profile remains visible in the source
+catalog but must not be deployed. The selected non-secret profile key is also
 baked into that model's Modal image so the container resolves the same profile
 when it imports the module at runtime.
 
-The fourth route is guarded consistently by the CLI and release workflow.
-`--allow-expensive` acknowledges individual lifecycle operations. A full
-release requires the exact environment acknowledgement
-`MN_RELEASE_ORNITH397=I_ACCEPT_2XH200`; without it, the release exits before
-deploying any model.
+The fourth route is guarded consistently by source policy, CLI, and release
+workflow. A catalog release must fail while `deployment_enabled=false`.
+If a future signed budget-approved change enables it, `--allow-expensive`
+acknowledges individual lifecycle operations and a full release additionally
+requires `MN_RELEASE_ORNITH397=I_ACCEPT_2XH200`.
 Its retained serving profile uses `qwen3_xml`, `qwen3` reasoning with thinking
 disabled by default, `language_model_only=false`, and
 `prefix_caching=false`. These choices reflect the pinned chat template and
@@ -142,20 +148,20 @@ mn stop
 Operate one model:
 
 ```sh
-mn start code
-mn status code
-mn wake code
-mn auto code
-mn stop code
+mn start ornith35
+mn status ornith35
+mn wake ornith35
+mn auto ornith35
+mn stop ornith35
 ```
 
-`mn start code` is equivalent to safely arming `code` and waking it once. It
+`mn start ornith35` is equivalent to safely arming `ornith35` and waking it once. It
 does not set a warm-container floor.
 
 Arm a route without starting a GPU:
 
 ```sh
-mn auto code
+mn auto ornith35
 ```
 
 Operate or inspect the full catalog:
@@ -190,14 +196,14 @@ Git tree and a verified signed HEAD commit.
 ## Agent launchers
 
 ```sh
-mn start fast
-mn launch --model fast hermes
-mn stop fast
+mn start qwythos9
+mn launch --model qwythos9 hermes
+mn stop qwythos9
 
-mn start code
-mn launch --model code hermes --yolo
-mn launch --model code opencode
-mn stop code
+mn start ornith35
+mn launch --model ornith35 hermes --yolo
+mn launch --model ornith35 opencode
+mn stop ornith35
 ```
 
 The selected model ID, model-specific context/output limits, endpoint, and
@@ -229,7 +235,9 @@ The `catalog` target:
 1. verifies Git signing configuration;
 2. runs the full test suite and secret scan;
 3. extracts the matching curated section from `CHANGELOG.md`;
-4. deploys `god`, `code`, `fast`, and `ornith397` as separate Modal apps;
+4. verifies that `ornith397` was explicitly enabled by a signed,
+   budget-approved change, then deploys `qwen36`, `ornith35`, `qwythos9`, and
+   `ornith397` as separate Modal apps;
 5. deploys the shared gateway;
 6. arms, tests, and hard-stops each route individually;
 7. creates a signed annotated tag;
@@ -251,15 +259,18 @@ and hard-stops that route before moving to the next. It finishes with all
 models hard-stopped. A failed smoke test triggers a best-effort hard stop and
 no tag or GitHub release is created.
 
-The next `catalog` release deploys and smoke-tests all four routes only when:
+The `catalog` release deploys and smoke-tests all four routes only after a
+signed change sets `ornith397.deployment_enabled=true` and the operator also
+provides:
 
 ```sh
 MN_RELEASE_ORNITH397=I_ACCEPT_2XH200 \
   ./scripts/deploy-release.sh catalog v1.2.3
 ```
 
-Without that exact value, the release refuses to begin. The operator must
-confirm the Workspace hard budget first.
+With the tracked policy still false, the release refuses to begin even if the
+environment value is present. The operator must confirm the Workspace hard
+budget before changing either gate.
 
 ## Verification
 
@@ -270,24 +281,24 @@ curl "$MN_GATEWAY_URL/v1/models" \
   -H "Authorization: Bearer $MN_API_TOKEN"
 ```
 
-Expected IDs:
+Expected IDs for the three enabled prepared profiles:
 
 ```text
-mn/god
-mn/code
-mn/fast
-mn/ornith-397b
+huihui-ai/Huihui-Qwen3.6-35B-A3B-abliterated
+YuYu1015/YuYu1015-Ornith-1.0-35B-abliterated
+huihui-ai/Huihui-Qwythos-9B-Claude-Mythos-5-1M-abliterated
 ```
 
-Live `v0.3.1` currently returns only the first three. The next successfully
-validated four-model release must return all four.
+After a future reviewed 397B enablement and successful validation,
+`cebeuq/Ornith-1.0-397B-abliterated-W4A16` becomes the fourth exact API ID.
+Legacy `mn/*` values are compatibility aliases only.
 
 Test each selected model:
 
 ```sh
-.venv/bin/python test_endpoint.py god
-.venv/bin/python test_endpoint.py code
-.venv/bin/python test_endpoint.py fast
+.venv/bin/python test_endpoint.py qwen36
+.venv/bin/python test_endpoint.py ornith35
+.venv/bin/python test_endpoint.py qwythos9
 .venv/bin/python test_endpoint.py ornith397
 ```
 
@@ -327,13 +338,14 @@ remain authoritative.
 Base estimates:
 
 ```text
-mn/god          1 x H200  $4.5396/hour
-mn/code         1 x H200  $4.5396/hour
-mn/fast         1 x L40S  $1.9512/hour
-deployed three            $11.0304/hour
+huihui-ai/Huihui-Qwen3.6-35B-A3B-abliterated          1 x H200  $4.5396/hour
+YuYu1015/YuYu1015-Ornith-1.0-35B-abliterated          1 x H200  $4.5396/hour
+huihui-ai/Huihui-Qwythos-9B-Claude-Mythos-5-1M-abliterated
+                                                        1 x L40S  $1.9512/hour
+enabled source profiles                                           $11.0304/hour
 
-mn/ornith-397b  2 x H200  $9.0792/hour  next release, explicit acknowledgement
-all four                  $20.1096/hour
+cebeuq/Ornith-1.0-397B-abliterated-W4A16   2 x H200  $9.0792/hour  disabled
+hypothetical all four                                      $20.1096/hour
 ```
 
 Cold starts, inference, queued work, and each model's five-minute idle window
@@ -343,7 +355,8 @@ The one-container limit applies per model, not across the workspace. Configure
 a Modal Workspace hard budget before any further GPU testing.
 
 Five-minute base GPU tails are approximately `$0.3783` for either one-H200
-route, `$0.1626` for `mn/fast`, `$0.7566` for the dormant two-H200 397B
-profile, `$0.9192` for live `v0.3.1`'s three routes, and `$1.6758` for all
-four after the next release. The four-model amount is a risk ceiling, not
-evidence of a currently running 397B backend.
+route, `$0.1626` for
+`huihui-ai/Huihui-Qwythos-9B-Claude-Mythos-5-1M-abliterated`, `$0.7566` for
+the disabled two-H200 397B profile, `$0.9192` for the three enabled profiles,
+and `$1.6758` for a hypothetical all-four deployment. These are risk ceilings,
+not evidence of current usage.

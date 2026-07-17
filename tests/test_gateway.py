@@ -13,38 +13,42 @@ from mn_uncensored.security import token_key
 
 
 TOKEN = "sk-mn-test-token"
+QWEN36 = "huihui-ai/Huihui-Qwen3.6-35B-A3B-abliterated"
+ORNITH35 = "YuYu1015/YuYu1015-Ornith-1.0-35B-abliterated"
+QWYTHOS9 = "huihui-ai/Huihui-Qwythos-9B-Claude-Mythos-5-1M-abliterated"
+ORNITH397 = "cebeuq/Ornith-1.0-397B-abliterated-W4A16"
 MODELS: dict[str, dict[str, Any]] = {
-    "god": {
-        "aliases": [],
+    "qwen36": {
+        "aliases": ["mn/god"],
         "backend_url": "https://god.backend.example",
         "context_window": 262144,
-        "lifecycle_key": "model:god:lifecycle",
+        "lifecycle_key": "model:qwen36:lifecycle",
         "max_output_tokens": 32768,
-        "model": "mn/god",
+        "model": QWEN36,
     },
-    "code": {
-        "aliases": ["ornith-code"],
+    "ornith35": {
+        "aliases": ["mn/code", "ornith-code"],
         "backend_url": "https://code.backend.example",
         "context_window": 131072,
-        "lifecycle_key": "model:code:lifecycle",
+        "lifecycle_key": "model:ornith35:lifecycle",
         "max_output_tokens": 16384,
-        "model": "mn/code",
+        "model": ORNITH35,
     },
-    "fast": {
-        "aliases": [],
+    "qwythos9": {
+        "aliases": ["mn/fast"],
         "backend_url": "https://fast.backend.example",
         "context_window": 65536,
-        "lifecycle_key": "model:fast:lifecycle",
+        "lifecycle_key": "model:qwythos9:lifecycle",
         "max_output_tokens": 8192,
-        "model": "mn/fast",
+        "model": QWYTHOS9,
     },
     "ornith397": {
-        "aliases": ["nuri/ornith-397b-abliterated"],
+        "aliases": ["mn/ornith-397b", "nuri/ornith-397b-abliterated"],
         "backend_url": "https://ornith397.backend.example",
         "context_window": 32768,
         "lifecycle_key": "model:ornith397:lifecycle",
         "max_output_tokens": 8192,
-        "model": "mn/ornith-397b",
+        "model": ORNITH397,
     },
 }
 
@@ -82,7 +86,7 @@ def client_for(
     app = create_app(
         state=state or FakeState(values),
         models=MODELS,
-        default_model="god",
+        default_model="qwen36",
         proxy_key="proxy-key",
         proxy_secret="proxy-secret",
     )
@@ -134,9 +138,9 @@ def test_models_list_all_catalog_entries_without_waking_backends(
     monkeypatch.setattr(gateway.httpx, "AsyncClient", BackendMustNotStart)
     with client_for(
         state_values(
-            god="stopped",
-            code="stopped",
-            fast="stopped",
+            qwen36="stopped",
+            ornith35="stopped",
+            qwythos9="stopped",
             ornith397="stopped",
         )
     ) as client:
@@ -145,10 +149,10 @@ def test_models_list_all_catalog_entries_without_waking_backends(
     assert response.status_code == 200
     data = response.json()["data"]
     assert [entry["id"] for entry in data] == [
-        "mn/god",
-        "mn/code",
-        "mn/fast",
-        "mn/ornith-397b",
+        QWEN36,
+        ORNITH35,
+        QWYTHOS9,
+        ORNITH397,
     ]
     assert {
         entry["id"]: (
@@ -157,15 +161,15 @@ def test_models_list_all_catalog_entries_without_waking_backends(
         )
         for entry in data
     } == {
-        "mn/god": (262144, 32768),
-        "mn/code": (131072, 16384),
-        "mn/fast": (65536, 8192),
-        "mn/ornith-397b": (32768, 8192),
+        QWEN36: (262144, 32768),
+        ORNITH35: (131072, 16384),
+        QWYTHOS9: (65536, 8192),
+        ORNITH397: (32768, 8192),
     }
 
 
 def test_status_reports_isolated_model_lifecycles() -> None:
-    values = state_values(god="auto", code="stopped", fast="started")
+    values = state_values(qwen36="auto", ornith35="stopped", qwythos9="started")
     with client_for(values) as client:
         all_response = client.get("/status", headers=auth_headers())
         code_response = client.get(
@@ -179,17 +183,46 @@ def test_status_reports_isolated_model_lifecycles() -> None:
         entry["model"]: entry["state"]
         for entry in all_response.json()["data"]
     } == {
-        "mn/god": "auto",
-        "mn/code": "stopped",
-        "mn/fast": "started",
-        "mn/ornith-397b": "stopped",
+        QWEN36: "auto",
+        ORNITH35: "stopped",
+        QWYTHOS9: "started",
+        ORNITH397: "stopped",
     }
     assert code_response.json() == {
-        "model": "mn/code",
+        "model": ORNITH35,
         "state": "stopped",
         "updated_at": "2026-07-16T12:00:00Z",
         "ready": None,
     }
+
+
+@pytest.mark.parametrize(
+    ("requested", "canonical"),
+    [
+        (QWEN36, QWEN36),
+        ("mn/god", QWEN36),
+        (ORNITH35, ORNITH35),
+        ("mn/code", ORNITH35),
+        (QWYTHOS9, QWYTHOS9),
+        ("mn/fast", QWYTHOS9),
+        (ORNITH397, ORNITH397),
+        ("mn/ornith-397b", ORNITH397),
+        ("nuri/ornith-397b-abliterated", ORNITH397),
+    ],
+)
+def test_canonical_ids_and_legacy_aliases_resolve_to_exact_model(
+    requested: str,
+    canonical: str,
+) -> None:
+    with client_for(state_values()) as client:
+        response = client.get(
+            "/status",
+            headers=auth_headers(),
+            params={"model": requested},
+        )
+
+    assert response.status_code == 200
+    assert response.json()["model"] == canonical
 
 
 def test_default_model_uses_legacy_lifecycle_during_migration(
@@ -213,7 +246,7 @@ def test_default_model_uses_legacy_lifecycle_during_migration(
     assert RecordingSuccessClient.urls == [
         "https://god.backend.example/v1/chat/completions"
     ]
-    assert json.loads(RecordingSuccessClient.bodies[0])["model"] == "mn/god"
+    assert json.loads(RecordingSuccessClient.bodies[0])["model"] == QWEN36
 
 
 def test_stopped_model_returns_structured_503_without_backend_call(
@@ -224,7 +257,7 @@ def test_stopped_model_returns_structured_503_without_backend_call(
             raise AssertionError("stopped mode must not create an upstream client")
 
     monkeypatch.setattr(gateway.httpx, "AsyncClient", BackendMustNotStart)
-    values = state_values(god="auto", code="stopped", fast="auto")
+    values = state_values(qwen36="auto", ornith35="stopped", qwythos9="auto")
     with client_for(values) as client:
         response = client.post(
             "/v1/chat/completions",
@@ -234,7 +267,7 @@ def test_stopped_model_returns_structured_503_without_backend_call(
 
     assert response.status_code == 503
     assert response.json()["error"]["code"] == "model_stopped"
-    assert "mn/code" in response.json()["error"]["message"]
+    assert ORNITH35 in response.json()["error"]["message"]
     assert response.headers["retry-after"] == "15"
 
 
@@ -260,7 +293,7 @@ def test_unknown_and_non_string_models_fail_before_backend_creation(
             raise AssertionError("invalid models must not create an upstream client")
 
     monkeypatch.setattr(gateway.httpx, "AsyncClient", BackendMustNotStart)
-    values = state_values(god="auto", code="auto", fast="auto")
+    values = state_values(qwen36="auto", ornith35="auto", qwythos9="auto")
     with client_for(values) as client:
         missing = client.post(
             "/v1/chat/completions",
@@ -292,7 +325,7 @@ def test_output_limit_is_enforced_before_backend_creation(
             raise AssertionError("invalid output limits must not reach a backend")
 
     monkeypatch.setattr(gateway.httpx, "AsyncClient", BackendMustNotStart)
-    values = state_values(god="auto", code="auto", fast="auto")
+    values = state_values(qwen36="auto", ornith35="auto", qwythos9="auto")
     with client_for(values) as client:
         response = client.post(
             "/v1/chat/completions",
@@ -388,7 +421,7 @@ def test_routes_code_to_its_backend_and_rewrites_alias(
 ) -> None:
     RecordingSuccessClient.reset()
     monkeypatch.setattr(gateway.httpx, "AsyncClient", RecordingSuccessClient)
-    values = state_values(god="stopped", code="started", fast="stopped")
+    values = state_values(qwen36="stopped", ornith35="started", qwythos9="stopped")
     with client_for(values) as client:
         response = client.post(
             "/v1/chat/completions",
@@ -407,7 +440,7 @@ def test_routes_code_to_its_backend_and_rewrites_alias(
     assert RecordingSuccessClient.urls == [
         "https://code.backend.example/v1/chat/completions"
     ]
-    assert json.loads(RecordingSuccessClient.bodies[0])["model"] == "mn/code"
+    assert json.loads(RecordingSuccessClient.bodies[0])["model"] == ORNITH35
     upstream_headers = {
         key.lower(): value for key, value in RecordingSuccessClient.headers[0].items()
     }
@@ -437,9 +470,7 @@ def test_legacy_397b_alias_routes_to_large_backend(
     assert RecordingSuccessClient.urls == [
         "https://ornith397.backend.example/v1/chat/completions"
     ]
-    assert json.loads(RecordingSuccessClient.bodies[0])["model"] == (
-        "mn/ornith-397b"
-    )
+    assert json.loads(RecordingSuccessClient.bodies[0])["model"] == ORNITH397
 
 
 class ColdStartClient(RecordingSuccessClient):
@@ -487,7 +518,7 @@ def test_code_cold_start_polls_and_retries_only_code(
 
     monkeypatch.setattr(gateway.httpx, "AsyncClient", ColdStartClient)
     monkeypatch.setattr(gateway.asyncio, "sleep", fake_sleep)
-    values = state_values(god="stopped", code="auto", fast="auto")
+    values = state_values(qwen36="stopped", ornith35="auto", qwythos9="auto")
     with client_for(values) as client:
         response = client.post(
             "/v1/chat/completions",
@@ -505,7 +536,7 @@ def test_code_cold_start_polls_and_retries_only_code(
         "https://code.backend.example/v1/chat/completions",
     ]
     assert all(
-        json.loads(body)["model"] == "mn/code"
+        json.loads(body)["model"] == ORNITH35
         for body in ColdStartClient.bodies
     )
 
@@ -537,7 +568,7 @@ def test_cold_start_health_checks_use_exponential_backoff(
 
     monkeypatch.setattr(gateway.httpx, "AsyncClient", BackoffColdStartClient)
     monkeypatch.setattr(gateway.asyncio, "sleep", fake_sleep)
-    values = state_values(god="auto", code="auto", fast="auto")
+    values = state_values(qwen36="auto", ornith35="auto", qwythos9="auto")
     with client_for(values) as client:
         response = client.post(
             "/v1/chat/completions",
@@ -559,7 +590,7 @@ def test_wake_targets_only_requested_model(
 ) -> None:
     ColdStartClient.reset()
     monkeypatch.setattr(gateway.httpx, "AsyncClient", ColdStartClient)
-    values = state_values(god="stopped", code="stopped", fast="auto")
+    values = state_values(qwen36="stopped", ornith35="stopped", qwythos9="auto")
     with client_for(values) as client:
         response = client.post(
             "/wake",
@@ -568,7 +599,7 @@ def test_wake_targets_only_requested_model(
         )
 
     assert response.status_code == 200
-    assert response.json() == {"status": "ready", "model": "mn/fast"}
+    assert response.json() == {"status": "ready", "model": QWYTHOS9}
     assert ColdStartClient.health_urls == ["https://fast.backend.example/health"]
     assert ColdStartClient.send_count == 0
 
@@ -579,7 +610,7 @@ class StopDuringStartState(FakeState):
         self.code_lifecycle_reads = 0
 
     def get(self, key: str, default: object = None) -> object:
-        if key == "model:code:lifecycle":
+        if key == "model:ornith35:lifecycle":
             self.code_lifecycle_reads += 1
             return lifecycle(
                 "auto" if self.code_lifecycle_reads == 1 else "stopped"
@@ -592,7 +623,7 @@ def test_stop_during_code_cold_start_prevents_retry(
 ) -> None:
     ColdStartClient.reset()
     monkeypatch.setattr(gateway.httpx, "AsyncClient", ColdStartClient)
-    state = StopDuringStartState(state_values(god="auto", fast="auto"))
+    state = StopDuringStartState(state_values(qwen36="auto", qwythos9="auto"))
     with client_for({}, state=state) as client:
         response = client.post(
             "/v1/chat/completions",
@@ -633,7 +664,7 @@ def test_bodyful_application_503_is_not_retried(
 ) -> None:
     Bodyful503Client.reset()
     monkeypatch.setattr(gateway.httpx, "AsyncClient", Bodyful503Client)
-    values = state_values(god="auto", code="auto", fast="auto")
+    values = state_values(qwen36="auto", ornith35="auto", qwythos9="auto")
     with client_for(values) as client:
         response = client.post(
             "/v1/chat/completions",
@@ -677,7 +708,7 @@ def test_non_default_streaming_and_cleanup_are_preserved(
 ) -> None:
     StreamingClient.reset()
     monkeypatch.setattr(gateway.httpx, "AsyncClient", StreamingClient)
-    values = state_values(god="stopped", code="stopped", fast="started")
+    values = state_values(qwen36="stopped", ornith35="stopped", qwythos9="started")
     with client_for(values) as client:
         response = client.post(
             "/v1/chat/completions",

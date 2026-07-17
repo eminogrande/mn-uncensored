@@ -1,16 +1,18 @@
 {
-  "default_model": "god",
-  "gateway_url": "https://eminhenri--mn-uncensored-api-api.modal.run",
+  "default_model": "qwen36",
+  "gateway_url": "https://eminhenri--abliterated-cloud-api-api.modal.run",
   "idle_shutdown_seconds": 300,
   "state_dict": "nuri-api-state",
   "models": {
-    "god": {
-      "aliases": [],
-      "app_name": "mn-god-qwen36-35b",
-      "backend_url": "https://eminhenri--mn-god-qwen36-35b-vllmserver.eu-west.modal.direct",
+    "qwen36": {
+      "aliases": [
+        "mn/god"
+      ],
+      "app_name": "huihui-qwen3-6-35b-a3b-abliterated",
+      "backend_url": "https://eminhenri--huihui-qwen3-6-35b-a3b-abliterated-vllmserver.eu-west.modal.direct",
       "context_window": 131072,
       "deployment_enabled": true,
-      "display_name": "MN God — Qwen3.6 35B A3B Abliterated",
+      "display_name": "Qwen3.6 35B A3B — Abliterated",
       "fast_boot": true,
       "gpu_count": 1,
       "gpu_hourly_usd": 4.54,
@@ -24,7 +26,7 @@
       "max_num_batched_tokens": 8192,
       "max_num_seqs": 1,
       "max_output_tokens": 16384,
-      "model": "mn/god",
+      "model": "huihui-ai/Huihui-Qwen3.6-35B-A3B-abliterated",
       "quantization": "",
       "reasoning_parser": "qwen3",
       "requires_cost_acknowledgement": false,
@@ -32,13 +34,15 @@
       "tool_call_parser": "qwen3_xml",
       "trust_remote_code": true
     },
-    "code": {
-      "aliases": [],
-      "app_name": "mn-code-ornith-35b",
-      "backend_url": "https://eminhenri--mn-code-ornith-35b-vllmserver.eu-west.modal.direct",
+    "ornith35": {
+      "aliases": [
+        "mn/code"
+      ],
+      "app_name": "yuyu1015-ornith-1-0-35b-abliterated",
+      "backend_url": "https://eminhenri--yuyu1015-ornith-1-0-35b-abliterated-vllmserver.eu-west.modal.direct",
       "context_window": 131072,
       "deployment_enabled": true,
-      "display_name": "MN Code — Ornith 35B Abliterated",
+      "display_name": "Ornith 1.0 35B — Abliterated",
       "fast_boot": true,
       "gpu_count": 1,
       "gpu_hourly_usd": 4.54,
@@ -52,7 +56,7 @@
       "max_num_batched_tokens": 8192,
       "max_num_seqs": 1,
       "max_output_tokens": 16384,
-      "model": "mn/code",
+      "model": "YuYu1015/YuYu1015-Ornith-1.0-35B-abliterated",
       "quantization": "",
       "reasoning_parser": "qwen3",
       "requires_cost_acknowledgement": false,
@@ -60,13 +64,15 @@
       "tool_call_parser": "qwen3_xml",
       "trust_remote_code": true
     },
-    "fast": {
-      "aliases": [],
-      "app_name": "mn-fast-qwythos-9b",
-      "backend_url": "https://eminhenri--mn-fast-qwythos-9b-vllmserver.eu-west.modal.direct",
+    "qwythos9": {
+      "aliases": [
+        "mn/fast"
+      ],
+      "app_name": "huihui-qwythos-9b-claude-mythos-5-1m-abliterated",
+      "backend_url": "https://eminhenri--huihui-qwythos-9b-claude-mythos-5-1m-abliterated-vllmserver.eu-west.modal.direct",
       "context_window": 131072,
       "deployment_enabled": true,
-      "display_name": "MN Fast — Qwythos 9B Abliterated",
+      "display_name": "Qwythos 9B Claude Mythos 5 — Abliterated",
       "fast_boot": true,
       "gpu_count": 1,
       "gpu_hourly_usd": 1.95,
@@ -80,7 +86,7 @@
       "max_num_batched_tokens": 8192,
       "max_num_seqs": 1,
       "max_output_tokens": 16384,
-      "model": "mn/fast",
+      "model": "huihui-ai/Huihui-Qwythos-9B-Claude-Mythos-5-1M-abliterated",
       "quantization": "",
       "reasoning_parser": "qwen3",
       "requires_cost_acknowledgement": false,
@@ -90,13 +96,14 @@
     },
     "ornith397": {
       "aliases": [
+        "mn/ornith-397b",
         "nuri/ornith-397b-abliterated"
       ],
-      "app_name": "nuri-ornith-397b",
-      "backend_url": "https://eminhenri--nuri-ornith-397b-vllmserver.eu-west.modal.direct",
+      "app_name": "cebeuq-ornith-1-0-397b-abliterated-w4a16",
+      "backend_url": "https://eminhenri--cebeuq-ornith-1-0-397b-abliterated-w4a16-vllmserver.eu-west.modal.direct",
       "context_window": 32768,
-      "deployment_enabled": true,
-      "display_name": "MN Ornith 397B — Ornith 1.0 397B Abliterated W4A16",
+      "deployment_enabled": false,
+      "display_name": "Ornith 1.0 397B W4A16 — Abliterated",
       "fast_boot": true,
       "gpu_count": 2,
       "gpu_hourly_usd": 9.0792,
@@ -110,7 +117,7 @@
       "max_num_batched_tokens": 8192,
       "max_num_seqs": 1,
       "max_output_tokens": 8192,
-      "model": "mn/ornith-397b",
+      "model": "cebeuq/Ornith-1.0-397B-abliterated-W4A16",
       "prefix_caching": false,
       "quantization": "",
       "reasoning_parser": "qwen3",

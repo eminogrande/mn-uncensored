@@ -9,11 +9,12 @@
 
 MN Uncensored is a small control plane and authenticated,
 OpenAI-compatible API backed by a four-model pinned Hugging Face source
-catalog. The current live `v0.3.1` gateway still exposes three routes. The next
-budgeted release prepares `mn/ornith-397b` as a fourth route with an explicit
-`--allow-expensive` CLI acknowledgement. The model servers run with vLLM on
-scale-to-zero Modal GPUs. Hermes, Pi, OpenCode, scripts, and other compatible
-clients use one base URL and select a public MN model ID.
+catalog. The current source prepares exact Hugging Face repository IDs as the
+public API model IDs and descriptive Modal application names. It does not
+deploy or start those applications. The 397B profile remains deliberately
+disabled with `deployment_enabled=false`. The model servers are designed to
+run with vLLM on scale-to-zero Modal GPUs. Hermes, Pi, OpenCode, scripts, and
+other compatible clients use one base URL and select an exact model ID.
 
 The source repository is public. The deployed API is not anonymous: every
 model request, model listing, lifecycle status request, and wake request
@@ -104,17 +105,23 @@ step by step in [website/README.md](website/README.md).
 
 All four model artifacts and revisions are pinned in
 [`config/mn.json`](config/mn.json) and documented in
-[docs/MODELS.md](docs/MODELS.md). Deployment policy exposes only the three
-current routes; presence in the tracked source catalog is not permission to
-deploy. Model names such as “abliterated” describe the upstream artifact; they
-are not a guarantee of zero refusals.
+[docs/MODELS.md](docs/MODELS.md). The first three profiles are enabled in the
+prepared catalog; Ornith 397B is retained but explicitly disabled. Catalog
+presence and `deployment_enabled=true` are configuration, not evidence of a
+deployment or authorization to start a GPU. Model names such as “abliterated”
+describe the upstream artifact; they are not a guarantee of zero refusals.
 
-| MN ID | Exact Hugging Face artifact | Pinned revision | GPU | MN context | Maximum output | Modal base GPU price | Deployment status |
-| --- | --- | --- | --- | ---: | ---: | ---: | --- |
-| `mn/god` | [`huihui-ai/Huihui-Qwen3.6-35B-A3B-abliterated`](https://huggingface.co/huihui-ai/Huihui-Qwen3.6-35B-A3B-abliterated) | `8f0ee727aff5e771ea72466d64d13ecd851d2cc7` | 1 × H200 | 131,072 | 16,384 | $4.5396/hour | Current gateway route; hard-stopped |
-| `mn/code` | [`YuYu1015/YuYu1015-Ornith-1.0-35B-abliterated`](https://huggingface.co/YuYu1015/YuYu1015-Ornith-1.0-35B-abliterated) | `86065d1a9008773086a177637d54ec6dc2a56cbf` | 1 × H200 | 131,072 | 16,384 | $4.5396/hour | Current gateway route; hard-stopped |
-| `mn/fast` | [`huihui-ai/Huihui-Qwythos-9B-Claude-Mythos-5-1M-abliterated`](https://huggingface.co/huihui-ai/Huihui-Qwythos-9B-Claude-Mythos-5-1M-abliterated) | `efcc73cac15ff8fc5d46b8d41b53c22d571cf97d` | 1 × L40S | 131,072 | 16,384 | $1.9512/hour | Current gateway route; hard-stopped |
-| `mn/ornith-397b` | [`cebeuq/Ornith-1.0-397B-abliterated-W4A16`](https://huggingface.co/cebeuq/Ornith-1.0-397B-abliterated-W4A16) | `e5651d291be1c65ff1360eee47ab533ab13b3d97` | 2 × H200 | 32,768 | 8,192 | $9.0792/hour | `deployment_enabled=true`; fourth route in the next budgeted release, not live in v0.3.1 |
+| CLI key | Exact API and Hugging Face ID | Prepared Modal app | Pinned revision | GPU | MN context | Maximum output | Modal base GPU price | Source policy |
+| --- | --- | --- | --- | --- | ---: | ---: | ---: | --- |
+| `qwen36` | [`huihui-ai/Huihui-Qwen3.6-35B-A3B-abliterated`](https://huggingface.co/huihui-ai/Huihui-Qwen3.6-35B-A3B-abliterated) | `huihui-qwen3-6-35b-a3b-abliterated` | `8f0ee727aff5e771ea72466d64d13ecd851d2cc7` | 1 × H200 | 131,072 | 16,384 | $4.5396/hour | Prepared; enabled |
+| `ornith35` | [`YuYu1015/YuYu1015-Ornith-1.0-35B-abliterated`](https://huggingface.co/YuYu1015/YuYu1015-Ornith-1.0-35B-abliterated) | `yuyu1015-ornith-1-0-35b-abliterated` | `86065d1a9008773086a177637d54ec6dc2a56cbf` | 1 × H200 | 131,072 | 16,384 | $4.5396/hour | Prepared; enabled |
+| `qwythos9` | [`huihui-ai/Huihui-Qwythos-9B-Claude-Mythos-5-1M-abliterated`](https://huggingface.co/huihui-ai/Huihui-Qwythos-9B-Claude-Mythos-5-1M-abliterated) | `huihui-qwythos-9b-claude-mythos-5-1m-abliterated` | `efcc73cac15ff8fc5d46b8d41b53c22d571cf97d` | 1 × L40S | 131,072 | 16,384 | $1.9512/hour | Prepared; enabled |
+| `ornith397` | [`cebeuq/Ornith-1.0-397B-abliterated-W4A16`](https://huggingface.co/cebeuq/Ornith-1.0-397B-abliterated-W4A16) | `cebeuq-ornith-1-0-397b-abliterated-w4a16` | `e5651d291be1c65ff1360eee47ab533ab13b3d97` | 2 × H200 | 32,768 | 8,192 | $9.0792/hour | Prepared; `deployment_enabled=false` |
+
+The compatibility aliases `mn/god`, `mn/code`, `mn/fast`,
+`mn/ornith-397b`, and `nuri/ornith-397b-abliterated` remain accepted for old
+clients. They are not the primary names and must not be shown as model
+identities in new integrations.
 
 The full 40-character pins, attribution chain, runtime substitutions, and
 license caveats are documented in [docs/MODELS.md](docs/MODELS.md).
@@ -125,8 +132,8 @@ Checked on 2026-07-16:
 
 - the public gateway health endpoint returned `{"status":"ok"}`;
 - all three deployed model lifecycle records were hard-stopped;
-- the deployed `god`, `code`, and `fast` applications each reported zero
-  running tasks;
+- the three legacy-named Modal model applications each reported zero running
+  tasks;
 - no API request can wake a hard-stopped model;
 - release `v0.3.1` had previously passed one streaming completion and one
   forced tool call on every route.
@@ -138,17 +145,17 @@ The latest deployed runtime remains `v0.3.1`. The five-minute safety release is
 intentionally pending until the Modal Workspace hard budget is set.
 
 That deployed release predates the new 397B source record. Its historical
-legacy-alias behavior must not be treated as a live 397B route. The next
-budgeted gateway release will add the real `mn/ornith-397b` route and its
-`nuri/ornith-397b-abliterated` alias. No deployment is being performed by this
-documentation change, and all current GPU apps remain stopped.
+legacy-alias behavior must not be treated as a live 397B route. The prepared
+source keeps the exact 397B identity and aliases but blocks deployment with
+`deployment_enabled=false`. No deployment is being performed by this
+documentation change.
 
 ### Why the 397B model is prepared but not live yet
 
 The original target was
 [`cebeuq/Ornith-1.0-397B-abliterated-W4A16`](https://huggingface.co/cebeuq/Ornith-1.0-397B-abliterated-W4A16),
 pinned at `e5651d291be1c65ff1360eee47ab533ab13b3d97`. It is retained under
-`mn/ornith-397b`, with the reserved legacy alias
+`cebeuq/Ornith-1.0-397B-abliterated-W4A16`, with the reserved legacy alias
 `nuri/ornith-397b-abliterated`, because it remains an interesting future
 large-model option. It is a poor unbudgeted first product:
 
@@ -171,14 +178,12 @@ output, uses the pinned template's `qwen3_xml` function/parameter format,
 keeps multimodal loading, disables thinking by default, and leaves prefix
 caching off until the exact two-H200 runtime is revalidated.
 
-There is no current live `mn/ornith-397b` gateway route, and the deployed
-`v0.3.1` `/v1/models` response does not advertise it. The prepared catalog
-record has `deployment_enabled=true`, so the next budgeted release will deploy
-the backend and expose the route while leaving it hard-stopped. Starting,
-arming, waking, or launching it requires an explicit `--allow-expensive`
-acknowledgement because one container reserves two H200s. The old prototype app
-is stopped. Preparing the route in Git does not download, deploy, wake, or bill
-the model.
+There is no current live `cebeuq/Ornith-1.0-397B-abliterated-W4A16` gateway
+route, and the deployed `v0.3.1` `/v1/models` response does not advertise it.
+The prepared catalog record has `deployment_enabled=false`. A future signed,
+budget-approved change must enable it before any release can deploy it, and
+lifecycle operations would still require `--allow-expensive`. Preparing the
+route in Git does not download, deploy, wake, or bill the model.
 
 ## Architecture
 
@@ -193,14 +198,14 @@ flowchart LR
     end
 
     Keychain["macOS Keychain<br/>owner token"]
-    Gateway["Public-address Modal CPU gateway<br/>mn-uncensored-api<br/>0-2 containers"]
+    Gateway["Public-address Modal CPU gateway<br/>abliterated-cloud-api<br/>0-2 containers"]
     State[("Modal Dict<br/>token digests and per-model lifecycle state")]
     ProxySecret["Modal Secret<br/>private backend proxy credentials"]
 
-    God["Private vLLM backend<br/>mn/god<br/>1 x H200"]
-    Code["Private vLLM backend<br/>mn/code<br/>1 x H200"]
-    Fast["Private vLLM backend<br/>mn/fast<br/>1 x L40S"]
-    Ornith["Next budgeted release backend<br/>mn/ornith-397b<br/>2 x H200, hard-stopped by default"]
+    God["Prepared app<br/>huihui-qwen3-6-35b-a3b-abliterated<br/>1 x H200"]
+    Code["Prepared app<br/>yuyu1015-ornith-1-0-35b-abliterated<br/>1 x H200"]
+    Fast["Prepared app<br/>huihui-qwythos-9b-claude-mythos-5-1m-abliterated<br/>1 x L40S"]
+    Ornith["Disabled prepared app<br/>cebeuq-ornith-1-0-397b-abliterated-w4a16<br/>2 x H200"]
 
     HF["Pinned Hugging Face revisions"]
     HFCache[("hf-model-cache")]
@@ -223,7 +228,7 @@ flowchart LR
     Gateway -->|"private authenticated route"| God
     Gateway -->|"private authenticated route"| Code
     Gateway -->|"private authenticated route"| Fast
-    Ornith -.->|"next budgeted release"| Gateway
+    Ornith -.->|"future signed enablement required"| Gateway
 
     HF --> HFCache
     HFCache --- God
@@ -241,15 +246,14 @@ The gateway URL is public because clients must be able to reach it. The GPU
 backend URLs are also not treated as secrets, but Modal rejects requests that
 do not contain the separate private proxy credential pair.
 
-The dashed 397B route is prepared in source but is not part of live `v0.3.1`.
-The next budgeted release deploys it scale-to-zero and leaves it hard-stopped;
-the route remains unable to wake without an explicit expensive-model
-acknowledgement.
+The dashed 397B route is prepared in source but disabled. It cannot enter a
+catalog release until a signed budget-approved change flips its source policy;
+an explicit expensive-model acknowledgement remains a second gate.
 
 ## How a request starts and stops a model
 
-Each model has an independent lifecycle. Calling `mn/god` does not start
-`mn/code`, `mn/fast`, or the future `mn/ornith-397b` route.
+Each model has an independent lifecycle. Calling `huihui-ai/Huihui-Qwen3.6-35B-A3B-abliterated` does not start
+`YuYu1015/YuYu1015-Ornith-1.0-35B-abliterated`, `huihui-ai/Huihui-Qwythos-9B-Claude-Mythos-5-1M-abliterated`, or the future `cebeuq/Ornith-1.0-397B-abliterated-W4A16` route.
 
 ```mermaid
 sequenceDiagram
@@ -317,9 +321,9 @@ The operational modes are:
 
 | Mode | Command | Minimum containers | Behavior |
 | --- | --- | ---: | --- |
-| Safe start | `mn start code` | 0 | Arms `mn/code`, wakes it once, and scales to zero after five idle minutes |
-| Automatic | `mn auto code` | 0 | Arms `mn/code` without immediately starting a GPU; the next inference request wakes it |
-| Hard-stopped | `mn stop code` | 0 | Route fails closed; an API request cannot wake it |
+| Safe start | `mn start ornith35` | 0 | Arms `YuYu1015/YuYu1015-Ornith-1.0-35B-abliterated`, wakes it once, and scales to zero after five idle minutes |
+| Automatic | `mn auto ornith35` | 0 | Arms `YuYu1015/YuYu1015-Ornith-1.0-35B-abliterated` without immediately starting a GPU; the next inference request wakes it |
+| Hard-stopped | `mn stop ornith35` | 0 | Route fails closed; an API request cannot wake it |
 
 `mn stop` without a model hard-stops the full catalog. `mn start`, `mn auto`,
 and `mn wake` require an explicit model so an accidental command cannot arm or
@@ -360,8 +364,8 @@ cold-start waiting, and client launchers.
   Featherless can be cheaper when it already serves the desired model.
 - **Best for the exact owned service:** Modal + vLLM gives control over
   revisions, context, parsers, caches, model names, and authentication. The
-  current live service has three routes; the next budgeted release adds the
-  fourth with an explicit expensive-model acknowledgement.
+  source prepares three enabled profiles and keeps the fourth disabled behind
+  both policy and cost acknowledgement gates.
 - **Best future Bitcoin payment layer:** Routstr could sit in front of MN, but
   it does not replace the GPU host.
 - **Best UX inspiration:** Ollama’s launch experience is excellent, which is
@@ -467,9 +471,9 @@ MN deliberately does not download these 35B models to the Mac. The useful idea
 taken from Ollama is the launch experience:
 
 ```sh
-mn start fast
-mn launch --model fast pi
-mn stop fast
+mn start qwythos9
+mn launch --model qwythos9 pi
+mn stop qwythos9
 ```
 
 ### Routstr
@@ -524,12 +528,12 @@ future price changes.
 
 | Route or ceiling | GPU | Per second | Per minute | Per hour | Five-minute idle tail | Status |
 | --- | --- | ---: | ---: | ---: | ---: | --- |
-| `mn/god` | 1 × H200 | $0.001261 | $0.07566 | $4.5396 | $0.3783 | Deployed, hard-stopped |
-| `mn/code` | 1 × H200 | $0.001261 | $0.07566 | $4.5396 | $0.3783 | Deployed, hard-stopped |
-| `mn/fast` | 1 × L40S | $0.000542 | $0.03252 | $1.9512 | $0.1626 | Deployed, hard-stopped |
-| Current deployed three | — | $0.003064 | $0.18384 | $11.0304 | $0.9192 | Potential simultaneous current ceiling |
-| `mn/ornith-397b` | 2 × H200 | $0.002522 | $0.15132 | $9.0792 | $0.7566 | Next budgeted release; not live in v0.3.1 |
-| Four-model ceiling | 4 × H200 + 1 × L40S | $0.005586 | $0.33516 | $20.1096 | $1.6758 | Next-release maximum if all four are active |
+| `huihui-ai/Huihui-Qwen3.6-35B-A3B-abliterated` | 1 × H200 | $0.001261 | $0.07566 | $4.5396 | $0.3783 | Prepared; enabled |
+| `YuYu1015/YuYu1015-Ornith-1.0-35B-abliterated` | 1 × H200 | $0.001261 | $0.07566 | $4.5396 | $0.3783 | Prepared; enabled |
+| `huihui-ai/Huihui-Qwythos-9B-Claude-Mythos-5-1M-abliterated` | 1 × L40S | $0.000542 | $0.03252 | $1.9512 | $0.1626 | Prepared; enabled |
+| Three enabled profiles | — | $0.003064 | $0.18384 | $11.0304 | $0.9192 | Hypothetical simultaneous ceiling |
+| `cebeuq/Ornith-1.0-397B-abliterated-W4A16` | 2 × H200 | $0.002522 | $0.15132 | $9.0792 | $0.7566 | Prepared; `deployment_enabled=false` |
+| Four-model ceiling | 4 × H200 + 1 × L40S | $0.005586 | $0.33516 | $20.1096 | $1.6758 | Hypothetical only |
 
 The rough GPU formula is:
 
@@ -545,19 +549,19 @@ Examples:
 | --- | ---: |
 | One H200 model active for 1 minute | $0.07566 |
 | One H200 five-minute idle tail | $0.3783 |
-| `mn/fast` five-minute idle tail | $0.1626 |
-| Dormant `mn/ornith-397b` five-minute tail if later deployed | $0.7566 |
-| Current deployed three five-minute idle tails | $0.9192 |
+| `huihui-ai/Huihui-Qwythos-9B-Claude-Mythos-5-1M-abliterated` five-minute idle tail | $0.1626 |
+| Dormant `cebeuq/Ornith-1.0-397B-abliterated-W4A16` five-minute tail if later deployed | $0.7566 |
+| Three enabled profiles' five-minute idle tails | $0.9192 |
 | Potential all-four five-minute idle tails | $1.6758 |
-| Current deployed three active continuously for one hour | $11.0304 |
+| Three enabled profiles active continuously for one hour | $11.0304 |
 | Potential all four active continuously for one hour | $20.1096 |
 | Potential all four active continuously for 730 hours | $14,680.01 |
 
 The five-minute column is not a fixed request price. It illustrates only the
 final idle tail after the last backend activity. A real activation also
 includes startup, compilation, queued work, and generation time. The 397B and
-four-model rows are next-release risk ceilings, not current usage:
-live `v0.3.1` still has only three hard-stopped routes.
+four-model rows are hypothetical risk ceilings, not current usage or evidence
+of deployment.
 
 Modal currently lists `$30/month` of Starter compute credit. Ignoring all
 other resources, that is approximately:
@@ -603,9 +607,9 @@ flowchart TB
     Gateway["Gateway<br/>up to 2 CPU containers<br/>concurrent HTTP inputs"]
 
     subgraph Backends["Independent backend ceilings"]
-        God["mn/god<br/>max 1 H200 container<br/>1 generation sequence"]
-        Code["mn/code<br/>max 1 H200 container<br/>1 generation sequence"]
-        Fast["mn/fast<br/>max 1 L40S container<br/>1 generation sequence"]
+        God["huihui-ai/Huihui-Qwen3.6-35B-A3B-abliterated<br/>max 1 H200 container<br/>1 generation sequence"]
+        Code["YuYu1015/YuYu1015-Ornith-1.0-35B-abliterated<br/>max 1 H200 container<br/>1 generation sequence"]
+        Fast["huihui-ai/Huihui-Qwythos-9B-Claude-Mythos-5-1M-abliterated<br/>max 1 L40S container<br/>1 generation sequence"]
     end
 
     Users --> Gateway
@@ -618,10 +622,10 @@ Multiple clients may connect, but generations sent to the same model may
 serialize or queue. Different models can run simultaneously. This is suitable
 for controlled testing, not a high-throughput public service.
 
-The prepared `mn/ornith-397b` profile requires one container with two H200s and
-an 8,192-token output ceiling. It is not live in `v0.3.1`; after the next
-budgeted release it remains independent and can be scheduled only through an
-explicitly acknowledged lifecycle command.
+The prepared `cebeuq/Ornith-1.0-397B-abliterated-W4A16` profile requires one
+container with two H200s and an 8,192-token output ceiling. It remains excluded
+from deployment by `deployment_enabled=false` and would additionally require
+an explicitly acknowledged lifecycle command after any future enablement.
 
 Before public multi-user access, measure:
 
@@ -670,27 +674,27 @@ This leaves every route fail-closed. No client can wake a GPU.
 Start with the inexpensive route:
 
 ```sh
-mn start fast
+mn start qwythos9
 ```
 
 Use the API or an agent, then stop it explicitly:
 
 ```sh
-mn stop fast
+mn stop qwythos9
 ```
 
-`mn start fast` first enforces `min_containers=0`, wakes the route, and leaves
+`mn start qwythos9` first enforces `min_containers=0`, wakes the route, and leaves
 it with a five-minute idle shutdown. The explicit stop is still recommended;
 it closes the route immediately instead of waiting for the idle timer.
 
 ### Operate individual models
 
 ```sh
-mn status code
-mn wake code
-mn start code
-mn auto code
-mn stop code
+mn status ornith35
+mn wake ornith35
+mn start ornith35
+mn auto ornith35
+mn stop ornith35
 ```
 
 ### Operate all models
@@ -703,9 +707,9 @@ mn stop
 To arm several models, name them separately:
 
 ```sh
-mn auto god
-mn auto code
-mn auto fast
+mn auto qwen36
+mn auto ornith35
+mn auto qwythos9
 ```
 
 ### Command reference
@@ -726,10 +730,10 @@ mn auto fast
 | `mn token copy owner` | Copy the Keychain-backed owner token |
 | `mn launch --model MODEL TOOL` | Launch an armed model, waking it if needed |
 
-Valid selectors are `god`, `code`, `fast`, and their public IDs
-`mn/god`, `mn/code`, and `mn/fast`.
+Valid selectors are `qwen36`, `ornith35`, `qwythos9`, and their public IDs
+`huihui-ai/Huihui-Qwen3.6-35B-A3B-abliterated`, `YuYu1015/YuYu1015-Ornith-1.0-35B-abliterated`, and `huihui-ai/Huihui-Qwythos-9B-Claude-Mythos-5-1M-abliterated`.
 
-The fourth selector is `ornith397`, with public ID `mn/ornith-397b` and alias
+The fourth selector is `ornith397`, with public ID `cebeuq/Ornith-1.0-397B-abliterated-W4A16` and alias
 `nuri/ornith-397b-abliterated`. It can be inspected normally, but expensive
 lifecycle operations require acknowledgement:
 
@@ -740,35 +744,35 @@ mn wake ornith397 --allow-expensive
 mn launch --model ornith397 --allow-expensive hermes
 ```
 
-These commands become operational only after the next budgeted release. They
-do not make the route live in the currently deployed `v0.3.1`.
+These commands remain blocked while `deployment_enabled=false`. They do not
+make the route live or deploy an application.
 
 ## API and client configuration
 
 ### Base connection values
 
 ```text
-Base URL: https://eminhenri--mn-uncensored-api-api.modal.run/v1
+Base URL: https://eminhenri--abliterated-cloud-api-api.modal.run/v1
 API key:  a valid sk-mn-* token
-Models:   mn/god, mn/code, mn/fast
+Models:   huihui-ai/Huihui-Qwen3.6-35B-A3B-abliterated, YuYu1015/YuYu1015-Ornith-1.0-35B-abliterated, huihui-ai/Huihui-Qwythos-9B-Claude-Mythos-5-1M-abliterated
 ```
 
 The tested interface is OpenAI Chat Completions, including streaming and tool
 calls. `/v1/models` is also supported. Do not assume complete parity with
 every OpenAI endpoint or every proprietary client feature.
 
-Current live `v0.3.1` intentionally omits `mn/ornith-397b`. After the next
-budgeted release, `/v1/models` and this list add `mn/ornith-397b`; the route
-still starts hard-stopped.
+The disabled 397B profile is intentionally omitted from a deployable model
+list. A future reviewed release may advertise it only after the tracked policy
+is enabled and validation succeeds.
 
 ### cURL
 
 ```sh
-curl "https://eminhenri--mn-uncensored-api-api.modal.run/v1/chat/completions" \
+curl "https://eminhenri--abliterated-cloud-api-api.modal.run/v1/chat/completions" \
   -H "Authorization: Bearer $MN_API_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "mn/code",
+    "model": "YuYu1015/YuYu1015-Ornith-1.0-35B-abliterated",
     "messages": [
       {"role": "user", "content": "Explain this repository briefly."}
     ],
@@ -784,14 +788,14 @@ import os
 from openai import OpenAI
 
 client = OpenAI(
-    base_url="https://eminhenri--mn-uncensored-api-api.modal.run/v1",
+    base_url="https://eminhenri--abliterated-cloud-api-api.modal.run/v1",
     api_key=os.environ["MN_API_TOKEN"],
     timeout=60 * 60,
     max_retries=0,
 )
 
 response = client.chat.completions.create(
-    model="mn/code",
+    model="YuYu1015/YuYu1015-Ornith-1.0-35B-abliterated",
     messages=[
         {"role": "user", "content": "Say MN API OK in one short sentence."}
     ],
@@ -811,7 +815,7 @@ the normal OpenAI `tools` and `tool_choice` fields.
 
 ```python
 response = client.chat.completions.create(
-    model="mn/code",
+    model="YuYu1015/YuYu1015-Ornith-1.0-35B-abliterated",
     messages=[
         {"role": "user", "content": "Call echo with value catalog-ok."}
     ],
@@ -855,9 +859,9 @@ enabling this.
 ### Hermes Agent
 
 ```sh
-mn start code
-mn launch --model code hermes --yolo
-mn stop code
+mn start ornith35
+mn launch --model ornith35 hermes --yolo
+mn stop ornith35
 ```
 
 The launcher:
@@ -872,9 +876,9 @@ The launcher:
 ### Pi
 
 ```sh
-mn start fast
-mn launch --model fast pi
-mn stop fast
+mn start qwythos9
+mn launch --model qwythos9 pi
+mn stop qwythos9
 ```
 
 The launcher injects `MN_API_TOKEN`, selects the tracked Pi configuration in
@@ -883,9 +887,9 @@ The launcher injects `MN_API_TOKEN`, selects the tracked Pi configuration in
 ### OpenCode
 
 ```sh
-mn start code
-mn launch --model code opencode
-mn stop code
+mn start ornith35
+mn launch --model ornith35 opencode
+mn stop ornith35
 ```
 
 The launcher builds an in-memory OpenCode configuration using
@@ -897,18 +901,18 @@ Manual equivalent:
 ```json
 {
   "$schema": "https://opencode.ai/config.json",
-  "model": "mn/code",
+  "model": "mn/YuYu1015/YuYu1015-Ornith-1.0-35B-abliterated",
   "provider": {
     "mn": {
       "name": "MN Uncensored",
       "npm": "@ai-sdk/openai-compatible",
       "options": {
         "apiKey": "{env:MN_API_TOKEN}",
-        "baseURL": "https://eminhenri--mn-uncensored-api-api.modal.run/v1"
+        "baseURL": "https://eminhenri--abliterated-cloud-api-api.modal.run/v1"
       },
       "models": {
-        "code": {
-          "name": "MN Code",
+        "YuYu1015/YuYu1015-Ornith-1.0-35B-abliterated": {
+          "name": "Ornith 1.0 35B — Abliterated",
           "limit": {
             "context": 131072,
             "output": 16384
@@ -932,8 +936,8 @@ If the installed Cursor version offers **Override OpenAI Base URL**, use:
 
 ```text
 OpenAI API key: an MN named token
-Override URL:   https://eminhenri--mn-uncensored-api-api.modal.run/v1
-Model name:     mn/code
+Override URL:   https://eminhenri--abliterated-cloud-api-api.modal.run/v1
+Model name:     YuYu1015/YuYu1015-Ornith-1.0-35B-abliterated
 ```
 
 Treat Cursor as a compatibility target, not as proof of complete Cursor feature
@@ -1072,10 +1076,10 @@ Cloud storage includes:
 The first use of a new revision can download weights and compile kernels in
 Modal. Later cold starts reuse compatible cached artifacts.
 
-The prepared `mn/ornith-397b` record does not trigger a Hugging Face download
-by itself. Its roughly 196 GB artifact is fetched into Modal storage only when
-the next budgeted release actually starts or validates that backend; editing
-the catalog locally does not download it.
+The prepared `cebeuq/Ornith-1.0-397B-abliterated-W4A16` record does not trigger
+a Hugging Face download by itself. Its roughly 196 GB artifact would be fetched
+into Modal storage only after an approved deployment starts or validates that
+backend; editing the catalog locally does not download it.
 
 The repository stores only source code, model IDs, full public revision pins,
 deployment names, URLs, and other non-secret configuration.
@@ -1168,7 +1172,7 @@ copy credentials from the existing deployment.
 | --- | --- | --- |
 | `401 missing_api_token` | No Bearer token was sent | Configure `Authorization: Bearer ...` |
 | `401 invalid_api_token` | Token is invalid or revoked | Create or replace a named token |
-| `404 model_not_found` for `mn/ornith-397b` | Live gateway is still v0.3.1 | Wait for the next budgeted release; current routes are `mn/god`, `mn/code`, and `mn/fast` |
+| `404 model_not_found` for `cebeuq/Ornith-1.0-397B-abliterated-W4A16` | The profile is disabled | Keep it disabled, or perform a separate signed budget review before enabling and deploying it |
 | `400 max_tokens_exceeded` | Requested output exceeds 16,384 | Lower `max_tokens` or equivalent |
 | `413 request_too_large` | Body exceeds 16 MiB | Reduce attachments or request payload |
 | `503 model_stopped` | Route is hard-stopped | Run `mn auto MODEL` or `mn start MODEL` |
@@ -1204,8 +1208,8 @@ A cold start can include:
 
 The 9B route should generally be cheaper and faster to start than a 35B route,
 but no fixed startup time is guaranteed. The prepared 397B route has a
-substantially larger startup, download, and validation burden and is not
-available through the current live API until the next budgeted release.
+substantially larger startup, download, and validation burden and remains
+unavailable while `deployment_enabled=false`.
 
 ## Cost incident: what actually happened
 
@@ -1214,9 +1218,9 @@ On 2026-07-16, Modal reported `$45.9634` of raw usage before credits:
 | Application | Raw cost before credits |
 | --- | ---: |
 | Legacy `nuri-ornith-397b` | $32.8227 |
-| `mn/god` | $9.4604 |
-| `mn/code` | $3.1430 |
-| `mn/fast` | $0.5121 |
+| `huihui-ai/Huihui-Qwen3.6-35B-A3B-abliterated` | $9.4604 |
+| `YuYu1015/YuYu1015-Ornith-1.0-35B-abliterated` | $3.1430 |
+| `huihui-ai/Huihui-Qwythos-9B-Claude-Mythos-5-1M-abliterated` | $0.5121 |
 | Gateway | $0.0252 |
 
 The evidence does **not** show a Modal autoscaler defect:
@@ -1225,7 +1229,7 @@ The evidence does **not** show a Modal autoscaler defect:
   inference request, matching its then-configured idle window;
 - the legacy 397B work created 26 GPU container starts across three app
   versions;
-- `mn/god` produced 23 server starts during repeated deployments and debugging;
+- `huihui-ai/Huihui-Qwen3.6-35B-A3B-abliterated` produced 23 server starts during repeated deployments and debugging;
 - before `v0.3.1`, the gateway polled a cold backend every five seconds,
   accumulating redundant pending start requests;
 - the old `mn start` command explicitly set `min_containers=1`, which makes
@@ -1238,12 +1242,11 @@ for long cold starts, the legacy app was separate from the later catalog, and
 development repeatedly redeployed and restarted expensive GPUs.
 
 The source catalog now retains the exact old 397B artifact as
-`mn/ornith-397b` so its pin, attribution, conservative endpoint limits, and
+`cebeuq/Ornith-1.0-397B-abliterated-W4A16` so its pin, attribution, conservative endpoint limits, and
 cost risk remain visible. The prepared fourth route does not recreate the
-legacy app or change live `v0.3.1`: no GPU is running and no deployment occurs
-from this documentation work. The next budgeted release deploys a fresh
-scale-to-zero backend and gateway route, leaves it stopped, and requires
-`--allow-expensive` before owner lifecycle commands can activate it.
+legacy app: no deployment occurs from this documentation work. Its
+`deployment_enabled=false` policy must be changed in a future signed,
+budget-approved commit before the release workflow will consider it.
 
 Immediate and permanent corrections:
 
@@ -1278,7 +1281,9 @@ The release script:
 1. verifies the SSH signing configuration and signed HEAD;
 2. runs all tests;
 3. runs the secret scan;
-4. deploys `god`, `code`, `fast`, and `ornith397`;
+4. refuses to continue while `ornith397.deployment_enabled=false`, then—only
+   after a future signed budget approval—deploys `qwen36`, `ornith35`,
+   `qwythos9`, and `ornith397`;
 5. deploys the shared gateway;
 6. enables automatic mode;
 7. verifies `/v1/models`;
@@ -1383,7 +1388,7 @@ payment, or production operations layers.
   access.
 
 The originally selected WWTCyber Qwen3.6 checkpoint declared an architecture
-that the pinned vLLM 0.21 runtime did not register. `mn/god` therefore uses the
+that the pinned vLLM 0.21 runtime did not register. `huihui-ai/Huihui-Qwen3.6-35B-A3B-abliterated` therefore uses the
 compatible Huihui checkpoint documented in [docs/MODELS.md](docs/MODELS.md).
 That substitution is recorded explicitly and must not be presented as an
 equivalence benchmark.
