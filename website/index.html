@@ -20,7 +20,11 @@
   <link rel="api-catalog" type="application/linkset+json" href=".well-known/api-catalog">
   <link rel="agent-skill" type="text/markdown" href="skills/abliterated-cloud/SKILL.md">
   <link rel="help" type="text/markdown" href="auth.md" title="Authentication guide">
-  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="alternate" type="application/rss+xml" title="ABLITERATED.cloud model field notes" href="blog/feed.xml">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" sizes="any">
+  <link rel="icon" href="assets/favicon-32.png" type="image/png" sizes="32x32">
+  <link rel="shortcut icon" href="favicon.ico">
+  <link rel="apple-touch-icon" href="assets/icon-192.png">
   <link rel="manifest" href="manifest.webmanifest">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="ABLITERATED.cloud">
@@ -127,6 +131,7 @@
       <nav class="desktop-links" aria-label="Page sections">
         <a href="#about">About</a>
         <a href="#models">Models</a>
+        <a href="blog/">Blog</a>
         <a href="#api">API</a>
         <a href="#faq">FAQ</a>
       </nav>
@@ -141,6 +146,7 @@
     <nav class="mobile-menu" id="mobile-menu" hidden aria-label="Mobile navigation">
       <a href="#about">About</a>
       <a href="#models">Models</a>
+      <a href="blog/">Blog</a>
       <a href="#api">API</a>
       <a href="#faq">FAQ</a>
       <a href="https://github.com/eminogrande/mn-uncensored">Open source on GitHub</a>
@@ -169,7 +175,7 @@
     <section class="intro section" id="about" aria-labelledby="about-title">
       <div class="section-heading align-left">
         <p class="kicker">WHAT THIS IS</p>
-        <h2 id="about-title">Abliterated open models in the cloud.<br>One simple API.</h2>
+        <h2 id="about-title">Abliterated open models. One simple API.</h2>
       </div>
       <div class="intro-copy">
         <p>ABLITERATED.cloud is a small, transparent hosting service for open model checkpoints with reduced refusal behavior. We run the models on cloud GPUs and expose the familiar OpenAI Chat Completions interface.</p>
@@ -273,6 +279,21 @@
       <p class="catalog-note"><strong>Free means the model weight files have no purchase price.</strong> Managed cloud inference is paid because the GPUs, storage and operation cost money. Model licenses belong to their upstream repositories and should be reviewed before commercial use. Exact pinned revisions and technical caveats are listed in <a href="https://github.com/eminogrande/mn-uncensored/blob/main/docs/MODELS.md">our public model record</a>.</p>
     </section>
 
+    <section class="blog-preview section" aria-labelledby="blog-preview-title">
+      <div class="section-heading align-left">
+        <p class="kicker">MODEL FIELD NOTES</p>
+        <h2 id="blog-preview-title">Four models. Four very different stories.</h2>
+        <p>Trace each checkpoint from its upstream architecture through post-training, abliteration, quantization and the exact artifact in our catalog.</p>
+      </div>
+      <div class="blog-card-grid">
+        <a class="blog-card" href="blog/qwen3-6-35b-a3b-abliterated/"><span>36B MoE · Qwen</span><h3>huihui-ai/<wbr>Huihui-Qwen3.6-35B-A3B-abliterated</h3><p>A multimodal mixture-of-experts model turned into a refusal-reduced proof of concept by huihui-ai.</p><strong>Read the field note →</strong></a>
+        <a class="blog-card" href="blog/ornith-1-0-35b-abliterated/"><span>35B MoE · Agentic coding</span><h3>YuYu1015/<wbr>YuYu1015-Ornith-1.0-35B-abliterated</h3><p>DeepReinforce's self-scaffolding coding model, followed by YuYu1015's corrected weights-only abliteration.</p><strong>Read the field note →</strong></a>
+        <a class="blog-card" href="blog/qwythos-9b-claude-mythos-5-1m-abliterated/"><span>9B class · Long context</span><h3>huihui-ai/<wbr>Huihui-Qwythos-9B-Claude-Mythos-5-1M-abliterated</h3><p>The compact, inexpensive branch of the catalog, with an unusually long lineage encoded in its name.</p><strong>Read the field note →</strong></a>
+        <a class="blog-card" href="blog/ornith-1-0-397b-abliterated-w4a16/"><span>397B total · W4A16</span><h3>cebeuq/<wbr>Ornith-1.0-397B-abliterated-W4A16</h3><p>A nearly 196 GiB streaming abliteration and quantization project built for two-node inference.</p><strong>Read the field note →</strong></a>
+      </div>
+      <a class="text-link blog-all-link" href="blog/">Open all model field notes</a>
+    </section>
+
     <section class="api-section section" id="api" aria-labelledby="api-title">
       <div class="api-copy">
         <p class="kicker">THE API</p>
@@ -331,7 +352,7 @@
 
   <footer class="footer">
     <div><a class="brand" href="#top"><img src="assets/logo.svg" width="28" height="28" alt=""><span>ABLITERATED.cloud</span></a><p>Intelligence, freed.<br>© 2026 ABLITERATED.cloud</p></div>
-    <nav aria-label="Footer navigation"><a href="#models">Exact models</a><a href="#api">API</a><a href="https://github.com/eminogrande/mn-uncensored">Open-source code</a><a href="openapi.json">OpenAPI specification</a><a href="https://signal.me/#p/+13103408213" rel="noopener noreferrer">Request access on Signal</a></nav>
+    <nav aria-label="Footer navigation"><a href="#models">Exact models</a><a href="blog/">Blog</a><a href="#api">API</a><a href="https://github.com/eminogrande/mn-uncensored">Open-source code</a><a href="openapi.json">OpenAPI specification</a><a href="https://signal.me/#p/+13103408213" rel="noopener noreferrer">Request access on Signal</a></nav>
   </footer>
 </body>
 </html>

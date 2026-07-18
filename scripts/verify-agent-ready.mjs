@@ -17,7 +17,6 @@ const requiredScanChecks = [
   ["discovery", "oauthProtectedResource"],
   ["discovery", "authMd"],
   ["discovery", "mcpServerCard"],
-  ["discovery", "a2aAgentCard"],
   ["discovery", "agentSkills"],
   ["discovery", "webMcp"],
 ];
@@ -51,6 +50,17 @@ async function verifyLocal() {
 
   const markdown = await fetch(target, { headers: { accept: "text/markdown" } });
   assert(markdown.ok && contentType(markdown).includes("text/markdown"), "Markdown negotiation failed");
+
+  for (const path of [
+    "/blog/",
+    "/blog/qwen3-6-35b-a3b-abliterated/",
+    "/blog/ornith-1-0-35b-abliterated/",
+    "/blog/qwythos-9b-claude-mythos-5-1m-abliterated/",
+    "/blog/ornith-1-0-397b-abliterated-w4a16/",
+  ]) {
+    const response = await fetch(new URL(path, target), { redirect: "manual" });
+    assert(response.status === 200, `${path} returned ${response.status} instead of 200`);
+  }
 
   for (const [path, expectedType] of [
     ["/index.md", "text/markdown"],
@@ -94,6 +104,14 @@ async function verifyLocal() {
   assert(mcpCard.json?.transport?.url, "MCP server card has no transport URL");
   const oauth = await getJson("/.well-known/oauth-authorization-server");
   assert(oauth.json?.agent_auth?.skill?.endsWith("/auth.md"), "OAuth discovery has no agent auth skill");
+  assert(oauth.json?.grant_types_supported?.includes("client_credentials"), "OAuth discovery has no client_credentials grant");
+  assert(!oauth.json?.authorization_endpoint, "OAuth discovery advertises an unimplemented authorization endpoint");
+  const token = await getJson("/oauth/token", {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: "grant_type=client_credentials&scope=public%3Aread",
+  });
+  assert(token.json?.access_token && token.json?.scope === "public:read", "Public OAuth client_credentials token failed");
   const skillIndex = await getJson("/.well-known/agent-skills/index.json");
   assert(skillIndex.json?.skills?.length > 0, "Agent skill index is empty");
   const webMcpScript = await fetch(new URL("/app.js", target));
@@ -135,7 +153,15 @@ async function verifyPublicScan() {
     assert(status === "pass", `${group}.${key} is ${status || "missing"}`);
   }
 
-  console.log(`isitagentready score: ${payload.score ?? payload.overallScore ?? "not reported"}`);
+  const statuses = Object.values(payload.checks || {}).flatMap((group) =>
+    Object.values(group || {}).map((check) => check?.status)
+  );
+  const scored = statuses.filter((status) => status === "pass" || status === "fail");
+  const score = scored.length === 0
+    ? 0
+    : Math.round((scored.filter((status) => status === "pass").length / scored.length) * 100);
+  if (!(allowPagesDevDnsGap && pagesDev)) assert(score === 100, `isitagentready score is ${score}, expected 100`);
+  console.log(`isitagentready score: ${score}`);
   console.log("Public agent-readiness scan passed.");
 }
 

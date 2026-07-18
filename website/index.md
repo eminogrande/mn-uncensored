@@ -72,6 +72,19 @@ your message:
 
 The upstream terms "abliterated", "decensored" and "uncensored" describe publisher claims about reduced refusal behavior. They do not guarantee zero refusals, correctness, safety, legality or unrestricted capability. The two model cards that publish measurements still report non-zero refusal rates.
 
+## Model field notes
+
+Long-form, source-linked articles trace the architecture, lineage, publishers,
+abliteration method, benchmark boundary, and hosting reality of each artifact:
+
+- [Huihui-Qwen3.6 35B A3B](blog/qwen3-6-35b-a3b-abliterated/)
+- [YuYu1015 Ornith 1.0 35B](blog/ornith-1-0-35b-abliterated/)
+- [Huihui Qwythos 9B Claude Mythos 5](blog/qwythos-9b-claude-mythos-5-1m-abliterated/)
+- [cebeuq Ornith 1.0 397B W4A16](blog/ornith-1-0-397b-abliterated-w4a16/)
+
+Every benchmark is attributed either to the upstream publisher or the exact
+derivative publisher. No upstream score is presented as an endpoint result.
+
 ## How it works
 
 1. An invited user receives a revocable ABLITERATED.cloud Bearer token.

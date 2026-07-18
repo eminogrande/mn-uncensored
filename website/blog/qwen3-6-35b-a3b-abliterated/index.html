@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Inside Huihui-Qwen3.6 35B A3B — ABLITERATED.cloud</title>
+  <meta name="description" content="A source-linked look at Huihui-Qwen3.6-35B-A3B-abliterated: 256 experts, 3B active parameters, multimodal Qwen architecture and refusal-direction weight editing.">
+  <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1">
+  <link rel="canonical" href="https://abliterated.cloud/blog/qwen3-6-35b-a3b-abliterated/">
+  <link rel="alternate" type="text/markdown" href="index.md">
+  <meta property="og:type" content="article"><meta property="og:url" content="https://abliterated.cloud/blog/qwen3-6-35b-a3b-abliterated/"><meta property="og:title" content="Inside Huihui-Qwen3.6: 256 experts and one refusal direction"><meta property="og:description" content="The small-active giant behind the first route in our model catalog."><meta property="og:image" content="https://abliterated.cloud/assets/og-card.png">
+  <link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml" sizes="any"><link rel="icon" href="../../assets/favicon-32.png" type="image/png" sizes="32x32"><link rel="shortcut icon" href="../../favicon.ico"><link rel="stylesheet" href="../../styles.css">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"Inside Huihui-Qwen3.6: 256 experts, 3B active parameters, and one refusal direction","datePublished":"2026-07-18","dateModified":"2026-07-18","author":{"@type":"Organization","name":"ABLITERATED.cloud"},"publisher":{"@type":"Organization","name":"ABLITERATED.cloud","url":"https://abliterated.cloud/"},"mainEntityOfPage":"https://abliterated.cloud/blog/qwen3-6-35b-a3b-abliterated/","about":{"@type":"SoftwareApplication","name":"huihui-ai/Huihui-Qwen3.6-35B-A3B-abliterated"}}</script>
+</head>
+<body>
+  <a class="skip-link" href="#article">Skip to article</a>
+  <header class="nav"><div class="nav-inner"><a class="brand" href="/"><img src="../../assets/logo.svg" width="32" height="32" alt=""><span>ABLITERATED.cloud</span></a><nav class="desktop-links"><a href="/">Home</a><a href="/#models">Models</a><a href="/blog/">Blog</a><a href="/#api">API</a></nav><a class="github-button" href="https://github.com/eminogrande/mn-uncensored"><span>Star on GitHub</span><span>↗</span></a></div></header>
+  <main class="article-main"><article class="article-shell" id="article">
+    <header class="article-header"><p class="kicker">MODEL FIELD NOTE · QWEN</p><h1>256 experts, 3B active parameters, and one refusal direction.</h1><p class="article-lead">Qwen3.6 35B A3B is a strange kind of giant: nearly 36 billion parameters must be stored, but roughly three billion participate in each token. Three days after Qwen released it, huihui-ai published a weights-edited version intended to make that giant refuse less.</p><div class="article-meta"><span>Published 18 July 2026</span><span>Revision-pinned</span><span>Primary sources only</span></div></header>
+    <dl class="article-facts">
+      <div><dt>Exact artifact</dt><dd class="article-repository">huihui-ai/Huihui-Qwen3.6-35B-A3B-abliterated</dd></div><div><dt>Pinned revision</dt><dd>8f0ee727…12d2cc7</dd></div>
+      <div><dt>Parameters</dt><dd>35,951,822,704</dd></div><div><dt>Active per token</dt><dd>about 3B</dd></div>
+      <div><dt>BF16 repository</dt><dd>about 71.9 GB</dd></div><div><dt>Native context</dt><dd>262,144 tokens</dd></div>
+      <div><dt>License metadata</dt><dd>Apache-2.0</dd></div><div><dt>Published</dt><dd>18 April 2026</dd></div>
+    </dl>
+    <div class="article-body">
+      <h2>Sparse computation is not a small model</h2>
+      <p>The <a href="https://huggingface.co/Qwen/Qwen3.6-35B-A3B">official Qwen card</a> describes a sparse mixture of experts: 256 routed experts sit in each language layer, eight are selected for a token, and a shared expert joins them. Forty language layers repeat a hybrid rhythm—three Gated DeltaNet or linear-attention blocks, then one full-attention block. That design lowers the computation performed for a token without making the other weights disappear.</p>
+      <p>The exact Huihui artifact contains 35,951,822,704 BF16 parameters and occupies roughly 71.9 GB according to the <a href="https://huggingface.co/api/models/huihui-ai/Huihui-Qwen3.6-35B-A3B-abliterated">Hugging Face model API</a>. “3B active” therefore describes routing, not download size or total memory placement. It is closer to a large library that opens only the relevant shelves for each query than to a dense three-billion-parameter model.</p>
+      <p>It is also natively multimodal. The pinned <a href="https://huggingface.co/huihui-ai/Huihui-Qwen3.6-35B-A3B-abliterated/blob/8f0ee727aff5e771ea72466d64d13ecd851d2cc7/config.json">configuration</a> keeps Qwen’s 27-layer vision encoder, image and video tokens, thinking modes and tool-oriented chat format. Qwen documents a 262,144-token native context and optional YaRN extension toward one million tokens, while warning that static extension can reduce shorter-context quality.</p>
+
+      <h2>Three days from release to abliteration</h2>
+      <p>Qwen introduced the upstream model on 15 April 2026 as the first open-weight Qwen3.6 checkpoint, emphasizing repository-level coding, multimodal reasoning, agent workflows and the ability to preserve earlier reasoning traces across turns. The <a href="https://qwen.ai/blog?id=qwen3.6-35b-a3b">official release article</a> is the best source for that intended character.</p>
+      <p>On 18 April, huihui-ai published the derivative used here. Its model card calls the result an “uncensored version” created through abliteration—and, importantly, calls the implementation a crude proof of concept. That modest wording matters. The repository supplies no refusal-rate benchmark and no post-edit coding rerun.</p>
+
+      <h2>What abliteration actually edits</h2>
+      <p>Abliteration is not a prompt jailbreak. The method grew from <a href="https://arxiv.org/abs/2406.11717">Arditi and colleagues’ refusal-direction research</a>, which found that refusal behavior in several tested chat models could be strongly associated with a direction in residual-stream activation space. If selected weights are made unable to write into that direction, refusal can drop without conventional fine-tuning.</p>
+      <p>Huihui links to <a href="https://github.com/Sumandora/remove-refusals-with-transformers">Sumandora’s pure-Transformers implementation</a>: compare internal activations for harmful and harmless prompts, estimate a refusal direction, then project that direction out of selected model weights. The technique is fascinating precisely because it is narrow. Narrow does not mean consequence-free, universal or perfectly understood.</p>
+      <div class="article-callout"><strong>What is proven here?</strong><p>The exact artifact and architecture are inspectable. The upstream Qwen benchmark suite is published. Huihui’s claim that the derivative is refusal-reduced is a publisher claim; this checkpoint has no published “zero refusal” evaluation or comprehensive capability-retention study.</p></div>
+
+      <h2>The upstream numbers—and the honest boundary</h2>
+      <p>Qwen reports 73.4 on SWE-bench Verified, 67.2 on SWE-bench Multilingual, 49.5 on SWE-bench Pro, 51.5 on Terminal-Bench 2.0 and 37.0 on MCPMark. Outside coding it reports 86.0 on GPQA, 92.7 on AIME 2026 and 81.7 on MMMU. The full table and harness notes live on the <a href="https://huggingface.co/Qwen/Qwen3.6-35B-A3B#benchmark-results">official upstream card</a>.</p>
+      <p>Those numbers belong to Qwen’s original checkpoint. Huihui has not published the corresponding rerun after weight editing. The interesting open question is therefore not whether the upstream model was capable—it clearly was—but how much of that capability survives this particular intervention.</p>
+
+      <h2>Who made it?</h2>
+      <p>The architecture and original training come from the Qwen team. The derivative comes from the Hugging Face publisher <a href="https://huggingface.co/huihui-ai">huihui-ai</a>, whose profile describes work on model ablations and collaboration with the open-source NLP community. Primary sources do not identify a named development crew, so we credit the public handle instead of inventing one.</p>
+
+      <h2>How we treat it</h2>
+      <p>Our prepared profile pins the exact revision above, serves a conservative 131,072-token text context and budgets one H200. That is an ABLITERATED.cloud hosting choice, not the upstream maximum. We do not transfer Qwen’s benchmarks to our endpoint until the exact artifact and runtime are measured.</p>
+      <p>The Huihui card warns that safety filtering is significantly reduced and recommends research, testing or controlled environments with human review. “Abliterated” should be read as refusal-reduced—not truthful, legal, harmless or guaranteed to answer every request.</p>
+
+      <h2>Primary sources</h2>
+      <ul class="article-source-list"><li><a href="https://huggingface.co/huihui-ai/Huihui-Qwen3.6-35B-A3B-abliterated">Exact Huihui model card</a> and <a href="https://huggingface.co/huihui-ai/Huihui-Qwen3.6-35B-A3B-abliterated/tree/8f0ee727aff5e771ea72466d64d13ecd851d2cc7">pinned files</a></li><li><a href="https://huggingface.co/Qwen/Qwen3.6-35B-A3B">Official Qwen model card</a> and <a href="https://qwen.ai/blog?id=qwen3.6-35b-a3b">release article</a></li><li><a href="https://arxiv.org/abs/2406.11717">Refusal in Language Models Is Mediated by a Single Direction</a></li><li><a href="https://github.com/Sumandora/remove-refusals-with-transformers">Implementation linked by huihui-ai</a></li></ul>
+    </div>
+    <nav class="article-next" aria-label="More model field notes"><a href="../ornith-1-0-35b-abliterated/">Next: Ornith 35B →</a><a href="../">All field notes</a></nav>
+  </article></main>
+  <footer class="footer"><div><a class="brand" href="/"><img src="../../assets/logo.svg" width="28" height="28" alt=""><span>ABLITERATED.cloud</span></a><p>Intelligence, freed.<br>© 2026 ABLITERATED.cloud</p></div><nav><a href="/blog/">Blog</a><a href="/#models">Models</a><a href="https://signal.me/#p/+13103408213">Request access</a></nav></footer>
+</body></html>

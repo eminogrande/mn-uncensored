@@ -63,6 +63,31 @@ formats for social sharing and the no-JavaScript fallback:
 The normal page does not preload either raster image, keeping the critical
 render path small.
 
+## Model field notes
+
+`blog/` contains one long-form article for each exact catalog artifact. The
+articles explain architecture, model lineage, training or post-training,
+abliteration, quantization, publisher history, deployment implications and
+published evaluation numbers. Claims from a model publisher remain labeled as
+publisher claims, and upstream benchmark results are never presented as if the
+abliterated derivative had been rerun.
+
+Each article ships as semantic HTML and Markdown, uses `TechArticle` structured
+data, pins the model revision, and closes with primary sources. The blog index,
+RSS feed, sitemap, `llms.txt` and `llms-full.txt` expose all four articles to
+readers, search engines and agents.
+
+The exact articles are:
+
+- `huihui-ai/Huihui-Qwen3.6-35B-A3B-abliterated`;
+- `YuYu1015/YuYu1015-Ornith-1.0-35B-abliterated`;
+- `huihui-ai/Huihui-Qwythos-9B-Claude-Mythos-5-1M-abliterated`;
+- `cebeuq/Ornith-1.0-397B-abliterated-W4A16`.
+
+The site identity uses a brain mark in SVG, PNG and ICO formats. The generated
+PNG/ICO files are committed so browsers and devices do not need to rasterize
+the SVG at runtime.
+
 ## Access request
 
 Active private-beta access links use Signal:

@@ -1,0 +1,55 @@
+<!doctype html><html lang="en"><head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ornith 397B W4A16 abliterated — ABLITERATED.cloud</title>
+  <meta name="description" content="The engineering story of cebeuq/Ornith-1.0-397B-abliterated-W4A16: streaming refusal-direction edits, immediate four-bit requantization and two-node inference.">
+  <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1"><link rel="canonical" href="https://abliterated.cloud/blog/ornith-1-0-397b-abliterated-w4a16/"><link rel="alternate" type="text/markdown" href="index.md">
+  <meta property="og:type" content="article"><meta property="og:url" content="https://abliterated.cloud/blog/ornith-1-0-397b-abliterated-w4a16/"><meta property="og:title" content="Ornith 397B: surgery on a model too large to hold at once"><meta property="og:description" content="122 source shards, residual-stream editing, immediate four-bit conversion and a final artifact near 196 GiB."><meta property="og:image" content="https://abliterated.cloud/assets/og-card.png">
+  <link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml" sizes="any"><link rel="icon" href="../../assets/favicon-32.png" type="image/png" sizes="32x32"><link rel="shortcut icon" href="../../favicon.ico"><link rel="stylesheet" href="../../styles.css">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"Ornith 397B: surgery on a model too large to hold at once","datePublished":"2026-07-18","dateModified":"2026-07-18","author":{"@type":"Organization","name":"ABLITERATED.cloud"},"publisher":{"@type":"Organization","name":"ABLITERATED.cloud","url":"https://abliterated.cloud/"},"mainEntityOfPage":"https://abliterated.cloud/blog/ornith-1-0-397b-abliterated-w4a16/","about":{"@type":"SoftwareApplication","name":"cebeuq/Ornith-1.0-397B-abliterated-W4A16"}}</script>
+</head><body>
+  <a class="skip-link" href="#article">Skip to article</a><header class="nav"><div class="nav-inner"><a class="brand" href="/"><img src="../../assets/logo.svg" width="32" height="32" alt=""><span>ABLITERATED.cloud</span></a><nav class="desktop-links"><a href="/">Home</a><a href="/#models">Models</a><a href="/blog/">Blog</a><a href="/#api">API</a></nav><a class="github-button" href="https://github.com/eminogrande/mn-uncensored"><span>Star on GitHub</span><span>↗</span></a></div></header>
+  <main class="article-main"><article class="article-shell" id="article">
+    <header class="article-header"><p class="kicker">MODEL FIELD NOTE · 397B</p><h1>Surgery on a model too large to hold at once.</h1><p class="article-lead">The largest artifact in our catalog is not just a model upload. It is a streaming assembly line: read one source shard, locate a refusal direction, edit residual-writing weights, immediately compress them to four bits, and move on—without ever materializing the roughly 794 GB BF16 language model.</p><div class="article-meta"><span>Published 18 July 2026</span><span>Deployment disabled</span><span>Unusually detailed build record</span></div></header>
+    <dl class="article-facts">
+      <div><dt>Exact artifact</dt><dd class="article-repository">cebeuq/Ornith-1.0-397B-abliterated-W4A16</dd></div><div><dt>Pinned revision</dt><dd>e5651d29…3b3d97</dd></div>
+      <div><dt>Total parameters</dt><dd>396,802,360,816</dd></div><div><dt>Active per token</dt><dd>about 17B</dd></div>
+      <div><dt>Stored artifact</dt><dd>195.7 GiB · 47 shards</dd></div><div><dt>Native context</dt><dd>262,144 tokens</dd></div>
+      <div><dt>Quantization</dt><dd>W4A16 · group 128</dd></div><div><dt>License</dt><dd>MIT</dd></div>
+    </dl>
+    <div class="article-body">
+      <h2>A 397B model that activates about 17B</h2>
+      <p>Upstream Ornith inherits Qwen3.5’s 397B-A17B mixture-of-experts design. Its 60 language layers contain 512 experts; ten routed experts plus one shared expert participate in each token. Forty-five layers use Gated DeltaNet-style linear attention and fifteen use full attention. A 27-layer vision tower supplies image and video input.</p>
+      <p>The sparse routing controls computation, not storage. The upstream model contains 396,802,360,816 BF16 parameters. Even after aggressive conversion, the exact derivative in our catalog occupies 210.1 GB in decimal units, or about 195.7 GiB, across 47 Safetensors shards according to the <a href="https://huggingface.co/api/models/cebeuq/Ornith-1.0-397B-abliterated-W4A16">Hugging Face API</a>.</p>
+
+      <h2>Why upstream Ornith attracted attention</h2>
+      <p>DeepReinforce reports 82.4 on SWE-bench Verified, 62.2 on SWE-bench Pro, 78.9 on SWE-bench Multilingual and 78.2 on Terminal-Bench 2.1 with a Claude Code harness for upstream Ornith 397B. The <a href="https://deep-reinforce.com/ornith_1_0.html">official article</a> ties these results to self-scaffolding reinforcement learning and publishes harness details.</p>
+      <p>Those results explain the excitement, but they do not transfer automatically. The W4A16 abliterated artifact has a coding smoke test, not a full SWE-bench rerun.</p>
+
+      <h2>W4A16, translated</h2>
+      <p>“W4” means most selected language-model weights are stored as symmetric four-bit integers. “A16” means activations remain 16-bit. Groups of 128 weights share quantization scale information. Embeddings, the language-model head, routers, gates, normalization layers and the entire vision tower remain BF16.</p>
+      <p>The published configuration uses AutoRound’s AutoGPTQ-compatible layout, but with `iters: 0` and `model_free: true`. That makes this the RTN, data-free path rather than the iterative signed-gradient optimization people may associate with the <a href="https://aclanthology.org/2024.findings-emnlp.662/">AutoRound paper</a>. Exact configuration beats brand-name assumptions.</p>
+
+      <h2>The shard-by-shard operation</h2>
+      <p>The <a href="https://huggingface.co/cebeuq/Ornith-1.0-397B-abliterated-W4A16/blob/e5651d291be1c65ff1360eee47ab533ab13b3d97/README.md">publisher’s build record</a> describes an unusually transparent pipeline. It first streams the existing quantized model to derive layer-wise refusal directions from 128 harmful and 128 harmless prompts. Adjacent-layer directions reportedly reach about 0.91 cosine similarity.</p>
+      <p>Then 122 upstream BF16 shards pass through individually. Attention output, linear-attention output, shared-expert down projections and routed-expert down projections are orthogonalized with respect to the refusal direction. Each edited tensor is immediately requantized into the target layout. Vision weights, embeddings, routers, gates, norms and other untouched tensors are retained.</p>
+      <p>The ambition is surgical: change the language model’s ability to write a particular residual-stream direction while leaving the visual system and routing machinery alone. The publisher says non-edited output tensors are byte-identical to the reference quantization.</p>
+      <div class="article-callout"><strong>Refusal was reduced, not erased</strong><p>On 40 harmful prompts the publisher reports refusal moving from 30.0% in the reference W4A16 quant to 7.5% after editing. On 40 harmless prompts, first-token KL divergence is reported as 0.116. That is useful evidence, not a general proof of preserved capability or zero refusal.</p></div>
+
+      <h2>What the publisher actually tested</h2>
+      <p>Beyond the small refusal comparison, the card reports a coding smoke test, image OCR and scene understanding, video frame and motion understanding, structured OpenAI-style tool calls, and needle retrieval at 126,709 and 252,229 tokens. Two long needles demonstrate retrieval, not broad long-context reasoning.</p>
+      <p>The tested hardware is as interesting as the model: two 128 GB NVIDIA DGX Spark systems joined over 200 GbE, vLLM with Ray tensor parallelism two, and FP8 KV cache. Reported single-stream decode speed ranges from roughly 22–23 tokens per second at short context to 17 at about 256K. Time to first token grows from 1.1 seconds near 1K context to 329 seconds near 256K.</p>
+
+      <h2>Who built the derivative?</h2>
+      <p>The Hugging Face publisher is <a href="https://huggingface.co/cebeuq">cebeuq</a>, display name Klaus, whose profile links the handle `klausboyajj`. The release explicitly says it is not affiliated with or endorsed by DeepReinforce. No larger company or crew is identified in the primary sources.</p>
+
+      <h2>Why our route remains disabled</h2>
+      <p>Our prepared profile budgets two H200s, 32,768 context tokens and 8,192 output tokens. The conservative context is a hosting limit, not the upstream ceiling. More importantly, `deployment_enabled=false` remains hard-coded. This model is too expensive to activate casually: its estimated base GPU rate is $9.0792 per hour before gateway, storage, network and tax.</p>
+      <p>A future deployment needs an explicit budget, multimodal and tool tests, long-context memory validation, measured scale-to-zero and a signed release. Being fascinating is not the same as being cheap or ready.</p>
+
+      <h2>Primary sources</h2>
+      <ul class="article-source-list"><li><a href="https://huggingface.co/cebeuq/Ornith-1.0-397B-abliterated-W4A16">Exact model card</a> and <a href="https://huggingface.co/cebeuq/Ornith-1.0-397B-abliterated-W4A16/tree/e5651d291be1c65ff1360eee47ab533ab13b3d97">pinned artifact</a></li><li><a href="https://huggingface.co/cebeuq/Ornith-1.0-397B-abliterated-W4A16/blob/e5651d291be1c65ff1360eee47ab533ab13b3d97/quantization_config.json">Pinned quantization configuration</a></li><li><a href="https://deep-reinforce.com/ornith_1_0.html">Official Ornith article and upstream benchmarks</a></li><li><a href="https://huggingface.co/Qwen/Qwen3.5-397B-A17B">Official Qwen architecture card</a></li><li><a href="https://arxiv.org/abs/2406.11717">Original refusal-direction paper</a></li><li><a href="https://github.com/intel/auto-round">Intel AutoRound repository</a></li></ul>
+    </div>
+    <nav class="article-next"><a href="../qwythos-9b-claude-mythos-5-1m-abliterated/">← Qwythos 9B</a><a href="../">All field notes</a></nav>
+  </article></main>
+  <footer class="footer"><div><a class="brand" href="/"><img src="../../assets/logo.svg" width="28" height="28" alt=""><span>ABLITERATED.cloud</span></a><p>Intelligence, freed.<br>© 2026 ABLITERATED.cloud</p></div><nav><a href="/blog/">Blog</a><a href="/#models">Models</a><a href="https://signal.me/#p/+13103408213">Request access</a></nav></footer>
+</body></html>

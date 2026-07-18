@@ -4,7 +4,7 @@
       "anchor": "https://eminhenri--mn-uncensored-api-api.modal.run",
       "service-desc": [
         {
-          "href": "https://eminogrande.github.io/mn-uncensored/openapi.json",
+          "href": "https://abliterated.cloud/openapi.json",
           "type": "application/vnd.oai.openapi+json"
         }
       ],
@@ -14,7 +14,7 @@
           "type": "text/html"
         },
         {
-          "href": "https://eminogrande.github.io/mn-uncensored/auth.md",
+          "href": "https://abliterated.cloud/auth.md",
           "type": "text/markdown"
         }
       ]

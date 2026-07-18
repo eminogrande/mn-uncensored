@@ -1,5 +1,40 @@
 # ABLITERATED.cloud website releases
 
+## website-v0.8.0
+
+Four model stories, a denser hero brain and a complete brain-shaped identity.
+
+### Model field notes
+
+- Publish one deeply researched, source-linked article for every exact model
+  artifact in the catalog, in both semantic HTML and Markdown.
+- Explain architecture, lineage, training, abliteration, quantization,
+  published evaluations, hosting implications and the publicly verifiable
+  publisher history without inventing a model crew.
+- Keep publisher measurements labeled and never transfer an upstream benchmark
+  to an abliterated derivative that has not been rerun.
+- Add Blog and TechArticle structured data, canonical URLs, RSS, sitemap and
+  agent-readable discovery through `llms.txt` and `llms-full.txt`.
+- Preserve canonical trailing slashes through the prepared edge Worker so blog
+  directory requests do not enter a redirect loop.
+- Replace informational OAuth endpoint stubs with a functional anonymous
+  `client_credentials` flow that grants only `public:read` metadata access.
+
+### Visual identity
+
+- Increase the interactive hero to 1,280 deterministic nodes, six connections
+  per point and eight visible cortical fold paths.
+- Remove the hero fade so the complete brain and its synapses remain visible.
+- Use a connected brain mark for the navigation logo, SVG favicon, PNG device
+  icons and legacy ICO favicon.
+- Change the supporting line to “Abliterated open models. One simple API.”
+
+### Safety and operations
+
+- Do not deploy, wake or start any Modal model or GPU.
+- Preserve the deployment-disabled two-H200 Ornith 397B profile.
+- Extend static and local edge checks for blog integrity and icon completeness.
+
 ## website-v0.7.1
 
 The production website now uses `https://abliterated.cloud/` as its GitHub

@@ -2,6 +2,7 @@
 
 [Public repository](https://github.com/eminogrande/mn-uncensored) ·
 [ABLITERATED.cloud website](https://abliterated.cloud/) ·
+[Model field notes](https://abliterated.cloud/blog/) ·
 [Latest deployed release: v0.3.1](https://github.com/eminogrande/mn-uncensored/releases/tag/v0.3.1) ·
 [Release notes](docs/RELEASE_NOTES.md) ·
 [Security](SECURITY.md) ·
@@ -89,6 +90,10 @@ target:
   `https://abliterated.cloud/`.
 - Cloudflare Workers can serve the same files through `website-worker.mjs` in a
   future migration if dynamic edge behavior is required.
+- The public blog contains a source-linked HTML and Markdown field note for
+  each exact catalog artifact. It keeps publisher measurements separate from
+  upstream benchmarks and identifies only publicly verifiable publishers or
+  teams.
 
 Local verification:
 

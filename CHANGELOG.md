@@ -4,6 +4,35 @@ All notable changes to MN Uncensored are documented here.
 
 ## [Unreleased]
 
+### Website 0.8.0
+
+- Added a complete model field-notes blog with one source-linked HTML and
+  Markdown article for every exact catalog artifact, covering model lineage,
+  architecture, parameter and storage numbers, context, post-training,
+  abliteration, quantization, evaluation boundaries, public publishers and
+  deployment implications.
+- Added `TechArticle` and `Blog` structured data, canonical metadata, an RSS
+  feed, sitemap entries, homepage discovery, and agent-readable article links
+  in `llms.txt` and `llms-full.txt`.
+- Replaced shorthand blog headings with full Hugging Face `owner/repository`
+  identities and explicitly distinguish publisher measurements, upstream
+  benchmarks, hosting choices, and unverified derivative capability.
+- Refined the Canvas hero into a denser 1,280-node brain with more synapses,
+  visible cortical fold paths, a stronger contour and no opacity fade.
+- Changed the supporting statement to exactly “Abliterated open models. One
+  simple API.”
+- Replaced the corner mark and browser favicon with a brain-and-synapse symbol
+  and supplied SVG, 32 px PNG, 192 px PNG, 512 px PNG and ICO variants.
+- Expanded regression coverage for the four articles, exact model IDs,
+  primary-source sections, JSON-LD, internal links, RSS discovery, sitemap
+  inclusion and icon completeness.
+- Fixed a Cloudflare Static Assets redirect loop by preserving canonical
+  trailing slashes when the Worker passes blog directory requests to the asset
+  binding.
+- Replaced informational OAuth route stubs with a truthful anonymous
+  `client_credentials` flow limited to public metadata and made the public
+  verifier require an exact computed 100 score.
+
 ### Website custom domain
 
 - Configured `abliterated.cloud` as the production GitHub Pages custom domain

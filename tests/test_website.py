@@ -11,6 +11,16 @@ from urllib.parse import urlparse
 
 ROOT = Path(__file__).parents[1]
 WEBSITE = ROOT / "website"
+BLOG_ARTICLES = {
+    "qwen3-6-35b-a3b-abliterated":
+        "huihui-ai/Huihui-Qwen3.6-35B-A3B-abliterated",
+    "ornith-1-0-35b-abliterated":
+        "YuYu1015/YuYu1015-Ornith-1.0-35B-abliterated",
+    "qwythos-9b-claude-mythos-5-1m-abliterated":
+        "huihui-ai/Huihui-Qwythos-9B-Claude-Mythos-5-1M-abliterated",
+    "ornith-1-0-397b-abliterated-w4a16":
+        "cebeuq/Ornith-1.0-397B-abliterated-W4A16",
+}
 
 
 class DocumentParser(HTMLParser):
@@ -318,8 +328,8 @@ def test_brain_visual_is_shaped_and_pointer_interactive() -> None:
 
     assert "Intelligence, freed." in html
     assert "Uncensored, abliterated AI." in html
-    assert "Abliterated open models in the cloud." in html
-    assert "One simple API." in html
+    assert "Abliterated open models. One simple API." in html
+    assert "Abliterated open models in the cloud." not in html
     assert "MOVE TO ILLUMINATE" not in html
     assert "brain-label" not in html
     assert "PLANNED ENDPOINT" not in html
@@ -329,7 +339,10 @@ def test_brain_visual_is_shaped_and_pointer_interactive() -> None:
     assert "model-status" not in html
     assert "outlineControls" in javascript
     assert "insideOutline" in javascript
-    assert "points.length < 820" in javascript
+    assert "const pointTarget = 1280" in javascript
+    assert "const maximumDegree = 6" in javascript
+    assert "const foldControls" in javascript
+    assert 'edgeType === "fold"' in javascript
     assert 'stage.closest(".hero")' in javascript
     assert 'addEventListener("pointermove"' in javascript
     assert 'addEventListener("pointerleave"' in javascript
@@ -338,6 +351,8 @@ def test_brain_visual_is_shaped_and_pointer_interactive() -> None:
     assert ".brain-stage {" in css
     assert "position: absolute" in css
     assert "pointer-events: none" in css
+    assert ".brain-stage::before" not in css
+    assert ".brain-stage { inset: 250px -48% 12px -30%; opacity: 1; }" in css
 
 
 def test_homepage_uses_one_mono_type_system_with_17px_minimum() -> None:
@@ -369,3 +384,81 @@ def test_homepage_performance_budget() -> None:
     assert (WEBSITE / "assets/og-card.png").stat().st_size < 250_000
     assert (WEBSITE / "assets/hero-brain.avif").stat().st_size < 200_000
     assert (WEBSITE / "assets/hero-brain.webp").stat().st_size < 500_000
+
+
+def test_blog_has_one_source_linked_article_for_every_catalog_model() -> None:
+    blog_index = (WEBSITE / "blog/index.html").read_text()
+    assert "MODEL FIELD NOTES" in blog_index
+
+    for slug, model_id in BLOG_ARTICLES.items():
+        article_dir = WEBSITE / "blog" / slug
+        html_path = article_dir / "index.html"
+        markdown_path = article_dir / "index.md"
+        assert html_path.is_file()
+        assert markdown_path.is_file()
+
+        html = html_path.read_text()
+        markdown = markdown_path.read_text()
+        parser = DocumentParser()
+        parser.feed(html)
+
+        assert parser.h1_count == 1
+        assert parser.canonical == f"https://abliterated.cloud/blog/{slug}/"
+        assert parser.json_ld
+        structured_data = json.loads(parser.json_ld[0])
+        assert structured_data["@type"] == "TechArticle"
+        assert structured_data["about"]["name"] == model_id
+        assert model_id in html
+        assert model_id in markdown
+        assert "Primary sources" in html
+        assert "Primary sources" in markdown
+        assert "huggingface.co/" in html
+        assert "Pinned revision" in html
+
+
+def test_blog_internal_links_and_assets_resolve() -> None:
+    for html_path in (WEBSITE / "blog").glob("**/*.html"):
+        parser = DocumentParser()
+        parser.feed(html_path.read_text())
+        for value in parser.links:
+            if value.startswith(("#", "mailto:", "tel:")):
+                continue
+            parsed = urlparse(value)
+            if parsed.scheme or value.startswith("//"):
+                continue
+            relative = value.split("#", 1)[0].split("?", 1)[0]
+            if not relative:
+                continue
+            target = (
+                WEBSITE / relative.lstrip("/")
+                if relative.startswith("/")
+                else html_path.parent / relative
+            ).resolve()
+            assert target.exists(), f"missing blog resource: {html_path}: {value}"
+
+
+def test_blog_discovery_and_brain_icons_are_complete() -> None:
+    sitemap = (WEBSITE / "sitemap.xml").read_text()
+    feed = ET.parse(WEBSITE / "blog/feed.xml").getroot()
+    assert feed.tag == "rss"
+
+    for slug in BLOG_ARTICLES:
+        url = f"https://abliterated.cloud/blog/{slug}/"
+        assert url in sitemap
+        assert url in (WEBSITE / "llms.txt").read_text()
+        assert url in (WEBSITE / "llms-full.txt").read_text()
+
+    manifest = json.loads((WEBSITE / "manifest.webmanifest").read_text())
+    icon_sources = {entry["src"] for entry in manifest["icons"]}
+    assert {"assets/favicon.svg", "assets/icon-192.png", "assets/icon-512.png"} <= icon_sources
+    for icon in [
+        "assets/favicon.svg",
+        "assets/favicon-32.png",
+        "assets/icon-192.png",
+        "assets/icon-512.png",
+        "favicon.ico",
+    ]:
+        assert (WEBSITE / icon).is_file()
+
+    assert "brain" in (WEBSITE / "assets/logo.svg").read_text().lower()
+    assert "brain" in (WEBSITE / "assets/favicon.svg").read_text().lower()

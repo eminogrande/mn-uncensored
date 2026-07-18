@@ -44,7 +44,7 @@ function commonHeaders(contentType, pathname) {
     "referrer-policy": "strict-origin-when-cross-origin",
   });
 
-  if (pathname.startsWith("/.well-known/") || ["/auth.md", "/llms.txt", "/llms-full.txt", "/openapi.json"].includes(pathname)) {
+  if (pathname.startsWith("/.well-known/") || pathname.startsWith("/oauth/") || ["/auth.md", "/llms.txt", "/llms-full.txt", "/openapi.json"].includes(pathname)) {
     headers.set("access-control-allow-origin", "*");
     headers.set("access-control-allow-methods", "GET, HEAD, OPTIONS, POST");
     headers.set("access-control-allow-headers", "Content-Type, Authorization");
@@ -168,26 +168,73 @@ function handleAgentAuth(request) {
   }, 200, "/agent/auth");
 }
 
+function oauthJsonResponse(value, status, pathname) {
+  const headers = commonHeaders("application/json; charset=utf-8", pathname);
+  headers.set("cache-control", "no-store");
+  headers.set("pragma", "no-cache");
+  return new Response(JSON.stringify(value, null, 2), { status, headers });
+}
+
+async function handleOAuthToken(request) {
+  if (request.method !== "POST") return oauthJsonResponse({ error: "invalid_request", error_description: "Use POST" }, 405, "/oauth/token");
+
+  let values;
+  try {
+    if ((request.headers.get("content-type") || "").includes("application/json")) {
+      values = await request.json();
+    } else {
+      values = Object.fromEntries(new URLSearchParams(await request.text()));
+    }
+  } catch {
+    return oauthJsonResponse({ error: "invalid_request", error_description: "The request body could not be parsed" }, 400, "/oauth/token");
+  }
+
+  if (values?.grant_type !== "client_credentials") {
+    return oauthJsonResponse({ error: "unsupported_grant_type" }, 400, "/oauth/token");
+  }
+  if (values.scope && values.scope !== "public:read") {
+    return oauthJsonResponse({ error: "invalid_scope", scope: "public:read" }, 400, "/oauth/token");
+  }
+
+  return oauthJsonResponse({
+    access_token: "abliterated_public_site_readonly",
+    token_type: "Bearer",
+    scope: "public:read",
+  }, 200, "/oauth/token");
+}
+
+function handleOAuthRegistration(request) {
+  if (request.method !== "POST") return oauthJsonResponse({ error: "invalid_client_metadata", error_description: "Use POST" }, 405, "/oauth/register");
+  return oauthJsonResponse({
+    client_id: "abliterated_public_site",
+    client_id_issued_at: 1784325600,
+    grant_types: ["client_credentials"],
+    token_endpoint_auth_method: "none",
+    scope: "public:read",
+  }, 201, "/oauth/register");
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
-    const pathname = url.pathname.replace(/\/+$/, "") || "/";
+    const pathname = url.pathname || "/";
+    const routePath = pathname.replace(/\/+$/, "") || "/";
     const origin = siteOrigin(request, env);
 
-    if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: commonHeaders("text/plain; charset=utf-8", pathname) });
+    if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: commonHeaders("text/plain; charset=utf-8", routePath) });
 
-    if (pathname === "/" && (request.headers.get("accept") || "").includes("text/markdown")) {
+    if (routePath === "/" && (request.headers.get("accept") || "").includes("text/markdown")) {
       return assetResponse(request, env, "/index.md", origin);
     }
 
-    if (pathname === "/mcp") return handleMcp(request, origin);
-    if (pathname === "/agent/auth") return handleAgentAuth(request);
-    if (pathname === "/a2a") return jsonResponse({ name: "ABLITERATED.cloud Public Site Agent", status: "ready", card: `${origin}/.well-known/agent-card.json` }, 200, pathname);
-    if (["/oauth/authorize", "/oauth/token", "/oauth/register"].includes(pathname)) {
-      return jsonResponse({ endpoint: pathname, note: "Public website discovery only. Request inference access on Signal." }, 200, pathname);
-    }
-    if (pathname === "/oauth/jwks.json") return jsonResponse({ keys: [] }, 200, pathname);
+    if (routePath === "/mcp") return handleMcp(request, origin);
+    if (routePath === "/agent/auth") return handleAgentAuth(request);
+    if (routePath === "/a2a") return jsonResponse({ name: "ABLITERATED.cloud Public Site Agent", status: "ready", card: `${origin}/.well-known/agent-card.json` }, 200, routePath);
+    if (routePath === "/oauth/token") return handleOAuthToken(request);
+    if (routePath === "/oauth/register") return handleOAuthRegistration(request);
 
+    // Keep the incoming trailing slash for directory indexes. Workers Static
+    // Assets treats `/blog/` as canonical and would redirect `/blog` back to it.
     return assetResponse(request, env, pathname, origin);
   },
 };
