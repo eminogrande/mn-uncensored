@@ -4,6 +4,19 @@ All notable changes to MN Uncensored are documented here.
 
 ## [Unreleased]
 
+### Website custom domain
+
+- Configured `abliterated.cloud` as the production GitHub Pages custom domain
+  and added the matching deploy-time `website/CNAME` file.
+- Replaced Porkbun parking DNS with GitHub's four official apex A records, four
+  apex AAAA records, and `www` CNAME while retaining Porkbun nameservers.
+- Changed canonical, Open Graph, structured-data, sitemap, robots, LLM index,
+  and Agent Skill URLs from the temporary project path to the production
+  origin.
+- Documented GitHub TLS provisioning, public verification commands, and the
+  distinction between the active static Pages site and the optional prepared
+  Cloudflare edge layer.
+
 ### Model identity migration
 
 - Replaced the public shorthand identities with exact Hugging Face repository

@@ -1,5 +1,24 @@
 # ABLITERATED.cloud website releases
 
+## website-v0.7.1
+
+The production website now uses `https://abliterated.cloud/` as its GitHub
+Pages custom domain and canonical origin.
+
+### Custom domain
+
+- Replace Porkbun parking records with GitHub's official apex A and AAAA
+  targets plus the direct `www` CNAME.
+- Add the matching `website/CNAME` file and repository Pages setting.
+- Update canonical, social, structured-data, sitemap, robots, LLM index, and
+  Agent Skill URLs to the production origin.
+
+### Operations
+
+- Document GitHub TLS provisioning and exact public verification commands.
+- Keep Cloudflare as an optional prepared edge target; this release deploys
+  only static GitHub Pages and does not start Modal or any GPU.
+
 ## website-v0.7.0
 
 Exact model identities everywhere, a denser background brain, and cleaner

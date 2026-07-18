@@ -2,7 +2,7 @@
   "name": "abliterated-cloud-website",
   "private": true,
   "type": "module",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "scripts": {
     "dev:website": "wrangler dev --config wrangler.jsonc --port 8788",
     "deploy:website:preview": "wrangler deploy --config wrangler.jsonc --env=",

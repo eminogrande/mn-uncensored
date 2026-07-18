@@ -1,8 +1,9 @@
 # ABLITERATED.cloud website
 
 This directory contains the dependency-free static landing page. GitHub Pages
-remains the public preview. The repository also contains a Cloudflare Worker
-edge layer for the final `abliterated.cloud` deployment.
+publishes it at the production custom domain `abliterated.cloud`. The
+repository also retains a prepared Cloudflare Worker as an optional future
+edge layer; Cloudflare is not required for the current deployment.
 
 ## Goals
 
@@ -94,36 +95,45 @@ so Pages now deliberately uses the branch-based deployment that has been
 verified to work. This also prevents future `main` pushes from creating a
 known-failing Actions run.
 
-Initial URL:
-
-```text
-https://eminogrande.github.io/mn-uncensored/
-```
-
-## Final custom domain and edge deployment
-
-The intended domain is:
+Production URL:
 
 ```text
 https://abliterated.cloud/
 ```
 
-`abliterated.cloud` currently uses Porkbun nameservers and parking records.
-Cloudflare Workers custom domains require an active Cloudflare zone. Before
-the production switch:
+The former project URL, `https://eminogrande.github.io/mn-uncensored/`, is no
+longer the canonical address and redirects through the configured Pages custom
+domain.
 
-1. add `abliterated.cloud` to the intended Cloudflare account;
-2. reproduce every existing Porkbun DNS record in Cloudflare;
-3. enable DNSSEC and update the Porkbun nameservers to Cloudflare;
-4. confirm the zone is active before deploying the Worker;
-5. run `npm run deploy:website:production`;
-6. configure DNS-AID for the final hostname;
-7. run `npm run verify:agent-ready -- https://abliterated.cloud`;
-8. verify PageSpeed, Search Console, Rich Results and redirects separately.
+## Custom domain and DNS
 
-A custom domain is required for root-level `/robots.txt`, `/.well-known/*`,
-and the strongest agent-readiness result. GitHub project Pages serves the
-temporary site below `/mn-uncensored/`.
+The configured domain is:
+
+```text
+https://abliterated.cloud/
+```
+
+The cutover was completed on 2026-07-18 without changing nameservers. Porkbun
+remains authoritative and the previous parking records were removed. The live
+zone contains GitHub's four apex A records, four apex AAAA records, and a
+`www` CNAME to `eminogrande.github.io`. `website/CNAME` and the GitHub Pages
+repository setting both contain exactly `abliterated.cloud`.
+
+GitHub provisions and renews the TLS certificate. Immediately after a new
+custom-domain cutover, HTTPS availability and the **Enforce HTTPS** setting can
+remain pending while GitHub validates DNS and issues the certificate. This can
+take up to 24 hours and does not require a GPU or create Modal costs.
+
+After certificate provisioning, verify:
+
+```sh
+dig +short A abliterated.cloud
+dig +short AAAA abliterated.cloud
+dig +short CNAME www.abliterated.cloud
+curl -fsSI https://abliterated.cloud/
+curl -fsSI https://www.abliterated.cloud/
+npm run verify:agent-ready -- https://abliterated.cloud
+```
 
 ## Agent-ready edge layer
 
@@ -140,9 +150,11 @@ headers. `website-worker.mjs` now provides:
 - a public HTTP-signature directory tied to the owner's existing Ed25519
   public signing key.
 
-DNS-AID and the final public score cannot be completed by application code.
-They require the final custom hostname, DNSSEC and DNS records. The local gate
-tests every application-controlled check before deployment.
+The live GitHub Pages site exposes all static discovery files. Dynamic
+content negotiation, arbitrary response headers, DNS-AID, and a live POST MCP
+endpoint still require an edge runtime and DNS features beyond static Pages.
+The local gate tests the prepared Worker behavior, so its score must not be
+reported as the current public GitHub Pages score.
 
 The repository already publishes explicit Markdown alternatives so agents do
 not need to scrape the visual page.
@@ -161,10 +173,8 @@ agent tooling:
 - `/auth.md`
 - `/openapi.json`
 
-These resources resolve at the origin root after `abliterated.cloud` becomes
-the Pages custom domain. The temporary project Pages URL cannot control the
-root of `eminogrande.github.io`, which is why origin-based scanners cannot
-award the final root-level checks there.
+These resources now resolve at the `abliterated.cloud` origin root through the
+Pages custom domain.
 
 The extensionless API catalog follows RFC 9727's Linkset JSON structure. The
 Worker explicitly serves it as `application/linkset+json`.

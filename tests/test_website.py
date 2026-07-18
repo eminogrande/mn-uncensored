@@ -74,7 +74,7 @@ def test_website_has_complete_search_metadata() -> None:
     _, parser = parse_index()
 
     assert parser.h1_count == 1
-    assert parser.canonical == "https://eminogrande.github.io/mn-uncensored/"
+    assert parser.canonical == "https://abliterated.cloud/"
     assert 80 <= len(parser.meta[("name", "description")]) <= 170
     assert parser.meta[("name", "robots")].startswith("index,follow")
     assert parser.meta[("property", "og:title")]
@@ -270,7 +270,7 @@ def test_homepage_has_no_external_runtime_dependencies_or_api_polling() -> None:
                 "https://signal.me/",
                 "https://github.com/",
                 "https://huggingface.co/",
-                "https://eminogrande.github.io/",
+                "https://abliterated.cloud/",
             )
         )
     ]

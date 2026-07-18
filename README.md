@@ -1,7 +1,7 @@
 # MN Uncensored
 
 [Public repository](https://github.com/eminogrande/mn-uncensored) ·
-[ABLITERATED.cloud website](https://eminogrande.github.io/mn-uncensored/) ·
+[ABLITERATED.cloud website](https://abliterated.cloud/) ·
 [Latest deployed release: v0.3.1](https://github.com/eminogrande/mn-uncensored/releases/tag/v0.3.1) ·
 [Release notes](docs/RELEASE_NOTES.md) ·
 [Security](SECURITY.md) ·
@@ -30,13 +30,13 @@ requires a valid `sk-mn-*` Bearer token.
 > The safety changes are on `main` but will not be deployed to Modal until a
 > Workspace hard budget is confirmed. Do not restart a model before that.
 
-> **Website status:** the clean static landing page remains live on GitHub
-> Pages. `website-worker.mjs` now adds the Agent-Ready edge behavior that plain
-> GitHub Pages cannot provide: Markdown negotiation, discovery headers, OAuth,
-> A2A, MCP, Agent Skills, WebMCP and correct machine-readable content types.
-> The local application-controlled gate passes. A public 100% result still
-> requires moving `abliterated.cloud` from Porkbun parking DNS to an active
-> Cloudflare zone with DNSSEC and DNS-AID. See
+> **Website status:** `abliterated.cloud` is the configured GitHub Pages custom
+> domain. Porkbun DNS points the apex and `www` hostname to GitHub's official
+> Pages targets. `website-worker.mjs` remains a prepared optional edge layer
+> for behavior static Pages cannot provide, including HTTP content negotiation,
+> custom discovery headers and a live MCP endpoint. The local
+> application-controlled Agent-Ready gate passes; do not claim a public 100%
+> result until the public hostname is measured after TLS provisioning. See
 > [website/README.md](website/README.md).
 
 ## Contents
@@ -82,11 +82,13 @@ Hugging Face.
 
 ## Website and agent readiness
 
-The website has two deliberately separate delivery targets:
+The website has one active delivery target and one prepared optional edge
+target:
 
-- GitHub Pages publishes the dependency-free visual preview from `website/`.
-- Cloudflare Workers serves the same files through `website-worker.mjs` and
-  adds the HTTP behavior required by agent-ready scanners.
+- GitHub Pages publishes the dependency-free production site at
+  `https://abliterated.cloud/`.
+- Cloudflare Workers can serve the same files through `website-worker.mjs` in a
+  future migration if dynamic edge behavior is required.
 
 Local verification:
 
@@ -96,10 +98,11 @@ npm run dev:website
 npm run verify:agent-ready:local
 ```
 
-The final public target is `https://abliterated.cloud`. Reaching 100% on the
-public hostname requires application checks plus DNS-AID and DNSSEC. The code
-now covers the application layer; the remaining DNS migration is documented
-step by step in [website/README.md](website/README.md).
+The public target is `https://abliterated.cloud`. The custom-domain and DNS
+cutover were completed on 2026-07-18. Public Agent-Ready and PageSpeed results
+must still be measured against the final HTTPS hostname after GitHub finishes
+certificate provisioning; the deployment state is documented in
+[website/README.md](website/README.md).
 
 ## Current model catalog
 
