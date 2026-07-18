@@ -1,5 +1,23 @@
 # ABLITERATED.cloud website releases
 
+## website-v0.8.1
+
+The hero brain now carries substantially more synaptic connections while its
+left side fades gently beneath the copy.
+
+### Changed
+
+- Raise the maximum local connections per point from six to ten.
+- Widen the local connection radius from `0.145` to `0.165`.
+- Restore a directional background-colored overlay on the left side only,
+  preserving a crisp, fully visible right hemisphere.
+- Keep the Canvas dependency-free, locally generated and pointer-reactive.
+
+### Safety and operations
+
+- Do not deploy, wake or start any Modal model or GPU.
+- Preserve the deployment-disabled Ornith 397B profile.
+
 ## website-v0.8.0
 
 Four model stories, a denser hero brain and a complete brain-shaped identity.

@@ -340,7 +340,8 @@ def test_brain_visual_is_shaped_and_pointer_interactive() -> None:
     assert "outlineControls" in javascript
     assert "insideOutline" in javascript
     assert "const pointTarget = 1280" in javascript
-    assert "const maximumDegree = 6" in javascript
+    assert "const maximumDegree = 10" in javascript
+    assert "const connectionRadius = 0.165" in javascript
     assert "const foldControls" in javascript
     assert 'edgeType === "fold"' in javascript
     assert 'stage.closest(".hero")' in javascript
@@ -351,7 +352,9 @@ def test_brain_visual_is_shaped_and_pointer_interactive() -> None:
     assert ".brain-stage {" in css
     assert "position: absolute" in css
     assert "pointer-events: none" in css
-    assert ".brain-stage::before" not in css
+    assert ".brain-stage::before" in css
+    assert "rgba(247, 247, 244, 0.98) 24%" in css
+    assert "transparent 72%" in css
     assert ".brain-stage { inset: 250px -48% 12px -30%; opacity: 1; }" in css
 
 

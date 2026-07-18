@@ -4,6 +4,17 @@ All notable changes to MN Uncensored are documented here.
 
 ## [Unreleased]
 
+### Website 0.8.1
+
+- Increased the hero network from at most six to ten local connections per
+  point and widened its local connection radius from `0.145` to `0.165`,
+  producing substantially more visible synapses without adding dependencies.
+- Restored a directional fade over the left side of the brain so the headline,
+  lead and actions remain easy to read while the complete right hemisphere
+  stays crisp.
+- Added regression coverage for both the increased synapse density and the
+  precise left-to-right fade.
+
 ### Website 0.8.0
 
 - Added a complete model field-notes blog with one source-linked HTML and
