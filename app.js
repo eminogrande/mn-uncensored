@@ -174,8 +174,10 @@ window.addEventListener("resize", () => {
     degree[from] += 1;
     degree[to] += 1;
   }
-  const maximumDegree = 6;
-  const connectionRadius = 0.145;
+  // A higher local degree makes the network read as densely connected
+  // synapses while the radius keeps the lines anatomically local.
+  const maximumDegree = 10;
+  const connectionRadius = 0.165;
   for (let i = 0; i < points.length; i += 1) {
     const candidates = [];
     for (let j = i + 1; j < points.length; j += 1) {

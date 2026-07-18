@@ -271,6 +271,22 @@ summary:focus-visible {
   pointer-events: none;
 }
 
+.brain-stage::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: linear-gradient(
+    90deg,
+    var(--background) 0%,
+    rgba(247, 247, 244, 0.98) 24%,
+    rgba(247, 247, 244, 0.76) 40%,
+    rgba(247, 247, 244, 0.18) 58%,
+    transparent 72%
+  );
+  pointer-events: none;
+}
+
 #brain-canvas { width: 100%; height: 100%; display: block; mix-blend-mode: multiply; }
 
 .brain-stage noscript img { width: 100%; height: 100%; object-fit: cover; opacity: 1; }
