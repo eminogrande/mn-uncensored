@@ -26,4 +26,4 @@ Allow: /
 User-agent: Applebot-Extended
 Allow: /
 
-Sitemap: https://eminogrande.github.io/mn-uncensored/sitemap.xml
+Sitemap: https://abliterated.cloud/sitemap.xml

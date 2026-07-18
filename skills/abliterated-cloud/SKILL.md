@@ -3,7 +3,7 @@ name: abliterated-cloud
 description: Use ABLITERATED.cloud safely through its token-protected OpenAI-compatible Chat Completions API.
 license: Apache-2.0
 metadata:
-  homepage: https://eminogrande.github.io/mn-uncensored/
+  homepage: https://abliterated.cloud/
   repository: https://github.com/eminogrande/mn-uncensored
 ---
 

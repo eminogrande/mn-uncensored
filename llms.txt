@@ -6,12 +6,12 @@ ABLITERATED.cloud is a private evaluation service for four exact model profiles.
 
 ## Primary resources
 
-- [Human landing page](https://eminogrande.github.io/mn-uncensored/): Product overview, models, costs, security, and access.
-- [Markdown landing page](https://eminogrande.github.io/mn-uncensored/index.md): Compact agent-friendly product documentation.
-- [Full agent context](https://eminogrande.github.io/mn-uncensored/llms-full.txt): Expanded operational and model details.
-- [OpenAPI catalog](https://eminogrande.github.io/mn-uncensored/openapi.json): Current API contract and model identifiers.
-- [Authentication guide](https://eminogrande.github.io/mn-uncensored/auth.md): Bearer-token and lifecycle requirements.
-- [Agent skill](https://eminogrande.github.io/mn-uncensored/skills/abliterated-cloud/SKILL.md): Safe instructions for agents using the API.
+- [Human landing page](https://abliterated.cloud/): Product overview, models, costs, security, and access.
+- [Markdown landing page](https://abliterated.cloud/index.md): Compact agent-friendly product documentation.
+- [Full agent context](https://abliterated.cloud/llms-full.txt): Expanded operational and model details.
+- [OpenAPI catalog](https://abliterated.cloud/openapi.json): Current API contract and model identifiers.
+- [Authentication guide](https://abliterated.cloud/auth.md): Bearer-token and lifecycle requirements.
+- [Agent skill](https://abliterated.cloud/skills/abliterated-cloud/SKILL.md): Safe instructions for agents using the API.
 - [Source repository](https://github.com/eminogrande/mn-uncensored): Open-source implementation, tests, operations, release notes, and incident report.
 - [Exact model record](https://github.com/eminogrande/mn-uncensored/blob/main/docs/MODELS.md): Hugging Face artifacts, revisions, licenses, context, parsers, and hardware.
 
