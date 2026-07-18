@@ -1,0 +1,53 @@
+<!doctype html><html lang="en"><head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Qwythos 9B has three lives — ABLITERATED.cloud</title>
+  <meta name="description" content="Qwen bones, more than 500M reasoning tokens, a configured 1M context and huihui-ai refusal surgery: the full lineage of Qwythos 9B abliterated.">
+  <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1"><link rel="canonical" href="https://abliterated.cloud/blog/qwythos-9b-claude-mythos-5-1m-abliterated/"><link rel="alternate" type="text/markdown" href="index.md">
+  <meta property="og:type" content="article"><meta property="og:url" content="https://abliterated.cloud/blog/qwythos-9b-claude-mythos-5-1m-abliterated/"><meta property="og:title" content="Qwythos has three lives"><meta property="og:description" content="Qwen architecture, Empero reasoning and Huihui refusal surgery in a 9.65B-parameter model."><meta property="og:image" content="https://abliterated.cloud/assets/og-card.png">
+  <link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml" sizes="any"><link rel="icon" href="../../assets/favicon-32.png" type="image/png" sizes="32x32"><link rel="shortcut icon" href="../../favicon.ico"><link rel="stylesheet" href="../../styles.css">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"Qwythos has three lives: Qwen bones, 500M reasoning tokens and an abliterated refusal circuit","datePublished":"2026-07-18","dateModified":"2026-07-18","author":{"@type":"Organization","name":"ABLITERATED.cloud"},"publisher":{"@type":"Organization","name":"ABLITERATED.cloud","url":"https://abliterated.cloud/"},"mainEntityOfPage":"https://abliterated.cloud/blog/qwythos-9b-claude-mythos-5-1m-abliterated/","about":{"@type":"SoftwareApplication","name":"huihui-ai/Huihui-Qwythos-9B-Claude-Mythos-5-1M-abliterated"}}</script>
+</head><body>
+  <a class="skip-link" href="#article">Skip to article</a><header class="nav"><div class="nav-inner"><a class="brand" href="/"><img src="../../assets/logo.svg" width="32" height="32" alt=""><span>ABLITERATED.cloud</span></a><nav class="desktop-links"><a href="/">Home</a><a href="/#models">Models</a><a href="/blog/">Blog</a><a href="/#api">API</a></nav><a class="github-button" href="https://github.com/eminogrande/mn-uncensored"><span>Star on GitHub</span><span>↗</span></a></div></header>
+  <main class="article-main"><article class="article-shell" id="article">
+    <header class="article-header"><p class="kicker">MODEL FIELD NOTE · QWYTHOS</p><h1>A model with three lives.</h1><p class="article-lead">Qwythos starts with Qwen’s compact hybrid architecture, receives a full-parameter reasoning education from Empero, and then passes through huihui-ai’s refusal-reduction process. Its long name is really a compressed history.</p><div class="article-meta"><span>Published 18 July 2026</span><span>Three-stage lineage</span><span>Text-first evaluation</span></div></header>
+    <dl class="article-facts">
+      <div><dt>Exact artifact</dt><dd class="article-repository">huihui-ai/Huihui-Qwythos-9B-Claude-Mythos-5-1M-abliterated</dd></div><div><dt>Pinned revision</dt><dd>efcc73ca…1cf97d</dd></div>
+      <div><dt>Parameters</dt><dd>9,653,104,368</dd></div><div><dt>Architecture</dt><dd>Dense · 32 layers</dd></div>
+      <div><dt>BF16 repository</dt><dd>about 19.3 GB</dd></div><div><dt>Configured context</dt><dd>1,048,576 tokens</dd></div>
+      <div><dt>Our hosted profile</dt><dd>131,072 tokens</dd></div><div><dt>License metadata</dt><dd>Apache-2.0</dd></div>
+    </dl>
+    <div class="article-body">
+      <h2>Life one: Qwen builds the skeleton</h2>
+      <p>The lineage begins with Qwen3.5-9B. Unlike the MoE models elsewhere in our catalog, this is a dense 32-layer architecture with a 4,096-dimensional hidden state. It keeps Qwen’s hybrid cadence of three linear-attention blocks followed by one full-attention block, plus a 27-layer vision encoder and native tool-call format.</p>
+      <p>The exact Huihui artifact contains 9,653,104,368 BF16 parameters. Hugging Face rounds that to 10B in parts of the interface, while the repository name keeps 9B. Both labels point to the same inspectable object, roughly 19.3 GB in BF16.</p>
+
+      <h2>Life two: Empero changes the behavior</h2>
+      <p><a href="https://empero.org/">Empero</a>, an independent AI research lab describing itself as built in Germany and open by default, created the immediate upstream model <a href="https://huggingface.co/empero-ai/Qwythos-9B-Claude-Mythos-5-1M">Qwythos-9B-Claude-Mythos-5-1M</a>. The lab says it fine-tuned every text-backbone parameter on more than 500 million tokens of Claude Mythos, Claude Fable and in-house `rethink` reasoning traces.</p>
+      <p>The training used assistant-only loss, a two-stage curriculum, BF16 and sequences as long as 128,000 tokens. The vision tower was frozen: the resulting model retains the architecture, but Empero explicitly says vision behavior was neither tuned nor tested. “Multimodal architecture” is accurate; “proven vision model” is not.</p>
+      <p>Empero reports a matched 100-example comparison against base Qwen3.5-9B: MMLU rises from 0.232 to 0.575, GSM8K strict from 0.510 to 0.810 and ARC Challenge from 0.470 to 0.490. GPQA Diamond flexible falls from 0.630 to 0.580. That regression is useful evidence: Qwythos is a specialized fine-tune, not a universal upgrade.</p>
+
+      <h2>The “1M” in the name</h2>
+      <p>The pinned <a href="https://huggingface.co/huihui-ai/Huihui-Qwythos-9B-Claude-Mythos-5-1M-abliterated/blob/efcc73cac15ff8fc5d46b8d41b53c22d571cf97d/config.json">configuration</a> sets 1,048,576 positions through static YaRN with factor four over the native 262,144-token architecture. Empero says the checkpoint was smoke-tested internally at roughly 137K, not across the full million-token window, and warns that full-window inference needs serious tensor parallelism or KV-cache offload.</p>
+      <p>Static YaRN can also cost short-context fidelity. That is why our initial hosted profile stops at 131,072 tokens. A number in a model name is not a substitute for workload-specific long-context evaluation.</p>
+
+      <h2>Life three: huihui edits refusal again</h2>
+      <p>Empero already positioned Qwythos as intentionally uncensored. Huihui nevertheless applied abliteration and published the exact derivative in our catalog on 26 June 2026. The <a href="https://huggingface.co/huihui-ai/Huihui-Qwythos-9B-Claude-Mythos-5-1M-abliterated">Huihui card</a> says the non-thinking mode follows the first prompt directly without introductory or concluding filler.</p>
+      <p>No formal evaluation accompanies that claim. Huihui publishes neither a new refusal comparison nor a rerun of Empero’s benchmarks. That leaves a genuinely interesting unanswered question: what additional behavior changed when an already refusal-light model went through another representation-level edit?</p>
+      <div class="article-callout"><strong>The benchmark boundary</strong><p>The attractive MMLU, GSM8K and tool-use results belong to Empero’s checkpoint before abliteration. The exact Huihui derivative has no published post-edit benchmark. We preserve the lineage without transferring the scores.</p></div>
+
+      <h2>A tiny tool-use demo, not a giant benchmark</h2>
+      <p>Empero reports seven successful prompts out of seven in a small function-calling harness covering Python, search, cybersecurity, pharmacology and biochemistry, including self-correction. That demonstrates the format can work. It does not establish broad tool reliability, especially after the later Huihui edit.</p>
+
+      <h2>The people behind the lineage</h2>
+      <p>Qwen supplied the architecture. Empero supplied the full-parameter reasoning fine-tune and, unusually, published both gains and regressions. <a href="https://huggingface.co/huihui-ai">huihui-ai</a> supplied the final abliterated artifact. Huihui’s primary profile describes model-ablation work but does not name an individual crew, so we do not invent one.</p>
+
+      <h2>Why this is our inexpensive route</h2>
+      <p>At roughly 19.3 GB BF16, Qwythos is dramatically smaller than either 35B artifact and tiny beside Ornith 397B. Our prepared profile pairs it with one L40S and a 131K context, making it the sensible route for experimentation. Small and inexpensive do not mean evaluated: the exact runtime still needs our own tool, coding, long-context and refusal measurements.</p>
+
+      <h2>Primary sources</h2>
+      <ul class="article-source-list"><li><a href="https://huggingface.co/huihui-ai/Huihui-Qwythos-9B-Claude-Mythos-5-1M-abliterated">Exact Huihui model card</a> and <a href="https://huggingface.co/huihui-ai/Huihui-Qwythos-9B-Claude-Mythos-5-1M-abliterated/tree/efcc73cac15ff8fc5d46b8d41b53c22d571cf97d">pinned artifact</a></li><li><a href="https://huggingface.co/empero-ai/Qwythos-9B-Claude-Mythos-5-1M">Empero Qwythos model card, training and evaluations</a></li><li><a href="https://empero.org/">Official Empero site</a></li><li><a href="https://huggingface.co/Qwen/Qwen3.5-9B">Official Qwen3.5-9B repository</a></li><li><a href="https://arxiv.org/abs/2406.11717">Original refusal-direction paper</a></li></ul>
+    </div>
+    <nav class="article-next"><a href="../ornith-1-0-35b-abliterated/">← Ornith 35B</a><a href="../ornith-1-0-397b-abliterated-w4a16/">Next: Ornith 397B →</a></nav>
+  </article></main>
+  <footer class="footer"><div><a class="brand" href="/"><img src="../../assets/logo.svg" width="28" height="28" alt=""><span>ABLITERATED.cloud</span></a><p>Intelligence, freed.<br>© 2026 ABLITERATED.cloud</p></div><nav><a href="/blog/">Blog</a><a href="/#models">Models</a><a href="https://signal.me/#p/+13103408213">Request access</a></nav></footer>
+</body></html>

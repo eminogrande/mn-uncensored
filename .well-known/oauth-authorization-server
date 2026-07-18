@@ -1,11 +1,8 @@
 {
   "issuer": "https://abliterated.cloud",
-  "authorization_endpoint": "https://abliterated.cloud/oauth/authorize",
   "token_endpoint": "https://abliterated.cloud/oauth/token",
   "registration_endpoint": "https://abliterated.cloud/oauth/register",
-  "jwks_uri": "https://abliterated.cloud/oauth/jwks.json",
   "grant_types_supported": ["client_credentials"],
-  "response_types_supported": ["code"],
   "token_endpoint_auth_methods_supported": ["none"],
   "scopes_supported": ["public:read"],
   "agent_auth": {

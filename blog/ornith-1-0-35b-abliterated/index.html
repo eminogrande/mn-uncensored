@@ -1,0 +1,50 @@
+<!doctype html><html lang="en"><head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ornith 1.0 35B abliterated — ABLITERATED.cloud</title>
+  <meta name="description" content="How DeepReinforce's 35B self-scaffolding coding model became YuYu1015-Ornith-1.0-35B-abliterated—and what the corrected weights actually measured.">
+  <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1"><link rel="canonical" href="https://abliterated.cloud/blog/ornith-1-0-35b-abliterated/"><link rel="alternate" type="text/markdown" href="index.md">
+  <meta property="og:type" content="article"><meta property="og:url" content="https://abliterated.cloud/blog/ornith-1-0-35b-abliterated/"><meta property="og:title" content="Ornith 35B: can self-scaffolding survive abliteration?"><meta property="og:description" content="An agentic coding model, a corrected weight release, and an unusually honest refusal-versus-reasoning test."><meta property="og:image" content="https://abliterated.cloud/assets/og-card.png">
+  <link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml" sizes="any"><link rel="icon" href="../../assets/favicon-32.png" type="image/png" sizes="32x32"><link rel="shortcut icon" href="../../favicon.ico"><link rel="stylesheet" href="../../styles.css">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"Ornith 35B: can self-scaffolding survive abliteration?","datePublished":"2026-07-18","dateModified":"2026-07-18","author":{"@type":"Organization","name":"ABLITERATED.cloud"},"publisher":{"@type":"Organization","name":"ABLITERATED.cloud","url":"https://abliterated.cloud/"},"mainEntityOfPage":"https://abliterated.cloud/blog/ornith-1-0-35b-abliterated/","about":{"@type":"SoftwareApplication","name":"YuYu1015/YuYu1015-Ornith-1.0-35B-abliterated"}}</script>
+</head><body>
+  <a class="skip-link" href="#article">Skip to article</a><header class="nav"><div class="nav-inner"><a class="brand" href="/"><img src="../../assets/logo.svg" width="32" height="32" alt=""><span>ABLITERATED.cloud</span></a><nav class="desktop-links"><a href="/">Home</a><a href="/#models">Models</a><a href="/blog/">Blog</a><a href="/#api">API</a></nav><a class="github-button" href="https://github.com/eminogrande/mn-uncensored"><span>Star on GitHub</span><span>↗</span></a></div></header>
+  <main class="article-main"><article class="article-shell" id="article">
+    <header class="article-header"><p class="kicker">MODEL FIELD NOTE · ORNITH</p><h1>Can a self-scaffolding coding model survive abliteration?</h1><p class="article-lead">Ornith 35B is interesting before anyone touches its refusal behavior: DeepReinforce trained it to invent a better problem-solving scaffold, then solve inside that scaffold. YuYu1015’s derivative asks whether that learned orchestration survives a weights-only edit.</p><div class="article-meta"><span>Published 18 July 2026</span><span>Corrected 30 June weights</span><span>Publisher claims labeled</span></div></header>
+    <dl class="article-facts">
+      <div><dt>Exact artifact</dt><dd class="article-repository">YuYu1015/YuYu1015-Ornith-1.0-35B-abliterated</dd></div><div><dt>Pinned revision</dt><dd>86065d1a…a56cbf</dd></div>
+      <div><dt>Parameters</dt><dd>35,107,181,936</dd></div><div><dt>Architecture</dt><dd>35B MoE · about 3B active</dd></div>
+      <div><dt>Storage</dt><dd>about 70.24 GB</dd></div><div><dt>Native context</dt><dd>262,144 tokens</dd></div>
+      <div><dt>License metadata</dt><dd>Apache-2.0</dd></div><div><dt>Thinking</dt><dd>&lt;think&gt; blocks</dd></div>
+    </dl>
+    <div class="article-body">
+      <h2>Ornith’s unusual idea: learn the harness too</h2>
+      <p>Most coding-model evaluations wrap a model in a fixed harness: tools, prompts, iteration rules and context management designed by humans. DeepReinforce’s <a href="https://deep-reinforce.com/ornith_1_0.html">official Ornith article</a> describes “self-scaffolding” instead. During reinforcement learning, the model first proposes an improved scaffold and then uses it to solve the task; reward flows to both stages.</p>
+      <p>That makes the model’s behavior more than a bundle of coding answers. The learned object includes strategies for decomposition, tool use and recovery. DeepReinforce reports 75.6 on SWE-bench Verified, 50.4 on SWE-bench Pro, 64.2 on Terminal-Bench 2.1 with its Terminus-2 harness and 69.8 average on ClawEval for the upstream 35B checkpoint. These are publisher runs with documented harnesses—not scores for the abliterated derivative.</p>
+
+      <h2>A middleweight MoE with a large address book</h2>
+      <p>The pinned <a href="https://huggingface.co/YuYu1015/YuYu1015-Ornith-1.0-35B-abliterated/blob/86065d1a9008773086a177637d54ec6dc2a56cbf/config.json">configuration</a> describes 40 layers, 256 routed experts, eight selected experts and one shared expert per token. The exact BF16 artifact contains 35,107,181,936 parameters and takes about 70.24 GB. Qwen’s matching architecture is commonly summarized as 35B total and roughly 3B activated.</p>
+      <p>The multimodal machinery remains: a 27-layer vision encoder, image and video tokens and a conditional-generation class. The chat template accepts tool definitions and emits structured XML calls. Architecture is not evaluation, though. YuYu1015 publishes math and refusal measurements after editing, not a vision suite or tool benchmark.</p>
+
+      <h2>The first edit was not good enough</h2>
+      <p>The most revealing part of this release is the correction notice. YuYu1015 says the original abliterated weights reduced refusals but damaged reasoning. On 30 June 2026 the publisher replaced them, asking earlier downloaders to fetch the model again. The second version reportedly halved moralizing from roughly 28% to 14% and restored GSM8K performance to the base model’s 80%.</p>
+      <p>On the publisher’s current evaluation, hard refusals move from roughly 99% for the upstream model to about 5% for the derivative; moralizing or disclaimers move from roughly 95% to 14%. GSM8K is 80% for both, while the hardest MATH-500 tier is reported at roughly 10% upstream and 12% after editing. Refusals were detected with phrase markers, moralizing with a BERT classifier, and math with exact match.</p>
+      <div class="article-callout"><strong>Why the correction matters</strong><p>Abliteration is often described as surgery. This release shows why surgery needs follow-up tests: an earlier edit apparently changed reasoning, and the publisher revised the weights. The corrected numbers are promising but remain small, publisher-run evaluations without confidence intervals or a public end-to-end harness in the repository.</p></div>
+
+      <h2>Sampling is part of the model</h2>
+      <p>YuYu1015 gives unusually forceful sampling guidance: keep repetition penalty at 1.0. The card says even 1.05 can produce truncated or unfinished answers and discourages greedy temperature-zero decoding. Recommended settings are temperature 1.0, top-p 0.95, top-k 20 and no presence penalty for general work.</p>
+      <p>This is operationally important. A checkpoint can look broken when the server applies “helpful” defaults that fight its post-training. Reproducible evaluation must record the sampler, not just the model ID.</p>
+
+      <h2>Who stands behind the two stages?</h2>
+      <p><a href="https://deep-reinforce.com/ornith_1_0.html">DeepReinforce</a> created the upstream Ornith family and published its self-scaffolding story, benchmarks and harness settings. The refusal-reduced derivative comes from the individual Hugging Face publisher <a href="https://huggingface.co/YuYu1015">YuYu1015</a>, whose profile links to the handle `whes1015` and maintains an Ornith abliterated collection. Primary sources do not describe a company or larger team behind that account.</p>
+
+      <h2>What we can and cannot conclude</h2>
+      <p>The publisher’s own result is not zero refusal: about 5% hard refusal and 14% moralizing remain. The attractive coding benchmarks belong to upstream Ornith; the derivative has not rerun SWE-bench or Terminal-Bench. Multimodal and tool structures exist, but their post-edit quality is unmeasured.</p>
+      <p>Our prepared route pins the corrected revision, uses 131,072 context tokens and budgets one H200. Before calling it a great coding endpoint, we still owe the exact artifact a real coding, streaming and structured-tool evaluation on the deployed runtime.</p>
+
+      <h2>Primary sources</h2>
+      <ul class="article-source-list"><li><a href="https://huggingface.co/YuYu1015/YuYu1015-Ornith-1.0-35B-abliterated">YuYu1015 model card</a> and <a href="https://huggingface.co/YuYu1015/YuYu1015-Ornith-1.0-35B-abliterated/tree/86065d1a9008773086a177637d54ec6dc2a56cbf">pinned artifact</a></li><li><a href="https://deep-reinforce.com/ornith_1_0.html">Official Ornith 1.0 article and benchmarks</a></li><li><a href="https://huggingface.co/deepreinforce-ai/Ornith-1.0-35B">Upstream Ornith repository</a></li><li><a href="https://huggingface.co/Qwen/Qwen3.5-35B-A3B">Official Qwen architecture card</a></li></ul>
+    </div>
+    <nav class="article-next"><a href="../qwen3-6-35b-a3b-abliterated/">← Qwen3.6 35B</a><a href="../qwythos-9b-claude-mythos-5-1m-abliterated/">Next: Qwythos 9B →</a></nav>
+  </article></main>
+  <footer class="footer"><div><a class="brand" href="/"><img src="../../assets/logo.svg" width="28" height="28" alt=""><span>ABLITERATED.cloud</span></a><p>Intelligence, freed.<br>© 2026 ABLITERATED.cloud</p></div><nav><a href="/blog/">Blog</a><a href="/#models">Models</a><a href="https://signal.me/#p/+13103408213">Request access</a></nav></footer>
+</body></html>

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>ABLITERATED.cloud model field notes</title>
+    <link>https://abliterated.cloud/blog/</link>
+    <description>Source-linked field notes on the exact abliterated open model artifacts in the ABLITERATED.cloud catalog.</description>
+    <language>en</language>
+    <lastBuildDate>Sat, 18 Jul 2026 00:00:00 +0200</lastBuildDate>
+    <atom:link href="https://abliterated.cloud/blog/feed.xml" rel="self" type="application/rss+xml"/>
+    <item>
+      <title>Inside Huihui-Qwen3.6: 256 experts and one refusal direction</title>
+      <link>https://abliterated.cloud/blog/qwen3-6-35b-a3b-abliterated/</link>
+      <guid isPermaLink="true">https://abliterated.cloud/blog/qwen3-6-35b-a3b-abliterated/</guid>
+      <pubDate>Sat, 18 Jul 2026 00:00:00 +0200</pubDate>
+      <description>A sparse multimodal giant and huihui-ai's refusal-direction weight edit.</description>
+    </item>
+    <item>
+      <title>Ornith 35B: can self-scaffolding survive abliteration?</title>
+      <link>https://abliterated.cloud/blog/ornith-1-0-35b-abliterated/</link>
+      <guid isPermaLink="true">https://abliterated.cloud/blog/ornith-1-0-35b-abliterated/</guid>
+      <pubDate>Sat, 18 Jul 2026 00:00:00 +0200</pubDate>
+      <description>DeepReinforce's coding scaffold, YuYu1015's corrected weights and the boundary between upstream and derivative benchmarks.</description>
+    </item>
+    <item>
+      <title>Qwythos 9B: a model with three lives</title>
+      <link>https://abliterated.cloud/blog/qwythos-9b-claude-mythos-5-1m-abliterated/</link>
+      <guid isPermaLink="true">https://abliterated.cloud/blog/qwythos-9b-claude-mythos-5-1m-abliterated/</guid>
+      <pubDate>Sat, 18 Jul 2026 00:00:00 +0200</pubDate>
+      <description>Qwen architecture, Empero post-training and huihui-ai's final refusal-reduction pass.</description>
+    </item>
+    <item>
+      <title>Ornith 397B: surgery on a model too large to hold at once</title>
+      <link>https://abliterated.cloud/blog/ornith-1-0-397b-abliterated-w4a16/</link>
+      <guid isPermaLink="true">https://abliterated.cloud/blog/ornith-1-0-397b-abliterated-w4a16/</guid>
+      <pubDate>Sat, 18 Jul 2026 00:00:00 +0200</pubDate>
+      <description>A shard-by-shard abliteration and W4A16 conversion of a 396.8-billion-parameter sparse model.</description>
+    </item>
+  </channel>
+</rss>

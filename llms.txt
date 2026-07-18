@@ -15,6 +15,13 @@ ABLITERATED.cloud is a private evaluation service for four exact model profiles.
 - [Source repository](https://github.com/eminogrande/mn-uncensored): Open-source implementation, tests, operations, release notes, and incident report.
 - [Exact model record](https://github.com/eminogrande/mn-uncensored/blob/main/docs/MODELS.md): Hugging Face artifacts, revisions, licenses, context, parsers, and hardware.
 
+## Model field notes
+
+- [Huihui-Qwen3.6 35B A3B](https://abliterated.cloud/blog/qwen3-6-35b-a3b-abliterated/index.md): Sparse MoE architecture, upstream Qwen history, and refusal-direction editing.
+- [YuYu1015 Ornith 1.0 35B](https://abliterated.cloud/blog/ornith-1-0-35b-abliterated/index.md): Self-scaffolding coding lineage and the corrected weights-only abliteration.
+- [Huihui Qwythos 9B Claude Mythos 5](https://abliterated.cloud/blog/qwythos-9b-claude-mythos-5-1m-abliterated/index.md): Qwen architecture, Empero reasoning fine-tuning, long-context caveats, and the Huihui derivative.
+- [cebeuq Ornith 1.0 397B W4A16](https://abliterated.cloud/blog/ornith-1-0-397b-abliterated-w4a16/index.md): Streaming refusal-direction surgery and immediate four-bit conversion at 397B scale.
+
 ## Exact models and API identifiers
 
 - Qwen3.6 35B A3B — API model ID `huihui-ai/Huihui-Qwen3.6-35B-A3B-abliterated` — $5.45/hour

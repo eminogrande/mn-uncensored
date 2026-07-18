@@ -41,15 +41,17 @@ window.addEventListener("resize", () => {
     return seed / 4294967296;
   };
 
-  // A lateral brain outline: cerebrum across the top, cerebellum at the
-  // lower-left, and a small stem descending near the center-right.
+  // A lateral brain outline with a broad cerebrum, distinct rear cerebellum,
+  // and a narrow brain stem. Interior fold paths keep the silhouette legible
+  // even when the pointer is idle.
   const outlineControls = [
-    [-1.08, 0.05], [-1.05, -0.27], [-0.88, -0.55], [-0.58, -0.73],
-    [-0.23, -0.82], [0.16, -0.81], [0.52, -0.69], [0.81, -0.48],
-    [0.99, -0.2], [1.02, 0.05], [0.9, 0.28], [0.69, 0.43],
-    [0.47, 0.48], [0.34, 0.59], [0.29, 0.83], [0.12, 0.97],
-    [-0.02, 0.71], [-0.18, 0.58], [-0.44, 0.61], [-0.7, 0.52],
-    [-0.92, 0.34], [-1.05, 0.18],
+    [-1.12, 0.03], [-1.08, -0.3], [-0.9, -0.58], [-0.62, -0.78],
+    [-0.28, -0.9], [0.08, -0.92], [0.43, -0.84], [0.72, -0.68],
+    [0.94, -0.45], [1.07, -0.18], [1.08, 0.08], [0.98, 0.3],
+    [0.8, 0.42], [0.67, 0.53], [0.84, 0.61], [0.86, 0.77],
+    [0.7, 0.9], [0.44, 0.94], [0.25, 0.82], [0.2, 1.03],
+    [0.03, 1.12], [-0.1, 0.91], [-0.12, 0.7], [-0.39, 0.65],
+    [-0.68, 0.57], [-0.94, 0.39], [-1.09, 0.19],
   ];
 
   function catmullRom(p0, p1, p2, p3, t) {
@@ -106,6 +108,7 @@ window.addEventListener("resize", () => {
       size: options.size ?? 0.45 + random() * 0.9,
       accent: options.accent ?? random() > 0.94,
       contour: Boolean(options.contour),
+      fold: Boolean(options.fold),
       zone: zoneFor(x, y),
     });
     return points.length - 1;
@@ -118,14 +121,49 @@ window.addEventListener("resize", () => {
     { contour: true, size: 0.85 + random() * 0.45 },
   ));
   contourIndexes.forEach((pointIndex, index) => {
-    edges.push([pointIndex, contourIndexes[(index + 1) % contourIndexes.length], true]);
+    edges.push([pointIndex, contourIndexes[(index + 1) % contourIndexes.length], "contour"]);
   });
 
+  const foldControls = [
+    [[-0.91, -0.31], [-0.65, -0.47], [-0.36, -0.44], [-0.08, -0.58]],
+    [[0.02, -0.7], [0.3, -0.57], [0.59, -0.54], [0.84, -0.32]],
+    [[-0.83, 0.06], [-0.51, -0.02], [-0.2, 0.08], [0.13, 0.26], [0.5, 0.34]],
+    [[-0.72, 0.33], [-0.45, 0.28], [-0.22, 0.43], [-0.02, 0.56]],
+    [[-0.21, -0.72], [-0.27, -0.38], [-0.18, -0.04], [-0.03, 0.3]],
+    [[0.25, -0.38], [0.5, -0.23], [0.68, -0.02], [0.66, 0.25]],
+    [[0.25, 0.61], [0.46, 0.7], [0.68, 0.67], [0.8, 0.58]],
+    [[0.2, 0.53], [0.13, 0.73], [0.08, 0.94], [0.03, 1.08]],
+  ];
+
+  for (const controls of foldControls) {
+    const path = [];
+    for (let index = 0; index < controls.length - 1; index += 1) {
+      const p0 = controls[Math.max(0, index - 1)];
+      const p1 = controls[index];
+      const p2 = controls[index + 1];
+      const p3 = controls[Math.min(controls.length - 1, index + 2)];
+      for (let step = 0; step < 5; step += 1) {
+        path.push(catmullRom(p0, p1, p2, p3, step / 5));
+      }
+    }
+    path.push(controls.at(-1));
+    const indexes = path
+      .filter(([x, y]) => insideOutline(x, y))
+      .map(([x, y]) => addPoint(x, y, (random() - 0.5) * 0.06, {
+        fold: true,
+        size: 0.7 + random() * 0.35,
+      }));
+    indexes.slice(0, -1).forEach((pointIndex, index) => {
+      edges.push([pointIndex, indexes[index + 1], "fold"]);
+    });
+  }
+
+  const pointTarget = 1280;
   let attempts = 0;
-  while (points.length < 820 && attempts < 50000) {
+  while (points.length < pointTarget && attempts < 70000) {
     attempts += 1;
-    const x = random() * 2.2 - 1.1;
-    const y = random() * 1.84 - 0.84;
+    const x = random() * 2.28 - 1.14;
+    const y = random() * 2.06 - 0.92;
     if (insideOutline(x, y)) {
       addPoint(x, y, random() * 0.62 - 0.31);
     }
@@ -136,6 +174,8 @@ window.addEventListener("resize", () => {
     degree[from] += 1;
     degree[to] += 1;
   }
+  const maximumDegree = 6;
+  const connectionRadius = 0.145;
   for (let i = 0; i < points.length; i += 1) {
     const candidates = [];
     for (let j = i + 1; j < points.length; j += 1) {
@@ -143,12 +183,12 @@ window.addEventListener("resize", () => {
       const dy = points[i].y - points[j].y;
       const dz = points[i].z - points[j].z;
       const distance = Math.hypot(dx, dy, dz);
-      if (distance < 0.165) candidates.push([distance, j]);
+      if (distance < connectionRadius) candidates.push([distance, j]);
     }
     candidates.sort((a, b) => a[0] - b[0]);
     for (const [, j] of candidates) {
-      if (degree[i] >= 4) break;
-      if (degree[j] >= 4) continue;
+      if (degree[i] >= maximumDegree) break;
+      if (degree[j] >= maximumDegree) continue;
       edges.push([i, j]);
       degree[i] += 1;
       degree[j] += 1;
@@ -200,6 +240,7 @@ window.addEventListener("resize", () => {
       size: point.size * (0.9 + (depth + 0.35) * 0.35),
       accent: point.accent,
       contour: point.contour,
+      fold: point.fold,
       glow,
       zone: point.zone,
     };
@@ -216,13 +257,15 @@ window.addEventListener("resize", () => {
 
     context.shadowBlur = 0;
     context.lineWidth = 0.7;
-    for (const [fromIndex, toIndex, contourEdge] of edges) {
+    for (const [fromIndex, toIndex, edgeType] of edges) {
       const from = projected[fromIndex];
       const to = projected[toIndex];
-      const opacity = contourEdge
-        ? 0.32
-        : Math.max(0.08, Math.min(0.3, 0.15 + (from.z + to.z) * 0.08));
-      context.lineWidth = contourEdge ? 1 : 0.7;
+      const opacity = edgeType === "contour"
+        ? 0.68
+        : edgeType === "fold"
+          ? 0.44
+          : Math.max(0.18, Math.min(0.4, 0.27 + (from.z + to.z) * 0.09));
+      context.lineWidth = edgeType === "contour" ? 1.35 : edgeType === "fold" ? 1 : 0.68;
       context.strokeStyle = `rgba(67, 72, 82, ${opacity})`;
       context.beginPath();
       context.moveTo(from.x, from.y);
@@ -251,12 +294,13 @@ window.addEventListener("resize", () => {
     context.shadowBlur = 0;
     const depthSorted = [...projected].sort((a, b) => a.z - b.z);
     for (const point of depthSorted) {
-      const opacity = Math.max(0.35, Math.min(0.9, 0.55 + point.z * 0.5));
+      const opacity = Math.max(0.68, Math.min(0.96, 0.8 + point.z * 0.35));
       context.fillStyle = point.accent
         ? `rgba(36, 88, 211, ${opacity})`
         : `rgba(20, 22, 27, ${opacity})`;
       context.beginPath();
-      context.arc(point.x, point.y, point.size + (point.contour ? 0.25 : 0), 0, Math.PI * 2);
+      const structuralSize = point.contour ? 0.35 : point.fold ? 0.18 : 0;
+      context.arc(point.x, point.y, point.size + structuralSize, 0, Math.PI * 2);
       context.fill();
     }
 

@@ -1,4 +1,4 @@
-# ABLITERATED.cloud authentication
+# Auth.md — ABLITERATED.cloud authentication
 
 ABLITERATED.cloud uses revocable Bearer access tokens for the OpenAI-compatible inference API.
 
@@ -27,7 +27,7 @@ The 397B route additionally requires explicit operator cost acknowledgement for 
 
 ## OAuth and agent-discovery status
 
-The public website exposes OAuth-style discovery and anonymous read-only registration for agents that inspect public model metadata. That public credential does not authorize inference. The model API itself currently uses operator-issued Bearer tokens; inference OAuth is not implemented.
+The public website exposes OAuth discovery, anonymous dynamic registration and a real `client_credentials` flow for agents that inspect public model metadata. Its only scope is `public:read`; the resulting credential does not authorize inference. The model API itself currently uses operator-issued Bearer tokens, and inference OAuth is not implemented.
 
 ## Request access
 

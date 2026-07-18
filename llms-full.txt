@@ -74,6 +74,18 @@ Upstream native context claim: 262144
 
 The words "abliterated", "decensored" and "uncensored" are upstream labels and publisher claims, not service guarantees. "Jailbroken" is a broader informal search term; none of the exact four repositories uses it as its technical method. Do not claim zero refusals.
 
+## Source-linked model field notes
+
+- https://abliterated.cloud/blog/qwen3-6-35b-a3b-abliterated/index.md
+- https://abliterated.cloud/blog/ornith-1-0-35b-abliterated/index.md
+- https://abliterated.cloud/blog/qwythos-9b-claude-mythos-5-1m-abliterated/index.md
+- https://abliterated.cloud/blog/ornith-1-0-397b-abliterated-w4a16/index.md
+
+The articles separate exact derivative facts from upstream benchmark claims,
+identify the public publishers without inventing team biographies, and link
+all material technical claims to primary Hugging Face cards, official project
+pages, source repositories, or original research papers.
+
 ## Safe lifecycle
 
 - `mn start MODEL` arms and wakes one selected model.
